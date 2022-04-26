@@ -1,0 +1,9 @@
+#!/bin/sh
+mkdir tmp
+chmod 777 tmp
+mkdir log
+chmod 777 log
+chown www-data.www-data *
+
+
+

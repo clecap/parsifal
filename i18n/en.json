@@ -1,0 +1,8 @@
+{
+  "@metadata": {
+    "authors": ["Clemens H. Cap"]
+  },
+  "parsifalreset":    "Parsifal: Reset cache and log",
+  "parsifalformat":   "Parsifal: Format page for TeX, Print, PDF",  
+  "parsifal-desc": "An extension enabling LaTeX and other high-quality media processing in Mediawiki"
+}

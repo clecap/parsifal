@@ -1,0 +1,152 @@
+<html>
+<head>
+  
+  
+<style>
+input[type="text"] {} 
+
+input[type="radio"] {width:10px;}  
+input[type="radio"] + label {cursor:pointer; margin-right:10px; margin-left:-4px;}  
+  
+form > div {width:100%; display:inline-block;}  
+ 
+label {display:inline-block;margin:5px 5px 5px 5px;} 
+
+.small {width:80px;} 
+ </style>    
+  
+<script>
+
+
+//// deprecate here !!  
+/*  
+function openEmbedded (buf) {
+  var win = window.open ("about:blank", "fresh", "width=600,height=600");
+  var embed = win.document.createElement ("embed");
+  embed.setAttribute ("mime", "application/pdf");
+  embed.setAttribute ("width", "600");
+  embed.setAttribute ("height", "600");
+  var url = URL.createObjectURL (buf);
+  embed.setAttribute ("src", url);
+  win.document.body.appendChild (embed);
+}
+*/
+  
+var BUFFER;  
+  
+window.onmessage = (e) => {
+  console.log (e.data);
+  BUFFER = e.data.buf;
+  var url = URL.createObjectURL ( new Blob ([e.data.buf], {type: "application/pdf"}));
+  console.log (url);
+  document.getElementById("emb").setAttribute ("src", url);
+};  
+  
+
+window.onresize = (e) => {
+  console.log ("resize");
+}  
+  
+  
+window.doSubmit = (e) => {
+  console.log ("doSubmit called");
+  window.opener.sendToWiki (BUFFER);
+  
+  e.preventDefault (); e.stopPropagation();
+}  
+    
+</script>    
+  
+  
+</head>
+<body>
+  
+
+
+<embed width=600 height=600 id="emb" style="width:100%;height:80%;"></embed>
+
+
+
+<form id="myForm" >
+<div>
+<label style="width:80px;">Author(s)5</label>  <input type="text" name="author" placeholder="Lastname, Firstname Middle Initial">
+<label style="" title="Key to be used for citation">Key</label><span>&#x1f4cb;</span>        <input type="text" name="title" placeholder="Key">
+<label>SHA1:</label>                                <input type="text" name="sha1" readonly="true">
+<label>Filename</label>                                                <input type="text" name="filename" readonly="true">
+</div>
+
+<div><label style="width:80px;">Title</label>        <input type="text" name="title" style="width:80%;"></div>
+
+<div id="type">
+  <input type="radio" name="type" value="Article"     id="tArticle">     <label for="tArticle">Journal</label>
+  <input type="radio" name="type" value="Book"        id="tBook">        <label for="tBook">Book</label>
+  <input type="radio" name="type" value="Book"        id="tBook">        <label for="tBooklet">Booklet</label> 
+  <input type="radio" name="type" value="Conference"  id="tConference">  <label for="tConference" title="Reviewed conference contribution">Proc+</label>   
+  <input type="radio" name="type" value="Conference"  id="tConference">  <label for="tConference" title="Reviewed conference contribution">Proc-</label>
+  <input type="radio" name="type" value="PhD"         id="tPhD">         <label for="tPhD" title="PhD Thesis">PhD</label>
+  <input type="radio" name="type" value="Thesis"      id="tThesis">      <label for="tThesis" title="Master, Diploma or Student Thesis">Thesis</label>
+  <input type="radio" name="type" value="Script"      id="tScript">      <label for="tScript" title="Lecture material">Script</label>  
+  <input type="radio" name="type" value="Preprint"    id="tPreprint">    <label for="tPreprint">Preprint</label>
+  <input type="radio" name="type" value="Preprint"    id="tPreprint">    <label for="tPreprint" title="A technical manual">Manual</label>  
+  <input type="radio" name="type" value="Preprint"    id="tPreprint">    <label for="tReport" title="A technical report or white paper">Report</label>  
+  <input type="radio" name="type" value="Preprint"    id="tPreprint">    <label for="tPreprint" title="A webpage, blog page or similar">Webpage</label>  
+</div>
+
+<div>
+  <label>Journal</label>  <input type="text" name="publisher" title="The publishing house, if any">
+  <label>Series</label>  <input type="text" name="publisher" title="The publishing house, if any">
+  <label>Editor</label>     <input type="text" name="editor"    title="" placeholder="If there is an editor">  
+</div>
+
+
+<div>
+  <input type="radio" name="type" value="Journal"     id="tJournal">     <label for="tJournal">A+</label>
+  <label for="tKeywords">Keywords</label> <input type="text" name="type"  placeholder="Some arbitrary keywords to aid in classification"    id="tKeywords">     
+  <label for="tComment">Comment</label> <input type="text" name="type"   placeholder="Personal remarks and comments"   id="tComment">     
+  
+</div>
+
+<div>
+<label>Day</label>        <input type="text" name="date"    maxlen="2" style="width:30px;" placeholder="01"    title="Day of publication">
+<label>Month</label>      <input type="text" name="date"    maxlen="3" style="width:40px;" placeholder="Jan"   title="Month of publication">
+<label>Year</label>       <input type="text" name="year"    maxlen="2" style="width:40px;"placeholder="2021"   title="Year of publication">
+<label>Volume</label>     <input type="text" name="volume"  maxlen="6" style="width:40px;"placeholder="Vol"    title="">
+<label>Issue</label>                                   <input type="text" name="issue"   maxlen="6" style="width:40px;"placeholder="Iss"    title="">
+<label>Part</label>                                    <input type="text" name="part"    maxlen="6" style="width:40px;"placeholder="Part"    title="">
+<label>Pages</label>                                    <input type="text" name="pages"    maxlen="6" style="width:40px;"placeholder="Pages"    title="">
+<label for="tJournal">ISSBN:</label>                    <input type="text" name="type"   class="small"  id="tISSN" placeholder="ISSN or ISBN">      
+<label for="tJournal">arXiv</label>                    <input type="text" name="type"                   id="tarxiv">     
+</div>
+
+<div>
+  <label>DoI</label>        <input type="text" name="date" placeholder="DoI without any http: prefix or similar">
+  <label>URL</label>        <input type="text" name="url" placeholder="Full Url including http(s) where it can be downloaded; if several, seperate by blanks">
+</div
+
+<div> Backlinks::  </div>
+
+Source of citation (imported wiki)
+
+<input type="submit">
+</form>
+
+
+
+
+
+
+<script>
+const form = document.getElementById('myForm');
+form.addEventListener('submit', doSubmit);
+
+</script>
+
+
+
+
+
+
+
+
+</body>
+</html>

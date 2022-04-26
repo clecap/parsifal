@@ -1,0 +1,14 @@
+[
+  {"name": "bibliographic",
+    "columns": [
+      {"name": "bib_hash",        "type": "string",   "comment": "hash value of file",   "options": { "notnull": true }},
+      {"name": "bib_path",        "type": "string",   "comment": "path to file",         "options": { "notnull": true, "length": 255 } }
+    ],
+    "indexes": [
+    {"name": "bibliographic_hash",  "columns": [ "bib_hash" ], "unique": true}
+    ],
+    "pk": [ "bib_hash" ]
+  }
+]
+
+

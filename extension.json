@@ -1,0 +1,127 @@
+{
+  "name":              "Parsifal",
+  "author":            "Clemens H. Cap",  
+  "url":               "https://github.com/clecap/parsifal",
+  "descriptionmsg":    "parsifal-desc",
+  "version":           "1.1.7",
+  "license-name":      "License",
+  "type":              "other",
+  "AutoloadClasses":   {"Parsifal":          "Parsifal.php",
+                        "ApiPush":           "php/Push.php",
+                        "ParsifalReset":     "php/Reset.php",
+                        "ParsifalFormat":    "php/Format.php"                        
+                       }, 
+  "APIModules":        {"push": "ApiPush", "pushimages": "ApiPushImages"},  
+  "Actions":           {"push": "PushAction"},
+
+  "Hooks": {
+    "BeforePageDisplay":               "Parsifal::onBeforePageDisplay",  
+    "ParserFirstCallInit":             "Parsifal::onParserFirstCallInit",
+    "OutputPageBeforeHTML":            "Parsifal::onOutputPageBeforeHTML",
+    "EditPage::showEditForm:initial":  "Parsifal::onEditPageshowEditForminitial",
+    "EditPage::attemptSave:after":     "Parsifal::afterAttemptSave",
+    "SkinTemplateNavigation":          "Parsifal::onSkinTemplateNavigation",
+    "PageContentSaveComplete":         "Parsifal::onPageSaveComplete"
+  },
+  "ResourceModules": {
+    "ext.myExtensionBundleCHC": { 
+        "scripts":      [],
+        "styles":       ["css/latex.css", "css/divskin.css"],
+        "messages":     [],
+        "dependencies": []
+    }
+  },
+  "ResourceFileModulePaths": {  
+    "localBasePath": "",
+    "remoteExtPath": ""
+  },
+  
+  
+  "SpecialPages": {
+    "ParsifalReset":  { "class": "ParsifalReset"  },
+    "ParsifalFormat": { "class": "ParsifalFormat" }  
+  },
+  
+  
+  "ExtensionMessagesFiles": {
+    "ParsifalAlias": "Parsifal.alias.php"
+  },
+  
+  "MessagesDirs":     { "Parsifal": ["i18n"] },
+  
+  
+  
+  
+  "AvailableRights": ["push", "pushadmin", "filepush", "bulkpush"],
+  "GroupPermissions": {
+  	"autoconfirmed": {"push": true, "bulkpush": true, "filepush": true},
+  	"sysop": {"push": true,"bulkpush": true,"filepush": true},
+  	"pusher": {"push": true},
+  	"bulkpusher": {"bulkpush": true,"push": true},
+  	"filepusher": {"filepush": true,"push": true}
+  },
+  
+  
+  
+  "config_prefix": "eg",
+	"config": {
+		"PushTargets": {
+			"description": "List of targets that can be pushed to. The array keys are the target names, and the values are the target urls (path to api.php without the '/api.php' part). Example: $egPushTargets['English Wikipedia'] = 'http://en.wikipedia.org/w';",
+			"value": []
+		},
+		"PushShowTab": {
+			"description": "Show the push action as a tab (if not, it's displayed in the actions dropdown). This only works for skins with an actions dropdown. For others push will always appear as a tab.",
+			"value": false
+		},
+		"PushIncTemplates": {
+			"description": "You can choose to include templates when pushing a page.",
+			"value": false
+		},
+		"PushIncFiles": {
+			"description": "You can choose to push files used in a page.",
+			"value": false
+		},
+		"PushAllowLogin": {
+			"description": "Indicate if login options should be added to the push interface or not.",
+			"value": true
+		},
+		"PushLoginUser": {
+			"description": "Default login data. When set, the values will always be used when there is no login interface. If there is, they will be filled in as default.",
+			"value": ""
+		},
+		"PushLoginPass": {
+			"description": "Default login data. When set, the values will always be used when there is no login interface. If there is, they will be filled in as default.",
+			"value": ""
+		},
+		"PushLoginDomain": {
+			"description": "Default login data. When set, the values will always be used when there is no login interface. If there is, they will be filled in as default.",
+			"value": ""
+		},
+		"PushLoginUsers": {
+			"description": "Default login data per target. Overrides $egPushLoginUser and $egPushLoginPass when specified. Array keys should be the urls assigned in the $egPushTargets array. When set, the values will always be used when there is no login interface. If there is, they will be filled in as default.",
+			"value": []
+		},
+		"PushLoginPasswords": {
+			"description": "Default login data per target. Overrides $egPushLoginUser and $egPushLoginPass when specified. Array keys should be the urls assigned in the $egPushTargets array. When set, the values will always be used when there is no login interface. If there is, they will be filled in as default.",
+			"value": []
+		},
+		"PushLoginDomains": {
+			"description": "Default login data per target. Overrides $egPushLoginUser and $egPushLoginPass when specified. Array keys should be the urls assigned in the $egPushTargets array. When set, the values will always be used when there is no login interface. If there is, they will be filled in as default.",
+			"value": []
+		},
+		"PushBulkWorkers": {
+			"description": "The amount of push 'workers' (simultanious push requests) on Special:Push.",
+			"value": 3
+		},
+		"PushBatchSize": {
+			"description": "The maximum amount of targets to push a page to in one go.",
+			"value": 3
+		},
+		"PushDirectFileUploads": {
+			"description": "This is needed when pushing to a wiki that cannot access the source file (for example from a private wiki to a wiki on the internet).",
+			"value": true
+		}
+	},
+  "manifest_version": 2
+
+}

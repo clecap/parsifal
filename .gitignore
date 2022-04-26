@@ -1,0 +1,19 @@
+# no apple artifacts
+.DS_Store
+.AppleDouble
+# no installable stuff
+annos/node_modules
+# no stuff we might produce
+log/*
+tmp/*
+tmpa/*
+formats_latex/*
+formats_pdflatex/*
+local/build/*
+# no stuff which is only for my eyes
+INTERNAL/*
+# no archives
+*.tar
+.gitOLD
+.gitOLD/*
+._*

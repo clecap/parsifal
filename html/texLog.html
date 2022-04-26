@@ -1,0 +1,131 @@
+<html>
+<head>
+
+<style>
+* {font-family:monospace;}
+#srcContainer {border:2px solid black; border-radius: 10px; height:30%; overflow:scroll; padding:5px;}
+
+#logContainer {border:2px solid black; border-radius: 10px; height:30%; overflow:scroll; padding:5px;}
+  
+.impErr {color:red; font-weight:bold; font-family:monospace;} /* markup class for important parts of the error message */
+  
+</style>
+
+
+</head>
+<body>
+<h1>ThisX is a Parsifal LaTeX Transcript.</h1>
+<h2>Source</h2>
+<div id="srcContainer"></div>
+
+<h2>Log</h2>
+<div id="logContainer"></div>
+
+  
+<script src="../config.js"></script>
+
+
+<script>
+const VERBOSE           = true;
+
+const TRAILER           = "./extensions/Parsifal/tmp/";
+
+
+/* import parameters from config.js global space into local name space */
+const ERROR_PARSER_START = window.ERROR_PARSER_START;    // at this line the error messages relevant for us start
+const ERROR_PARSER_END   = window.ERROR_PARSER_END;      // at this line the error messages relevant for us end
+
+function formatLog (name) {
+  var logContainer = document.getElementById ("logContainer");  // the container into which we fill in the info
+  
+  var url = "../tmpa/" + name + ".log"
+  
+  if (VERBOSE) console.info ("Parsifal: texLog.html: Fetching log information at: " + url);
+  fetch(url).then( function(data) {
+    var reader = data.body.getReader();
+    reader.read().then ( res => { 
+      var txt = new TextDecoder("utf-8").decode(res.value);  
+      
+   //   var analArr = errorParser (txt);
+   //   console.log (analArr);
+          
+      var afterMarker = false;  // status flag, indicates that parser is after the HERE_MARKER
+      var moreImpo    = false;  // and additionally have found a matching error message code
+      var wasMoreImpo = false;  // was it this far more important? Used toidentify first line of higher importance
+      var markerEle;            // remember the marker element to allow scrolling into view
+    
+      txt.split("\n").map( ele => {  // split error messages into line elements <ele>
+        var cont;  // a container element for presenting a single line of the error message
+        var idx;
+        if ( ele.indexOf (ERROR_PARSER_START) != -1 ) {afterMarker = true;}  // line consists of the HERE_MARKER
+      
+        if (afterMarker) {
+          if ( (idx = ele.indexOf ( name + ".tex:"   )) != -1 ) {
+            console.log (ele.substring (idx));
+            idx = ele.indexOf(".tex:");
+            console.log (ele.substring (idx+5));
+            console.log ( parseInt (  ele.substring (idx+5)  )  );   
+            moreImpo = "true";  
+          }   
+        }      
+        if (ele.indexOf (ERROR_PARSER_END) != -1) {afterMarker = false; moreImpo = false; wasMoreImpo = false;} 
+        cont = document.createElement("div");
+        
+        //cont.classList.add ();
+        
+        if (afterMarker){  cont.className = "err";
+          if (moreImpo) {  
+            cont.className = "impErr";    
+            if (!wasMoreImpo) { 
+              markerEle = document.createElement ("hr");
+              logContainer.appendChild (markerEle); }
+            wasMoreImpo = true;}
+        }
+        
+        cont.appendChild ( document.createTextNode (ele) );  // format error element as text node and place into container
+        logContainer.appendChild (cont);  
+      });  // END OF SPLITTING INTO LINES
+      
+    
+      if (markerEle) {markerEle.scrollIntoView (true);}
+   }); // reader
+  }) // end then
+  .catch( function(error) {console.log (error); } );   
+} // end function
+
+
+
+// function which fills in the source of the tex run into this page
+function formatSrc (name) {
+  var srcContainer = document.getElementById ("srcContainer");
+  fetch("../tmpa/" + name + ".tex").then( function(data) {
+    // Here you get the data to modify as you please
+    
+    var reader = data.body.getReader();
+    reader.read().then ( res => { 
+      var txt = new TextDecoder("utf-8").decode(res.value);
+      // console.log (txt);
+      
+    
+    txt.split("\n").map( ele => {      
+      var cont;
+      var idx;
+      
+      var cont = document.createElement ("div");
+      var node = document.createTextNode (ele);
+      cont.appendChild (node);
+      srcContainer.appendChild (cont);
+    });
+    });
+  });
+}
+
+console.log (window.location.search.substring(1));
+formatLog  (window.location.search.substring (1));
+formatSrc  (window.location.search.substring (1));
+
+</script>
+
+
+</body>
+</html>
