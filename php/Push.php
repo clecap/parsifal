@@ -1,5 +1,6 @@
 <?php
 
+// Remains from a test - we rather should move this into a different extension
 
 
 function debugLog ($text) {

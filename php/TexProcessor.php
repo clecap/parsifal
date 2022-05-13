@@ -201,7 +201,7 @@ public static function htmlDecorator ($img, $ar, $tag) {
   if (array_key_exists ("c", $ar) ) {
       $style = "display:none;width:".$size."px;";      
     if ( empty($ar["c"]) ) { return   "<span onclick='toggleNext(event);' title='Toggle collapse state' class='collapseButton'>Collapsed Content</span><div style='$style' class='collapseResult'>".$img."</div>";      }
-    else                   { return   "<span onclick='toggleNext(event);'  title='Toggle collapse state' class='collapseButton'>".$ar['c']."</span><div onclick='toggleImg(event);' style='$style' class='collapseResult'>".$img."</div><span style='clear:left;'></span>";  }
+    else                   { return   "<span onclick='toggleNext(event);' title='Toggle collapse state' class='collapseButton'>".$ar['c']."</span><div onclick='toggleImg(event);' style='$style' class='collapseResult'>".$img."</div><span style='clear:left;'></span>";  }
   }
   
   if (count ($ar) > 0) {
@@ -212,12 +212,12 @@ public static function htmlDecorator ($img, $ar, $tag) {
       self::debugLog ("FIRST ARGUMENT IS: " . print_r ($att, true) . "\n");
       if (!$att) {continue;}
       $name  = (array_key_exists ($att, ATT2NAME)  ? ATT2NAME[$att]  : ATT_DEFAULT_NAME);
-      $styleBtn = (array_key_exists ($att, ATT2STYLE_SPEC) ? ATT2STYLE_SPEC[$att] : ATT_DEFAULT_STYLE_SPEC );  
-      if (str_starts_with ($key, "o-") ) {
+      $styleBtn = (array_key_exists ($att, ATT2STYLE_SPEC) ? ATT2STYLE_SPEC[$att] : ATT_DEFAULT_STYLE_SPEC ); 
+      if (str_starts_with ($key, "o-") ) {               // attribute  o-*
         $style = "display:block;width:".$size."px;";
         return   "<span onclick='toggleNext(event);' title='Toggle visibility' class='collapseButton' style='$styleBtn'>$name</span><div onclick='toggleImg(event);' style='$style' class='collapseResult'>".$img."</div>";
       }
-      if (str_starts_with ($key, "c-") ) {
+      if (str_starts_with ($key, "c-") ) {              // attribute c-*
         $style = "display:none;width:".$size."px;";  
         return   "<span onclick='toggleNext(event);' title='Toggle visibility' class='collapseButton' style='$styleBtn'>$name</span><div onclick='toggleImg(event);' style='$style' class='collapseResult'>".$img."</div>";
        }
@@ -335,13 +335,8 @@ public static function texPreviewEndpoint () {
   $CACHE_PATH = CACHE_PATH;
   
   TeXProcessor::ensureCacheDirectory ();  // TODO: all the time ??? 
-  
-  // TODO: add a log link when the compilation fails completely
-  // TODO: add an indication that the Tex error lof might have interesting stuff even when we get a pdf / dvi
-  
-  self::ensureEnvironment ();
-  
-  umask (0077);   // preview files should be generated at 600 permission
+  TeXProcessor::ensureEnvironment ();  
+  umask (0077);                             // preview files should be generated at 600 permission
   
   $body = file_get_contents("php://input");                     // get the input; here: the raw body from the request
   $body = base64_decode ($body);                                // in an earlier version we used, unsuccessfully, some conversion, as in:   $body = iconv("UTF-8", "ISO-8859-1//TRANSLIT", $body); 
@@ -355,8 +350,8 @@ public static function texPreviewEndpoint () {
   if ($VERBOSE) {self::debugLog ("texPreviewEndpoint: sees tag: " . $tag . " widthLatexCm: ". $widthLatexCm . "  availablePixelWidth: ". $availablePixelWidth . " \n");}
   
   try {
-    $hash = "NOT YET SET, CRASHED TOO EARLY";                // we want a sane value in case self__generateTex crashes for some reason
-    $hash = self::generateTex ($body, $tag, "pc_pdflatex");  // prepare for a precompiled pdflatex run
+    $hash = "NOT YET SET, CRASHED TOO EARLY";                                      // we want a sane value in case self::generateTex crashes for some reason
+    $hash = self::generateTex ($body, $tag, "pc_pdflatex");                        // prepare for a precompiled pdflatex run
     $retval = self::Tex2Pdf ($hash, "_pc_pdflatex", "endpoint");                   // do a precompiled pdflatex run
     
     $para = json_decode ( $paraText, true);                  // decode parameter object (which we might get from the endpoint)
@@ -381,8 +376,24 @@ public static function texPreviewEndpoint () {
     header ("X-Parsifal-Available-Pixel_Width-Was:".$availablePixelWidth);
     header ("X-Parsifal-Gamma-Used:".$gamma);
     header ("X-Parsifal-Scale-Used:".$gamma);  
-    header ("X-Parsifal-Error:". ($retval == 0 ? "None" : "Soft") );  
-
+    
+    if ($retval == 0) { header ("X-Parsifal-Error:None"); }
+    else              { header ("X-Parsifal-Error:Soft"); 
+            $insideError  = false;
+            $errorDetails = "";
+            foreach ($retval as $infoline) {
+              if ( strcmp ($infoline, ERROR_PARSER_START) == 0) {$insideError = true; continue;}
+              if ( strcmp ($infoline, ERROR_PARSER_END  ) == 0) {$insideError = false; continue;}
+              if ($insideError) {
+                $hpos = strpos ($infoline, $hash);
+                if ($hpos) { $infoline = substr ($infoline, $hpos + 48); }
+                $errorDetails .= $infoline;}
+            }
+      
+            $errorDetails = str_replace ( array ("\r", "\n", "\"",  ":"), "", $errorDetails); 
+      
+                        header ("X-Parsifal-ErrorDetails:".$errorDetails);  // only: if we want to send more detailed errors to client alread in case of soft errors   
+                      }  
     header("Content-type:image/png");  header("Content-Length: " . filesize($name));  // set MANDATORY http reply headers
     fpassthru($fp); 
     fclose ($fp);
@@ -632,11 +643,10 @@ private static function Tex2Pdf ($hash, $inFinal, $note) {
   $output = null;  $retval = null;   
   $res = exec ( $cmd, $output, $retval );    
   if ($VERBOSE) { $endTime = microtime (true); $duration = $endTime - $startTime; self::debugLog ("  completed Tex2Pdf ($note). DURATION: $duration RETURN: $retval \n"); }   
-  
-  file_put_contents ( $CACHE_PATH . $hash. "$inFinal.mrk", ( $retval != 0 ? "ERROR" : "" ) ); // write ERROR into .mrk file if there is an error
+  file_put_contents ( $CACHE_PATH . $hash. "$inFinal.mrk", ( $retval != 0 ? "ERROR" : "" ) ); // write ERROR into .mrk file if there is an error to know about this later when we only access file system
   if (! file_exists ( "$CACHE_PATH$hash$inFinal.pdf") )  {
     throw new Exception ("Tex2Pdf: Did not generate $CACHE_PATH$hash$inFinal.pdf for this content. Probably TeX error or transient problem while editing.");} 
-  return $retval;
+  return ($retval == 0 ? 0 : $output);
 }
 
 
