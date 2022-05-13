@@ -42,16 +42,23 @@ function pageContainsTex () { if ( ! REG_ANY.test (editBox.value) ) { console.lo
 
 // defines a function which is used by <script> tags injected in TexProcessor for rendering collapsibles
 function toggleNext (e) { 
-  const ele = e.target.nextSibling; 
- // if (ele.style.display != "block") {ele.style.display = "block";} else {ele.style.display = "none";} 
-  $(ele).slideToggle(150);
-  e.target.classList.toggle ("collapseButtonToggled");
+  const button = e.target;
+  const ele    = e.target.nextSibling;   
+  // console.log ("button: ", button); console.log ("element: ", ele);
+  $(ele).slideToggle(150);                               // slide open
+  button.classList.toggle ("collapseButtonToggled");     // show button markup to better identify buttons of open areas
+  if (!e.shiftKey) {                                     // no shift: close all the others
+    $(".collapseResult").not(ele).hide();
+    $(".collapseButtonToggled").not(button).removeClass ("collapseButtonToggled");
+  }  
 }
 
 function toggleImg (e) { 
- // if (ele.style.display != "block") {ele.style.display = "block";} else {ele.style.display = "none";} 
+  const ele = e.currentTarget; 
+  const button = e.currentTarget.previousSibling;
+  console.log ("button: ", button); console.log ("element: ", ele);  
   $(ele).slideToggle(150);
-  e.target.previousSibline.classList.toggle ("collapseButtonToggled");
+  button.classList.toggle ("collapseButtonToggled");
 }
 
 
@@ -69,9 +76,64 @@ function adjust (wid) {  // for example "15em"
 
 
 
+function editPreviewPatch () {  // the clutch to PHP; we may adapat it to use CodeMirror, textarea or whatever client side editor we desire
+  initializeTextarea();
+  let params = (new URL (document.location)).searchParams;
+  if (params.get("editormode") == "codemirror") {
+    initializeCodeMirror ();  // additionally initialize a code mirror instance
+  }
+}
+
+
+
+
+function initializeCodeMirror () {
+  var myTextArea   = document.getElementById("wpTextbox1");
+  var myCodeMirror = CodeMirror.fromTextArea(myTextArea, {
+    lineNumbers:true, matchBrackets:true
+  });    // returns an abstract CodeMirror object
+
+  var cmElement = document.querySelector (".CodeMirror");
+  console.error (cmElement);
+
+  
+  cmElement.myFontSize = 14; cmElement.style.fontSize = cmElement.myFontSize + "pt";  cmElement.CodeMirror.refresh();
+  cmElement.addEventListener ("keydown", (e) => { // console.log ("Key pressed: ", e.key);
+    if (e.metaKey && (e.key=="+" || e.key=="-") ) {e.preventDefault (); e.stopPropagation(); 
+      cmElement.myFontSize += ( e.key=="+" ? 2 : -2 ); cmElement.style.fontSize = cmElement.myFontSize + "pt"; 
+      cmElement.CodeMirror.refresh();            // needed by code mirror after a font change
+    }  });
+
+
+  var storeResize = true;
+  
+  const wasResized = () => {
+    const VERBOSE = false;
+    var textareaWrapper =  cmElement;     // WAS : document.getElementById ("textarea-wrapper");
+    var iepc            = document.getElementById ("inline-edit-preview-container");
+    if (VERBOSE) console.log (`SIZE CHECK: textarea-wrapper = ${textareaWrapper.clientHeight} and inlineEditpreviewcontainer = ${iepc.clientHeight}`  );
+    iepc.style.height = (textareaWrapper.clientHeight - 2) + "px";
+    shouldReset   = true;  // next time we call the processing function, do a complete reset of all images (due to the changed resolution in the reset
+    if (storeResize) {
+      if (VERBOSE) {console.log ("Parsifal:helper.js: resize observer storing textarea dimensions ");}
+      //window.localStorage.setItem ("textareaWidth", textarea.offsetWidth);
+      //window.localStorage.setItem ("textareaHeight", textarea.offsetHeight);
+    } 
+    waitBeforeInvoke (300);  // invoke a redisplay of the preview after some waiting time
+    if (status == 1) { previewContainer.style.height = "" + (newEditContainer.clientHeight - wrapper.clientHeight) + "px" };
+  };
+
+  new ResizeObserver (wasResized).observe (cmElement);          // NEW: cmElement
+  new ResizeObserver (wasResized).observe (document.body);
+
+
+}
+
+
+
 
 // Apply path to the edit page of Mediawiki. Called by <script> tag injected in Parsifal.php: onEditPageshowEditForminitial
-function editPreviewPatch() { 
+function initializeTextarea() { 
   if (! pageContainsTex()) {return;}  // do not patch the edit page if the page contains no tex code
   
   // generate a colored tab which earmarks the textarea of the edit field for a resize
@@ -143,7 +205,7 @@ function editPreviewPatch() {
   }
   
   // pick up the textarea
-  var textarea = document.getElementById("wpTextbox1");
+  var textarea = document.getElementById("wpTextbox1");  
   if (window.localStorage.getItem ("textareaWidth")) {textarea.style.width = window.localStorage.getItem ("textareaWidth") + "px";}
   
   var textareaOldOffsetWidth = textarea.offsetWidth, textareaOldOffsetHeight = textarea.offsetHeight;
@@ -170,8 +232,8 @@ function editPreviewPatch() {
   new ResizeObserver (wasResized).observe (document.body);
 
   textarea.style.resize = "horizontal";  
-  textarea.myFontSize = 14; textarea.style.fontSize = textarea.myFontSize + "pt";
   
+  textarea.myFontSize = 14; textarea.style.fontSize = textarea.myFontSize + "pt";
   textarea.addEventListener ("keydown", (e) => { // console.log ("Key pressed: ", e.key);
     if (e.metaKey && (e.key=="+" || e.key=="-") ) {e.preventDefault (); e.stopPropagation(); textarea.myFontSize += ( e.key=="+" ? 2 : -2 ); textarea.style.fontSize = textarea.myFontSize + "pt"; }  });
   
@@ -384,7 +446,7 @@ function heightAdjust () {
  *
  */
 
-
+  
 
 var nextNumberIssuing = 0;    // this is the number of the next request to be issued
 var xhrReg = {};              // register old xmlhttprequests for cancellation or superfluous stuff; maps number of request to request xhr object
@@ -392,42 +454,40 @@ var xhrReg = {};              // register old xmlhttprequests for cancellation o
 
 // when the client receives any response from the preview endpoint: patch the information into the area where we show the preview
 function receivedEndpointResponse(e) {
-  const VERBOSE = true;
-  var target = e.target;  
-  var img    = target.img;
+  const VERBOSE = false;
+  var target    = e.target;  
+  var img       = target.img;
   
   ERROR.clearError ();    // remove error message which might still be there from an earlier invocation
+  
   if (VERBOSE) {console.log (`received an endpointResponse, it is for request=${target.number}, img is showing=${target.img.showing}, pending are ${target.img.pending.length} requests: ${img.pending.map ( ele => ele.number).join( )}`);}
   if (VERBOSE) {target.img.pending.forEach ( ele => {console.log (`  request=${ele.number} with readyState= ${ele.readyState}`);}  );  }  // only if we want even more details
 
-  img.pending = img.pending.filter ( x => {if (x.number < target.number) {x.abort(); 
-    if (VERBOSE) {console.log (`  aborting as outdated the pending request ${x.number}`);}
-    return false;} else {return true;} });
-  if (target.number < img.showing)  { if (VERBOSE) {console.log (`receivedEndpointResponse: discarding old result. We received ${target.number}. We show currently ${img.showing}`);}  return;}
+  img.pending = img.pending.filter ( x => {if (x.number < target.number) {  if (VERBOSE) {console.log (`receivedEndpointResponse: ABORTING as outdated the pending request ${x.number}`);}
+    x.abort();  return false;} else {return true;} });
+  if (target.number < img.showing)  { if (VERBOSE) {console.log (`receivedEndpointResponse: DISCARDING an old result. We received ${target.number}. We show currently ${img.showing}`);}  return;}
     
-  var hash = target.getResponseHeader ('X-Latex-Hash');
-  var type = target.getResponseHeader ('Content-Type');
-  var len  = target.getResponseHeader ('Content-Length');
+  // pick up headers we are interested in
+  var hash         = target.getResponseHeader ('X-Latex-Hash');
+  var type         = target.getResponseHeader ('Content-Type');
+  var len          = target.getResponseHeader ('Content-Length');
+  var errorStatus  = target.getResponseHeader ("X-Parsifal-Error");  
+  var errorDetails = target.getResponseHeader ("X-Parsifal-ErrorDetails");
 
-  // pick up any headers which might be present
+  // pick up any headers which might be present and useful for debugging
   if (VERBOSE) {
     var widthLatexCmWas        = target.getResponseHeader ("X-Parsifal-Width-Latex-Cm-Was");
     var availablePixelWidthWas = target.getResponseHeader ("X-Parsifal-Available-Pixel_Width-Was");
     var dpiUsed                = target.getResponseHeader ("X-Parsifal-Dpi-Used");
     var gammaUsed              = target.getResponseHeader ("X-Parsifal-Gamma-Used");
-    var errorStatus            = target.getResponseHeader ("X-Parsifal-Error");
-    
-    if (VERBOSE) {console.info (`receivedEndpointResponse: of type=${target.response.type} size=${target.response.size} length=${len} hash=${hash}`);    
-      console.log (`receivedEndpointResponse from ${target.responseURL} with headers: hash=${hash}, type=${type}, len=${len}, readyState=${target.readyState}, status=${target.status} and target.response=`, target.response);   
-      console.log (`  additional headers received for check: widthLatexCmWas=${widthLatexCmWas} availablePixelWidthWas=${availablePixelWidthWas} dpiUsed=${dpiUsed} gammaUsed=${gammaUsed}`);
-      console.log (`  error status: X-Parsifal-Error=${errorStatus}`);
-    } 
+    console.info (`receivedEndpointResponse: of type=${target.response.type} size=${target.response.size} length=${len} hash=${hash}`);    
+    console.log  (`receivedEndpointResponse from ${target.responseURL} with headers: hash=${hash}, type=${type}, len=${len}, readyState=${target.readyState}, status=${target.status} and target.response=`, target.response);   
+    console.log  (`  additional headers received for check: widthLatexCmWas=${widthLatexCmWas} availablePixelWidthWas=${availablePixelWidthWas} dpiUsed=${dpiUsed} gammaUsed=${gammaUsed}`);
   }
    
   showLogLinks (hash);                                                                    // show links to log file of the Tex run   
    
-   if (errorStatus == "Hard") {
-     console.error ("received X-Parsifal-Error = Hard"); // expecting a mime type of text
+   if (errorStatus == "Hard") {     console.error ("receivedEndpointResponse: received X-Parsifal-Error = Hard. NO result to display. Will display error message instead");
      // higher up we had to request a responseType of "blob" (for the image case); thus .responseText is not available now and we must convert and wait for Promise !
      target.response.text().then ( myText => {
        if (target.status != 200) { myText = "Server responded: " + target.status + " " + target.statusText + "\n" +  myText; } 
@@ -442,7 +502,14 @@ function receivedEndpointResponse(e) {
      //// TODO: some stuff ??
      return;
    }
-   else if (errorStatus == "Soft") { ERROR.showError ("Soft error. Will probably vanish when completing Latex command.", "Soft"); }
+   else if (errorStatus == "Soft") { 
+      if (!errorDetails) {errorDetails = "Soft error. Will probably vanish when completing Latex command";}
+      ERROR.showError ( errorDetails, "Soft"); 
+      
+      // WE MIGHT request some error information 
+    
+    }
+    
   
   
   // handle response depending on the MIME type header
@@ -466,15 +533,9 @@ function receivedEndpointResponse(e) {
   else {console.error ('faulting-in handle received an illegal type ' + type + ' for hash=' + hash);}    
   
 
-
-
-
-
   if (VERBOSE) {console.log (`at the end of the response handler for request=${target.number}, img is showing=${target.img.showing} and pending are still ${target.img.pending.length} requests: ${img.pending.map ( ele => ele.number).join( )}`);}
   if (VERBOSE) {target.img.pending.forEach ( ele => {console.log (`  request=${ele.number} with readyState= ${ele.readyState}`);}  );  } // only if we want even more details
   
-
-
 };
 
 // TODO: what is this now ???? deprecate maybe ??????? change ???????
@@ -766,14 +827,14 @@ var uiChunks = [];          // the UI elements which have been constructed from 
 
 */
  
-
-// given a text portion txt, return the text carrier node implementing it
+ 
+// given a text portion txt, return the text carrier element implementing it; returned value MUST be a node
 function makeTextCarrierNode (txt) {
   txt = txt.replace (/^\x20*\n/gm, "");    // remove lineas which only consist of blanks and newline  
   var node;
-  if (txt.trim().length == 0)            { node = document.createComment (" intentionally empty ");                   }
-  else if (txt.trim().startsWith ("="))  { node = document.createElement ("div"); node.innerHTML = escapeHtml (txt);  }    // mediawiki heading line
-  else                                   { node = document.createElement ("pre"); node.innerHTML = escapeHtml (txt);  }    // other text  
+  if (txt.trim().length == 0)            { node = document.createElement ("span"); node.innerHTML = "White Space";     }                  
+  else if (txt.trim().startsWith ("="))  { node = document.createElement ("div");  node.innerHTML = escapeHtml (txt);  }    // mediawiki heading line
+  else                                   { node = document.createElement ("pre");  node.innerHTML = escapeHtml (txt);  }    // other text  
   return node;  
 } 
 
@@ -954,8 +1015,7 @@ function processEditDoNG (resolve, reject) {
 
 
 function synchEditorToPreview (chunks, uiChunks) {
-  var pos = getCursor (editBox);
-  console.log ("Cursor position reported at: ", pos);
+  var pos   = getCursor (editBox);    console.log ("Cursor position in editbox reported at line: ", pos);
   var found = null;
   for (var i = 0; i < chunks.arr.length; i++) { if ( chunks.arr[i].start <= pos && pos <= chunks.arr[i].end ) { found = i; break;}} 
   // console.log ("cursor at", pos,  "index=", i, "start=", chunks.arr[i].start, "end=", chunks.arr[i].end, "tag=", chunks.arr[i].tag, "\n", chunks.arr[i].chunk); 
@@ -1035,6 +1095,8 @@ const ERROR = ( ( ) => {
   
   return {showError, clearError};
 })();
+
+
 
 
 function showLogLinks (hash) {

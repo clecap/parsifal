@@ -17,10 +17,15 @@ class Parsifal {                            // glue class of the extension
   public static function onParserFirstCallInit( Parser $parser ) {                                    // Register parser callback hooks
     $VERBOSE = true;
     if ($VERBOSE) {TeXProcessor::debugLog( "Parsifal::onParserFirstCallInit for ".$parser->getTitle().  " \n");}
+    
+    if (property_exists ($parser, "calledFromParsifalFullPage") && $parser->calledFromParsifalFullPage) {
+        $parser->setHook ( 'block',            function ($in, $ar, $parser, $frame) { return "<div style='width:619px;color:red;'>---------------" . $in . "</div>";  }    );         // implement a <block> construct
+
+        return;
+    }
+    
     $parser->setHook ("amsmath", function  ($in, $ar, $parser, $frame)  { return  TeXProcessor::lazyRender ($in, $ar, "amsmath", $parser);} );
-    
-    //foreach (TAGS as $key => $tag) { $parser->setHook ($tag, function  ($in, $ar, $parser, $frame) use ($tag) { return  TeXProcessor::lazyRender ($in, $ar, $tag, $parser);} ); }
-    
+    //foreach (TAGS as $key => $tag) { $parser->setHook ($tag, function  ($in, $ar, $parser, $frame) use ($tag) { return  TeXProcessor::lazyRender ($in, $ar, $tag, $parser);} ); } // TODO !!
     $parser->setHook ( 'block',            function ($in, $ar, $parser, $frame) { return  Parsifal::block ($in, $ar);}    );         // implement a <block> construct
   }
 
@@ -32,10 +37,8 @@ class Parsifal {                            // glue class of the extension
     if( is_object( $wgTitle ) && $wgUser->isLoggedIn()  ) {
       //  $actions['views']['email'] = array( 'text' => wfMessage( 'email' )->text(), 'class' => false, 'href' => $url );  // show on main line CHC
       //$actions['actions']['purge'] = array(  'class' => false, 'href' => "" );  // show under "more" button  CHC
-      $actions['actions']['rebuild'] = array(  'class' => false, 'href' => "" );  // show under "more" button  CHC        // href can be a javascript: URL
-      
-      $actions['actions']['Clear Parsifal Log'] = array(  'class' => false, 'href' => "javascript:alert(1);" );  // show under "more" button  CHC    
-      $actions['actions']['Clear Parsifal Cache'] = array(  'class' => false, 'href' => "" );  // show under "more" button  CHC  
+      $actions['actions']['rebuild']  = array(  'class' => false, 'href' => "" );  // show under "more" button  CHC        // href can be a javascript: URL
+      $actions['actions']['Fullpage'] = array(  'text' => "FullPage", 'class' => false, 'href' => $wgTitle->getLocalURL ('action=fullpage') );  // show under "more" button  CHC        // href can be a javascript: URL      
 
    ////  $actions['actions']['push'] = array ('text' => wfMessage( 'push-tab-text' )->text(), 'class' => false, 'href' => $wgTitle->getLocalURL( 'action=push' ) );
                      
@@ -85,12 +88,39 @@ class Parsifal {                            // glue class of the extension
     return $vars;
   }
 
-  // when we edit a page, intercept the edit process via javascript and insert an edit preview if appropriate
+  // inject a section action for editing the section with code mirror
+  public static function onSkinEditSectionLinks ( $skin, $title, $section, $tooltip, &$links, $lang ) {
+    // die (print_r ($links, true));
+    $links['parsifaledit'] = [
+      'targetTitle' => $title,
+      'text' => "edit CM",
+       'attribs' => ["title" => "Edit with Code Mirror"],
+       'query' => array( "action" => "edit", "section" => $section, "editormode" => "codemirror" ),
+       'options' => array(),
+    ];
+  }
+
+
+  // when we edit a page, intercept the edit process via javascript and insert an edit preview (if appropriate)
   public static function onEditPageshowEditForminitial ( EditPage &$editPage, OutputPage $output) {
      // the functionality of preventing Latex preview since we have no Latex on this page is done in editpreviewPatch() in helper.js Javascript
     $output->addJSConfigVars ( 'Parsifal', Parsifal::prepareJSConfig() );             // export configuration to HTML code for access via Javascript
-    $editPage->editFormTextAfterWarn = "<script>editPreviewPatch();</script>";  // immediately after display of edit UI patch it for TeX preview
+    
+    if (false) { // version without Codemirror
+      $editPage->editFormTextAfterWarn = "<script>editPreviewPatch();</script>";  // immediately after display of edit UI patch it for TeX preview
+    }
+    else {       // version which also offers Codemirror as editor
+      $myHtml  = "<script src='extensions/Parsifal/vendor/codemirror/codemirror-5.65.3/lib/codemirror.js'></script>";
+      $myHtml .=  "<link rel='stylesheet' href='extensions/Parsifal/vendor/codemirror/codemirror-5.65.3/lib/codemirror.css'></script>";
+      $myHtml .=  "<link rel='stylesheet' href='extensions/Parsifal/codemirror/codemirror-parsifal.css'></script>";      
+      $myHtml .=  "<script src='extensions/Parsifal/vendor/codemirror/codemirror-5.65.3/mode/stex/stex.js'></script>";
+      $myHtml .=  "<script src='extensions/Parsifal/vendor/codemirror/codemirror-5.65.3/addon/edit/matchbrackets.js'></script>";      
+      $myHtml .=  "<script>editPreviewPatch();</script>";
+      $editPage->editFormTextAfterWarn = $myHtml;
+    }
+    
   }
+  
   
   // this hook is used to ensure that after editing an included template in the MediaWiki namespace the file is copied back to the file system
   // this is necessary since the templates must be picked up from the file system due to the manner how the preview endpoint is constructed

@@ -102,29 +102,31 @@ const LATEX_COMMAND    =  PREFIX_ERROR . " " . LATEX_BINARY . "  --interaction=n
 const PDFLATEX_COMMAND =  PREFIX_ERROR . " ". PDFLATEX_BINARY . " --interaction=nonstopmode -file-line-error-style ";
 
 const NODE_SCRIPT      = __DIR__."/annos/offline.mjs";                            // path to the offline.mjs script
-const PDF2HTML              = NODE_BINARY." ".__DIR__."/annos/annoHtml.js ";
+const PDF2HTML         = NODE_BINARY." ".__DIR__."/annos/annoHtml.js ";
 
 /*** System dependent components used in the filesystem path for php ***/
 const TEMPLATE_PATH        =  __DIR__."/template/";                 // path to the template directory, relative to the installation path $IP  must end with a slash
 const LATEX_FORMAT_PATH    =  __DIR__."/formats_latex/";     
 const PDFLATEX_FORMAT_PATH =  __DIR__."/formats_pdflatex/";     
+const JS_PATH              =  __DIR__."/js/";                                             // path to the directory containing javascript
 
 /*** The path for the cache ***/
 const CACHE_PATH    =  __DIR__."/tmpa/";                                             // path to the temporary cache directory, relative to the installation path $IP  must end with a slash
 $CACHE_PATH         = CACHE_PATH;                                                    // moving this from a const to a $ since PHP disallows consts in string extrapolations
 const CACHE_URL     = "/extensions/Parsifal/tmpa/";                                  // URL relative to scriptPath, MUST end on /  // WAS:    /extensions/Parsifal/tmp/
 
-
 /*** Some Log Paths ***/
 const LOG_PATH      =  __DIR__."/log/mylog";                                       // path to log file
-const ERR_PATH      =  __DIR__."/log/errors";                                      // path to log file
-const JS_PATH       =  __DIR__."/js/";                                             // path to the directory containing javascript
+const ERR_PATH      =  __DIR__."/log/errors";                                      // path to log file  // TODO: do we actually need this ???
+
+
 
 
 // map collapsible attributes c-* and o-* to specific names, if existing
 // do this serverside (i.e. compile time) and not clientside (i.e. run time) for page-control by author 
 const ATT2NAME = array (
   "proof"    => "Proof",     "beweis"    => "Beweis",
+  "notation" => "Notation", 
   "example"  => "Example",   "beispiel"  => "Beispiel",
   "remark"   => "Remark",    "bemerkung" => "Bemerkung",
   "note"     => "Note"
@@ -138,7 +140,7 @@ const ATT2STYLE_SPEC = array (
   "note"      =>  "background-color:AliceBlue;"
 );
 
-const ATT_DEFAULT_STYLE_SPEC = "background-color:white;";
+const ATT_DEFAULT_STYLE_SPEC = "background-color:Bisque;";
 const ATT_DEFAULT_NAME = "Info";
 
 
