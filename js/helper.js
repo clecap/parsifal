@@ -265,11 +265,6 @@ function initializeTextarea() {
 
 
 
-
-
-
-
-
 // if Javascript is notified that an image is missing, we call an endpoint which purges the page from the cache and rebuilds the TeX structures
 // if the rebuild fails, we get notified via usual error notification mechanism
 // however, we must purge the page only ONCE not for every missing images

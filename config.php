@@ -111,9 +111,14 @@ const PDFLATEX_FORMAT_PATH =  __DIR__."/formats_pdflatex/";
 const JS_PATH              =  __DIR__."/js/";                                             // path to the directory containing javascript
 
 /*** The path for the cache ***/
-const CACHE_PATH    =  __DIR__."/tmpa/";                                             // path to the temporary cache directory, relative to the installation path $IP  must end with a slash
+/* NOTE: we want this outside of extension/Parsifal since this can grow to a very large number of files and then we will have problems when 
+   invoking a directory caching editor on extension/Parsifal */
+const CACHE_PATH    =  __DIR__."/../../parsifal-cache/";                             // path to the temporary cache directory, must end with a slash
 $CACHE_PATH         = CACHE_PATH;                                                    // moving this from a const to a $ since PHP disallows consts in string extrapolations
-const CACHE_URL     = "/extensions/Parsifal/tmpa/";                                  // URL relative to scriptPath, MUST end on /  // WAS:    /extensions/Parsifal/tmp/
+const CACHE_URL     = "/parsifal-cache/";                                            // URL relative to scriptPath, must end with a slash /
+
+
+
 
 /*** Some Log Paths ***/
 const LOG_PATH      =  __DIR__."/log/mylog";                                       // path to log file
@@ -135,7 +140,7 @@ const ATT2NAME = array (
 const ATT2STYLE_SPEC = array (
   "proof"     =>  "background-color:yellow;", 
   "notation"  =>  "background-color:salmon;",
-  "example"   =>  "background-color:green;",
+  "example"   =>  "background-color:PaleGreen;",
   "remark"    =>  "background-color:lightblue;",
   "note"      =>  "background-color:AliceBlue;"
 );

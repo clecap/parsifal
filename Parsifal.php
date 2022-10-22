@@ -37,10 +37,10 @@ class Parsifal {                            // glue class of the extension
     if( is_object( $wgTitle ) && $wgUser->isLoggedIn()  ) {
       //  $actions['views']['email'] = array( 'text' => wfMessage( 'email' )->text(), 'class' => false, 'href' => $url );  // show on main line CHC
       //$actions['actions']['purge'] = array(  'class' => false, 'href' => "" );  // show under "more" button  CHC
-      $actions['actions']['rebuild']  = array(  'class' => false, 'href' => "" );  // show under "more" button  CHC        // href can be a javascript: URL
-      $actions['actions']['Fullpage'] = array(  'text' => "FullPage", 'class' => false, 'href' => $wgTitle->getLocalURL ('action=fullpage') );  // show under "more" button  CHC        // href can be a javascript: URL      
+      $actions['actions']['rebuild']  = array(  'text'=> "Rebuild",   'class' => false, 'href' => "" );  // show under "more" button  CHC        // href can be a javascript: URL
+      $actions['actions']['Fullpage'] = array(  'text' => "FullPage", 'title' => 'Download a Latex version', 'class' => false, 'href' => $wgTitle->getLocalURL ('action=fullpage') );  // show under "more" button  CHC        // href can be a javascript: URL      
 
-   ////  $actions['actions']['push'] = array ('text' => wfMessage( 'push-tab-text' )->text(), 'class' => false, 'href' => $wgTitle->getLocalURL( 'action=push' ) );
+  
                      
     }
     return true;
@@ -148,7 +148,7 @@ class Parsifal {                            // glue class of the extension
           $index = strpos ($template, "\begin{document}");
           $templatePrecompileSrc = substr ($template, 0, $index);
           
-          $templatePrecompileSrc = preg_replace ( '/(^<pre>\s*$)|(<^\/pre>\s*$)/m', "", $templatePrecompileSrc );         
+          $templatePrecompileSrc = preg_replace ( '/(^<pre>\s*$)|(<^\/pre>\s*$)/m', "", $templatePrecompileSrc );   // remove <pre> ... </pre> which improves display of page
           $templatePrecompileSrc = Parsifal::injectTemplate ($templatePrecompileSrc);
           
           file_put_contents( "$LATEX_FORMAT_PATH$shortName.tex", $templatePrecompileSrc, LOCK_EX);    

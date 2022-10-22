@@ -17,3 +17,5 @@ INTERNAL/*
 .gitOLD
 .gitOLD/*
 ._*
+# do not include vendor stuff straight away
+vendor/*

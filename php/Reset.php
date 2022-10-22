@@ -15,7 +15,8 @@ class ParsifalReset extends FormSpecialPage {
     if (! $this->getUser()->isAllowed ("resetParsifal") ) {return false;}                                       // check for permission "resetParsifal" 
     $dir = new DirectoryIterator( CACHE_PATH );                                                                 // iterate the CACHE_PATH
     foreach ($dir as $fileinfo) {if (!$fileinfo->isDot()) {unlink ( CACHE_PATH . $fileinfo->getFilename());} }  // and unlink all contained files
-    unlink ( LOG_PATH );                                                                                        // unlink the main log
+    if ( file_exists ( LOG_PATH ) ) {unlink ( LOG_PATH );}                                                      // unlink the main log (only if it exists - to prevent any error messages from being displayed)
+    
   }
 
   public function getFormFields()  {

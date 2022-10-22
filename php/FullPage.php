@@ -5,17 +5,12 @@
 
 
 function debugLog ($text) {
-  if($tmpFile = fopen( "extensions/Parsifal/log/FullPageLog", 'a')) {fwrite($tmpFile, $text);  fclose($tmpFile);} 
+  if($tmpFile = fopen( "extensions/Parsifal/log/FullPageLog", 'a')) {fwrite($tmpFile, $text);  fclose($tmpFile);}   // TODO: log file into config.php !!
   else {throw new Exception ("debugLog in Push could not log"); }
 }
 
 
 debugLog ("Hallo Full Page");
-
-
-
-
-
 
 
 

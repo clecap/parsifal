@@ -103,16 +103,16 @@ public static function lazyRender ($in, $ar, $tag, $parser) {
   $VERBOSE = true;
 
 try {
-  $timestamp = strftime ("%d.%m.%Y at %H:%M:%S", time() );      // want a timestamp in the img tag on when the page was translated for debugging purposes
-  if ($VERBOSE) {$startTime = microtime (true); self::debugLog ("lazyRender called at: $timestamp for pageTitle " . $parser->getTitle()."  ". substr($in, 1, 20) . "\n");}
+  $timestamp = strftime ("%d.%m.%Y at %H:%M:%S", time() );         // want a timestamp in the img tag on when the page was translated for debugging purposes
+  if ($VERBOSE) {$startTime = microtime (true); self::debugLog ("lazyRender called at: $timestamp for pageTitle " . $parser->getTitle()."  Page starts with: ". trim(substr(trim($in), 0, 20)) . "\n");}
   
   self::ensureCacheDirectory ();     
   self::ensureEnvironment ();       // TODO: move up and out - optimization
 
   // IMPORTANT: for consistency with the Javascript pickup and parse mechanism we need to remove everything up to and including the first newline - we MUST get the same hash value in both cases and for identical rendering this must be ignored by latex
-  $startingAt = strpos ($in, "\n");                       // find the first \n
-  $in = substr ($in, $startingAt+1);                      // and jump over it
-  $hash = self::generateTex ($in, $tag, "pc_pdflatex");   // generate $hash_pc_pdflatex.tex and obtain hash of raw LaTeX source located in Mediawiki
+  $startingAt = strpos ($in, "\n");                               // find the first \n
+  $in         = substr ($in, $startingAt+1);                      // and jump over it
+  $hash       = self::generateTex ($in, $tag, "pc_pdflatex");     // generate $hash_pc_pdflatex.tex and obtain hash of raw LaTeX source located in Mediawiki
   
   $texPath        = $CACHE_PATH.$hash."_pc_pdflatex.tex"; 
   $annotationPath = $CACHE_PATH.$hash."_pc_pdflatex_final.html";                         // the local php file path under which we should find the annotations in form of a (partial) html file
@@ -120,10 +120,15 @@ try {
   $finalImgPath   = $CACHE_PATH.$hash."_pc_pdflatex_final.png";  
 
   if ($VERBOSE) {self::debugLog ("lazyRender will now Tex2PDF $hash\n") ;}
-  if (!file_exists ($CACHE_PATH . $hash . "_pc_pdflatex.pdf" )) { self::Tex2Pdf ($hash, "_pc_pdflatex", "lazyrender"); }
-  if (!file_exists ($finalImgPath) || !file_exists ($annotationPath)) {
-    self::Pdf2PngHtmlMT ($hash, self::SCALE(BASIC_SIZE, 15), "_pc_pdflatex", "_pc_pdflatex_final" );   // same resolution ?? /////////////////////////////////////////////////////// TODO add theming and resolutions
-  }
+  
+  
+  if (!file_exists ($CACHE_PATH . $hash . "_pc_pdflatex.pdf" ))       { self::Tex2Pdf ($hash, "_pc_pdflatex", "lazyrender");                                             }
+  if (!file_exists ($finalImgPath) || !file_exists ($annotationPath)) { self::Pdf2PngHtmlMT ($hash, self::SCALE(BASIC_SIZE, 15), "_pc_pdflatex", "_pc_pdflatex_final" ); }
+
+  // TeXProcessor::manuBoth ( $hash, "_pc_pdflatex", "lazyrender", $hash, self::SCALE(BASIC_SIZE, 15), "_pc_pdflatex", "_pc_pdflatex_final");  // is not yet really working smoothly
+  
+  
+   // same resolution ?? /////////////////////////////////////////////////////// TODO add theming and resolutions
       
   // self::timeTest ($in, $tag);  // TRIGGERING a TIMING TEST: ONLY DURING DEVELOPMENT, kicks off all possible ways to produce resources
   
@@ -131,27 +136,23 @@ try {
   if (file_exists ($annotationPath) && file_exists ($finalImgPath)) {$areWeDone = true;} else {$areWeDone = false;}
 
   // the files we will finally use when saving are put into 0660 mode as marker that they are available for consumption; the preview files remain at 0600
-  chmod ($annotationPath, 0660);  chmod ($finalImgPath, 0660);
+  if (file_exists ($annotationPath) )  { chmod ($annotationPath, 0660);}  
+  if (file_exists ($finalImgPath)   )  { chmod ($finalImgPath, 0660);  }
   
   //   $arText = json_encode($ar);    // $ar contains an array of attribute values of the xml tag; convert it to json form
-  // 
-
 
   // We need a width and height in the img tag to assist the browser to a more smooth and flicker-less reflow.
   // The width MUST be equal to the width of the image (or else the browser must rescale the image, which BLURS the image and takes TIME)
-  
   if (file_exists ( $finalImgPath ) ) { 
     $ims = @getimagesize ( $finalImgPath ); 
-    if ($ims) {$width = $ims[0]; $height = $ims[1];} 
-    else {throw new ErrorException ("Looks like $finalImgPath is not yet ready");}
-     }
-  else {throw new ErrorException ("Did not find the image $finalImgPath for purposes of getimagesize");}
+    if ($ims) {$width = $ims[0]; $height = $ims[1];} else {throw new ErrorException ("Looks like $finalImgPath is not yet ready");}
+  } else {throw new ErrorException ("Did not find the image $finalImgPath for purposes of getimagesize");}
 
   // inline-block ensures we get the proper size and margin-top has an effect
   // if we want the blocks completely tight, we can add a negative margin-top of -0.5em below
   // 
   // onload:    delay showing the image until it is completely loaded (prevents user from seeing half of an image during the load process)
-  // onerror:   kickoff generation of image should it be missing (reason probably: erroneously deleted on the server)
+  // onerror:   kickoff generation of image should it be missing (reason probably: file was deleted on the server)
  
   $naming = ( array_key_exists ("n", $ar) ? "data-name='".$ar["n"]."' " : "");
   $title = $parser->getTitle ();    // get title of current page (also need this below !   // CAVE:  WILL  need different call,  getPage()   from 1.37 on !!!!!!!!!!!!!!!!!!!!
@@ -161,7 +162,7 @@ try {
     TeXProcessor::$makeFileStack[$title."/".$ar["n"]] = "<$tag>\n$in\n</$tag>"; 
   }
    
-  $imgResult    = "<img width='$width' height='$height' $naming src='$finalImgUrl' onerror='window.imageIsMissing(\"$title\",\"$hash\")' onload='window.showImage(event.target,\"$hash\");'  data-timestamp='$timestamp'  id='$hash' data-hash='$hash'  class='texImage' alt='Image is being processed, please wait'></img>";
+  $imgResult    = "<img width='$width' height='$height' $naming src='$finalImgUrl' onerror='window.imageIsMissing(\"$title\",\"$hash\")' onload='window.showImage(event.target,\"$hash\");'  data-timestamp='$timestamp'  id='$hash' data-hash='$hash'  class='texImage' alt='Image is being processed, please wait, will fault it in automatically as soon as it is ready'></img>";
 
   if (file_exists ($annotationPath)) { $annoResult = ("<div class='annoLayer'>".file_get_contents ($annotationPath)."</div>"); }   
   $renderResult = $imgResult . $annoResult;
@@ -320,9 +321,9 @@ private static function ensureEnvironment () {
 
 public static function ensureCacheDirectory () {
   $CACHE_PATH = CACHE_PATH;
-  // TeXProcessor::debugLog ("ensuring cache directory existence: $CACHE_PATH \n");
+  // TeXProcessor::debugLog ("ensuring existence of cache directory: $CACHE_PATH \n");
   if ( !file_exists ($CACHE_PATH) ) {
-    TeXProcessor::debugLog( "TeXProcessor::ensureCacheDirectory: missing directory; trying to construct: $CACHE_PATH \n");     
+    TeXProcessor::debugLog( "TeXProcessor::ensureCacheDirectory: detected a missing cache directory; trying to construct: $CACHE_PATH \n");     
     $retVal = mkdir ($CACHE_PATH, 0755); 
     TeXProcessor::debugLog( "  mkdir returned $retVal \n");
   }
@@ -331,12 +332,12 @@ public static function ensureCacheDirectory () {
 
 // called from endpoints/tex-preview.php
 public static function texPreviewEndpoint () {
-  $VERBOSE = true; 
+  $VERBOSE    = true; 
   $CACHE_PATH = CACHE_PATH;
   
-  TeXProcessor::ensureCacheDirectory ();  // TODO: all the time ??? 
+  TeXProcessor::ensureCacheDirectory ();                        // TODO: all the time ??? 
   TeXProcessor::ensureEnvironment ();  
-  umask (0077);                             // preview files should be generated at 600 permission
+  umask (0077);                                                 // preview files should be generated at 600 permission
   
   $body = file_get_contents("php://input");                     // get the input; here: the raw body from the request
   $body = base64_decode ($body);                                // in an earlier version we used, unsuccessfully, some conversion, as in:   $body = iconv("UTF-8", "ISO-8859-1//TRANSLIT", $body); 
@@ -403,6 +404,7 @@ public static function texPreviewEndpoint () {
   }
   if ($VERBOSE) {self::debugLog ("texPreviewEndpoint: returns from call for " . $tag . " widthLatexCm: ". $widthLatexCm . "  availablePixelWidth: ". $availablePixelWidth . " \n");}
 }
+
 
 
 // return exception and error information; use as error handler in all client render methods; provides text, recipient decides on wrapping html etc.
@@ -537,9 +539,34 @@ private static function Pdf2PngHtmlMT ($hash, $scale, $inFinal, $outFinal) {
   $output = null;  $retVal = null;  
   exec ( $cmd, $output, $retVal );  
   if ($VERBOSE) {$endTime = microtime (true); $duration = $endTime - $startTime; self::debugLog ("  completed Pdf2PngHtmlMT. DURATION: " . $duration . "\n"); }  
-  // if ($VERBOSE) {self::debugLog ("  return value $retVal  output ". print_r ($output, true));} 
-  // throw new Exception ( print_r ($output, true));
 }
+
+
+
+
+
+
+
+private static function manuBoth ( $hash1, $inFinal1, $note1, $hash2, $scale2, $inFinal2, $outFinal2) {
+  $VERBOSE = true;  $CACHE_PATH = CACHE_PATH;  $JS_PATH = JS_PATH;  
+  ASSERT_FILE ("$CACHE_PATH$hash1$inFinal1.tex"); 
+  // if ($VERBOSE) {self::debugLog ("Tex2Pdf sees the following environment: \n".print_r (getenv(), true) );}  // uncomment to check the active environment
+  $cmd1 = PREFIX_ERROR . " pdflatex  --interaction=nonstopmode  -file-line-error-style -output-directory=$CACHE_PATH $CACHE_PATH$hash1$inFinal1.tex  >/dev/null 2>&1  "; 
+  $cmd2 = MUTOOL. " run  $JS_PATH/my-device.js $scale2 $CACHE_PATH$hash2$inFinal2 $CACHE_PATH$hash2$outFinal2 >/dev/null 2>&1 ";  
+  $cmd = "{ " . $cmd1 . " ; " . $cmd2 . " ;} >/dev/null 2>&1 & " ;
+ 
+  $output = null;  $retval = null;   
+  $res = exec ( $cmd, $output, $retval );    
+ // if ($VERBOSE) { $endTime = microtime (true); $duration = $endTime - $startTime; self::debugLog ("  completed manuBoth ($note1). DURATION: $duration RETURN: $retval \n"); }   
+
+//  file_put_contents ( $CACHE_PATH . $hash. "$inFinal.mrk", ( $retval != 0 ? "ERROR" : "" ) ); // write ERROR into .mrk file if there is an error to know about this later when we only access file system
+  if (! file_exists ( "$CACHE_PATH$hash2$inFinal2.pdf") )  {
+    throw new Exception ("Tex2Pdf: Did not generate $CACHE_PATH$hash2$inFinal2.pdf for this content. Probably TeX error or transient problem while editing.");} 
+//  return ($retval == 0 ? 0 : $output);  
+}
+
+
+
 
 
 /** GENERATE SVG from PDF via mutool. Transforms $hash.pdf into $hash$final.png
@@ -638,7 +665,7 @@ private static function Tex2Pdf ($hash, $inFinal, $note) {
   $VERBOSE = true;  $CACHE_PATH = CACHE_PATH;
   ASSERT_FILE ("$CACHE_PATH$hash$inFinal.tex"); 
   // if ($VERBOSE) {self::debugLog ("Tex2Pdf sees the following environment: \n".print_r (getenv(), true) );}  // uncomment to check the active environment
-  $cmd = PREFIX_ERROR . " pdflatex  --interaction=nonstopmode  -file-line-error-style -output-directory=$CACHE_PATH $CACHE_PATH$hash$inFinal.tex  "; 
+  $cmd = PREFIX_ERROR . " pdflatex  --interaction=nonstopmode  -file-line-error-style -output-directory=$CACHE_PATH $CACHE_PATH$hash$inFinal.tex"; 
   if ($VERBOSE) { $startTime = microtime(true); self::debugLog ("Tex2Pdf started ($note) for $hash$inFinal, command is: $cmd \n");}   
   $output = null;  $retval = null;   
   $res = exec ( $cmd, $output, $retval );    
@@ -765,6 +792,14 @@ static function completeInBackground ($hash) {
                                                            // MUST have a redirect of the stdout and stderr or we will block/https://stackoverflow.com/questions/14555971/php-exec-background-process-issues
 }
 */
+
+
+
+
+
+
+
+
 
 
 } // END of class

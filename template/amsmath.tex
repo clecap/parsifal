@@ -14,6 +14,7 @@
 \usepackage[fleqn]{amsmath}
 \usepackage{amssymb,amscd}           % math symbols
 \usepackage{mathtools}                                % fixes deficiencies in amsmath
+\usepackage{wasysym}                 % some symbols
 \usepackage{bussproofs}                               % proof trees
      
 \usepackage{csquotes}                % quotes
@@ -70,9 +71,12 @@
 %%
 %% HYPERREF
 %%               
+
 \usepackage[colorlinks,hyperfootnotes=false]{hyperref}
 \hypersetup{breaklinks=true}
 
+
+\renewcommand{\thempfootnote}{\arabic{mpfootnote}}%    forces footnotes in standalone class to be numeric
 
 %%
 %% LOCALIZATION
@@ -94,15 +98,15 @@
 %         4) for \newlist defined custom lists the settings do not carry over from the non-starred to the starred versions
 %         SIGH !
 
-\setlist[enumerate]{partopsep=\parskip,topsep=-\parskip,itemsep=0cm,label=\textbf{(\arabic*)},after={\vskip 2\parskip }}  %%% overwritten below
-\setlist{itemjoin={\hspace{0.5cm}}}  % a bit of space as joiner for the inline version
+\setlist[enumerate]{partopsep=\parskip,topsep=-\parskip,itemsep=0cm,label=\textbf{(\arabic*)},after={\vskip 2\parskip }}%%% overwritten below
+\setlist{itemjoin={\hspace{0.5cm}}}%                                                                                       a bit of space as joiner for the inline version
 
 %% define enumerated as dotted version should we nevertheless need it.
 \newlist{enumerated}{enumerate}{3}\setlist[enumerated]{topsep=0pt,itemsep=0cm,label=\textbf{\arabic*.}}  
 \newlist{enumerated*}{enumerate*}{3}\setlist[enumerated*]{topsep=0pt,itemsep=0cm,label=\textbf{\arabic*.}} % need that since for custom lists the * automatism does not work
 
 \setlist[itemize]{topsep=0pt,itemsep=0cm}
-
+\setlist[description]{itemindent=-1.5em, labelsep=0pt,partopsep=\parskip,topsep=-\parskip}
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -112,10 +116,10 @@
 %\usepackage[OT1]{fontenc}
 
 %\usepackage{txfonts}
-%\usepackage{stix}  
-\usepackage{stmaryrd}                             % needed for \bigsqcap
 
-\usepackage{fontawesome}                              % make fontawesome with some additional symbols available, for example \faTV etc
+\usepackage{stix}                  % needed for \operp and similar symbols
+\usepackage{stmaryrd}              % needed for \bigsqcap
+\usepackage{fontawesome}           % make fontawesome with some additional symbols available, for example \faTV etc
 
 
 \usepackage{marginnote}
@@ -269,13 +273,13 @@
 \def\inclusion{\hookrightarrow}      % inclusion, or more general: injective function   f: A \inclusion B
 
 
-\def\lins{{\mbox{\bf Lin}_s}}    % stetige lineare Abbildungen
-\def\tr{\mbox{\bf Tr}}           % spur operator
+\def\lins{{\text{\bf Lin}_s}}    % stetige lineare Abbildungen
+\def\tr{\text{\bf Tr}}           % spur operator
 \def\ito{\hookrightarrow}        % inclusion function
 \def\pto{\leadsto}               % partially defined function
-\def\ker{\mbox{\bf Kern}}        % Kernel of a linear map
-\def\im{\mbox{\bf Im}}           % Image of a linear map
-\def\eig{\mbox{\bf Eig}}         % Eigenspace of a linear map
+\def\ker{\text{\bf Kern}}        % Kernel of a linear map
+\def\im{\text{\bf Im}}           % Image of a linear map
+\def\eig{\text{\bf Eig}}         % Eigenspace of a linear map
 \def\norm#1{\| #1 \|}            % norm
 
 %%
@@ -337,7 +341,8 @@
 
 
 
-
+\def\THEN{\Rightarrow}
+\def\IFF{\Leftrightarrow}
 
 
 
@@ -377,23 +382,6 @@
 \def\qqquad{\quad\quad\quad}
 
 
-
-%%
-%% FOOTNOTES and ENDNOTES
-%%
-
-%\def\makenotes{\vspace*{-0.4cm}
-%\rule[-0.1cm]{5cm}{0.01cm}
-
-%\usepackage{endnotes}     % include support for end notes;    defines \endnot  and \theendnotes to write them out
-%\makeatletter
-%\def\enoteheading{\par\rule{.5\textwidth}{0.4pt}} % patch the heading which otherwise takes up much space
-%\makeatother
-
-%\vspace*{-5.4cm}
-%\renewcommand{\notesname}{}
-%\gdef\enotesize{\footnotesize}
-%\theendnotes}
 
 
 %%%% STUFF ADDED LATER AND TO BE INCLUDED STILL
