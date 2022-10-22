@@ -4,8 +4,6 @@ Parsifal is a MediaWiki extension for rendering mathematical texts using LaTeX.
 
 It lives on https://github.com/clecap/Parsifal
 
-Author cheat sheet: 
-
 ## Goals
 
 ### Mediawiki-based LaTeX Document Production
@@ -67,19 +65,9 @@ Since the extension is developed for a very specific use-case, there are also a 
 You might want to consider a wide-spread state of the art of web-based mathematical typesetting. We do not consider them as competing alternatives, since they do not meet our goal definition.
 
 # Installation
-To be written.
+[Installation](doc/INSTALL.md)
 
-## Requirements
 
-We currently expect the backend to be a Linux system with working installations of
-* latex  
-* pdflatex 
-* node
-* dvipng
-* ghostscript
-* mutool
-
-We recommend EXT4 as file system (one reason being [file system performance](https://serverfault.com/questions/98235/how-many-files-in-a-directory-is-too-many-downloading-data-from-net)).
 
 # Contributing
 

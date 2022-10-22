@@ -18,6 +18,24 @@ We assume:
 1 
 
 
+
+
+## Requirements
+
+We currently expect the backend to be a Linux system with working installations of
+* latex  
+* pdflatex 
+* node
+* dvipng
+* ghostscript
+* mutool
+
+We recommend EXT4 as file system (one reason being [file system performance](https://serverfault.com/questions/98235/how-many-files-in-a-directory-is-too-many-downloading-data-from-net)).
+
+
+
+
+
 ## Requirements 
 
 Use a recent mutool version.
