@@ -9,20 +9,26 @@
  */
   
 
+use MediaWiki\MediaWikiServices;
+
 require_once ("config.php");                // include path configuration
 require_once ("php/TexProcessor.php");
+
 
 class Parsifal {                            // glue class of the extension
 
   public static function onParserFirstCallInit( Parser $parser ) {                                    // Register parser callback hooks
+    global $initialHashsUsed;
     $VERBOSE = true;
-    if ($VERBOSE) {TeXProcessor::debugLog( "Parsifal::onParserFirstCallInit for ".$parser->getTitle().  " \n");}
+    $title = $parser->getTitle();
+    if ($VERBOSE) {TeXProcessor::debugLog( "Parsifal::onParserFirstCallInit for page of title: ".$title.  " \n");}
     
+    ///// ???? not clear what this is ??????
     if (property_exists ($parser, "calledFromParsifalFullPage") && $parser->calledFromParsifalFullPage) {
         $parser->setHook ( 'block',            function ($in, $ar, $parser, $frame) { return "<div style='width:619px;color:red;'>---------------" . $in . "</div>";  }    );         // implement a <block> construct
-
         return;
     }
+    
     
     $parser->setHook ("amsmath", function  ($in, $ar, $parser, $frame)  { return  TeXProcessor::lazyRender ($in, $ar, "amsmath", $parser);} );
     //foreach (TAGS as $key => $tag) { $parser->setHook ($tag, function  ($in, $ar, $parser, $frame) use ($tag) { return  TeXProcessor::lazyRender ($in, $ar, $tag, $parser);} ); } // TODO !!
@@ -54,6 +60,10 @@ class Parsifal {                            // glue class of the extension
       
     if ($wikiPage->getTitle()->getNamespace() == NS_MAIN) {TeXProcessor::createNewPage();}
     // do not create new page in other namespaces (especially not for HELP, since otherwise we have a loop
+
+
+  //  Parsifal::cleanupParsifalCache ();
+
   }
   
   
@@ -128,6 +138,7 @@ class Parsifal {                            // glue class of the extension
     $VERBOSE = true;
     $TEMPLATE_PATH = TEMPLATE_PATH; $LATEX_FORMAT_PATH = LATEX_FORMAT_PATH;   $PDFLATEX_FORMAT_PATH = PDFLATEX_FORMAT_PATH;
     if ($VERBOSE) {TeXProcessor::debugLog( "Parsifal::afterAttemptSave called, title is namespace is ".$editPage->getTitle()->getNamespace()." \n");}
+
     if ( $editPage->getTitle()->getNamespace() == NS_MEDIAWIKI) {  // only if the edit takes place in the MediaWiki namespace
       $titleText = $editPage->getTitle()->getText();
       if ( str_starts_with($titleText, "ParsifalTemplate/") ) {
@@ -170,6 +181,9 @@ class Parsifal {                            // glue class of the extension
        
       }
     }
+    
+  
+    
   }  // end function afterAttemptSave
     
   // take the string contents $text and replace all lines of the form Mediawiki:ParsifalInclude/<name> by the content of this file
@@ -189,6 +203,80 @@ class Parsifal {                            // glue class of the extension
     }
    return $text;
   }  
+    
+    
+    
+  public static function cleanupParsifalCache () {
+    $VERBOSE = false;      
+    TeXProcessor::debugLog ("\n\n cleanupParsifalCache called\n" );
+    
+    $set        = new Ds\Set();          // collect all the hashes we might see
+    $extensions = new Ds\Set ();         // collect all the extensions we might see
+    if (is_dir(CACHE_PATH)) {
+      TeXProcessor::debugLog ("cleanupParsifalCache: CACHE_PATH is a directory \n" );
+      if ( $dh = opendir(CACHE_PATH) ) {
+        if ($VERBOSE) {TeXProcessor::debugLog ("cleanupParsifalCache: opened CACHE_PATH as a directory \n" );}
+        while (($file = readdir($dh)) !== false) {
+          if ($VERBOSE) {TeXProcessor::debugLog ("Parsifal::cleanupParsifalCache: sees: " . $file. " \n");}
+          $fileHash = substr ($file, 0, 32);
+          $ext = substr ($file, 32);
+          if ( strlen ($ext > 0)      ) {$extensions->add ($ext); }
+          if ( strlen ($fileHash) > 3 ) {$set->add ($fileHash);   }  // exclude directories . and .. from being added          
+        }
+//      TeXProcessor::debugLog ("cleanupParsifalCache: set obtained is: " .print_r ( $set, true). " \n" );  
+      TeXProcessor::debugLog ("cleanupParsifalCache: set obtained contains elements: " . $set->count() . " \n" );        
+      TeXProcessor::debugLog ("cleanupParsifalCache: closing CACHE_PATH as a directory \n" );  
+      closedir($dh);
+      }
+      else {
+        TeXProcessor::debugLog ("cleanupParsifalCache: could not open CACHE_PATH directory \n" );
+      }
+    }
+    else {
+      TeXProcessor::debugLog ("cleanupParsifalCache: CACHE_PATH is not a directory \n" );
+    }
+    
+    // remove all used 
+    $dbl = MediaWikiServices::getInstance()->getDBLoadBalancer();
+    $dbr = $dbl->getConnectionRef ( DB_REPLICA );
+    
+    /* starting from 1.35
+    $res = $dbr->newSelectQueryBuilder()
+      ->select ( [ 'pp_value' ] )
+      ->from   ( 'page_props' )
+      ->where  ( ["pp_propname" => 'ParsifalHashsUsed'] )
+      ->caller( __METHOD__ )
+      ->fetchResultSet();     
+    TeXProcessor::debugLog ( "cleanupParsifalCache: iterating result set \n");
+    */
+    
+    // before 1.35
+    $res = $dbr->select('page_props', [ 'pp_value' ],  'pp_propname ="ParsifalHashsUsed"',  __METHOD__, [ ] );
+    
+    foreach ( $res as $row ) {
+      $hashArray = unserialize ($row->pp_value);
+      foreach ($hashArray as $item) {
+        TeXProcessor::debugLog ( "cleanupParsifalCache: removing used hash: " . $item . " \n") ;
+        $set->remove ($item);
+      } 
+    }
+    TeXProcessor::debugLog ("cleanupParsifalCache: set obtained, after removal, contains elements: " . $set->count() . " \n" );        
+    
+    foreach ( $set as $elem ) {
+      TeXProcessor::debugLog ("removing for hash " . $elem . " \n");
+      foreach ( $extensions as $ext) {
+           TeXProcessor::debugLog ("unlinking " . $elem . $ext . " \n");
+        unlink ($elem . $ext);
+        
+      }
+    }
+    
+//    $propValue = $dbr->selectField( 'page_props', 'pp_value', [ 'pp_propname' => "ParsifalHashsUsed" ], __METHOD__ );
+//    $propValue = unserialize ($propValue);  
+//    $initialHashsUsed = $propValue;
+//    if ($VERBOSE) {TeXProcessor::debugLog ("Parsifal::onParserFirstCallInit sees ParsifalHashsUsed: " . print_r ($initialHashsUsed, true). " \n");}      
+  
+  } // end function  
     
     
     

@@ -32,8 +32,6 @@ else if (name == "main") {
 
 
 
-
-
 // return true if the page contains content with a tag requiring Parsifal tex activity
 function pageContainsTex () { if ( ! REG_ANY.test (editBox.value) ) { console.log ("Parsifal: Found nothing to tex in page ", REG_ANY); return false;} else {return true;} }
 
@@ -89,21 +87,15 @@ function editPreviewPatch () {  // the clutch to PHP; we may adapat it to use Co
 
 function initializeCodeMirror () {
   var myTextArea   = document.getElementById("wpTextbox1");
-  var myCodeMirror = CodeMirror.fromTextArea(myTextArea, {
-    lineNumbers:true, matchBrackets:true
-  });    // returns an abstract CodeMirror object
+  var myCodeMirror = CodeMirror.fromTextArea ( myTextArea, { lineNumbers:true, matchBrackets:true} );    // returns an abstract CodeMirror object
 
   var cmElement = document.querySelector (".CodeMirror");
-  console.error (cmElement);
-
-  
   cmElement.myFontSize = 14; cmElement.style.fontSize = cmElement.myFontSize + "pt";  cmElement.CodeMirror.refresh();
   cmElement.addEventListener ("keydown", (e) => { // console.log ("Key pressed: ", e.key);
     if (e.metaKey && (e.key=="+" || e.key=="-") ) {e.preventDefault (); e.stopPropagation(); 
       cmElement.myFontSize += ( e.key=="+" ? 2 : -2 ); cmElement.style.fontSize = cmElement.myFontSize + "pt"; 
       cmElement.CodeMirror.refresh();            // needed by code mirror after a font change
     }  });
-
 
   var storeResize = true;
   
@@ -125,8 +117,6 @@ function initializeCodeMirror () {
 
   new ResizeObserver (wasResized).observe (cmElement);          // NEW: cmElement
   new ResizeObserver (wasResized).observe (document.body);
-
-
 }
 
 
@@ -356,7 +346,6 @@ var DATA;
 
 ///////////////////////////////////////////// ?????????????????????????????????? TODO: adjust this to the correct location
 //
-
 const DOCU_WINDOW_URL = document.location.protocol + "//" + document.location.host + "/wiki4/extensions/Parsifal/html/embedPresent.html";
 
 // TODO: do something for persisting size and position ?????????????????????????????
@@ -371,9 +360,7 @@ function openEmbedded (buf) {
 
 window.sendToWiki = (x) => {uploadToWiki (x, "application/pdf");}
 
-const MIME2EXT = {
-  "application/pdf": "pdf"
-};
+const MIME2EXT = { "application/pdf": "pdf" };
 
 
 // upload contents of buffer <buf> under mime-type <mime> (e.g. application/pdf) and filename <filename> to the wiki
@@ -395,6 +382,7 @@ async function uploadToWiki (buf, mime, filename) {
       console.log( "api reports: ", data );} );
 }
 
+/*****************/
 /** END KUNDRY **/
 
  
@@ -500,7 +488,6 @@ function receivedEndpointResponse(e) {
    else if (errorStatus == "Soft") { 
       if (!errorDetails) {errorDetails = "Soft error. Will probably vanish when completing Latex command";}
       ERROR.showError ( errorDetails, "Soft"); 
-      
       // WE MIGHT request some error information 
     
     }
@@ -1155,6 +1142,9 @@ const show = (text) =>  {
 
 const hide = () => {if (helpDiv) {helpDiv.parentNode.removeChild (helpDiv); helpDiv = null;} }
   
+
+/*** END help system code ***/ */
+
 
 // service function for toggeling collapsible portions - TODO: not clear where this is used - we also rather have toggleNext
 window.toggleMe = function toggleMe (e) {  

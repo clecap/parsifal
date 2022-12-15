@@ -3,7 +3,7 @@
 require_once (__DIR__."/../config.php");
 require_once ("polyfill.php");                       // include some PHP polyfill stuff
  
- 
+
 class TeXProcessor {
   
 public static $makeFileStack= array();  
@@ -97,12 +97,20 @@ public static function timeTest ($in, $tag) {
 */
 
 public static function lazyRender ($in, $ar, $tag, $parser) {
-  global $wgServer, $wgScriptPath, $wgOut;
+  global $wgServer, $wgScriptPath, $wgOut;  global $wgTopDante;
   
   $CACHE_PATH = CACHE_PATH;
-  $VERBOSE = true;
+  $VERBOSE    = true;
 
 try {
+  
+
+  if (property_exists ($wgTopDante, "hookInvokes") ) { $wgTopDante->hookInvokes++; 
+    if ($VERBOSE) {self::debugLog ("lazyRender sees hookInvokes=".$wgTopDante->hookInvokes."\n") ;}
+  }
+  else { $wgTopDante->hookInvokes = 0;}
+
+
   $timestamp = strftime ("%d.%m.%Y at %H:%M:%S", time() );         // want a timestamp in the img tag on when the page was translated for debugging purposes
   if ($VERBOSE) {$startTime = microtime (true); self::debugLog ("lazyRender called at: $timestamp for pageTitle " . $parser->getTitle()."  Page starts with: ". trim(substr(trim($in), 0, 20)) . "\n");}
   
@@ -114,6 +122,12 @@ try {
   $in         = substr ($in, $startingAt+1);                      // and jump over it
   $hash       = self::generateTex ($in, $tag, "pc_pdflatex");     // generate $hash_pc_pdflatex.tex and obtain hash of raw LaTeX source located in Mediawiki
   
+  // accumulate in the parser connected output object of that page an array with all the hash values used on this page; do so for cleaning up hashs which become stale
+  $usedHashs = unserialize ( $parser->getOutput()->getProperty( 'ParsifalHashsUsed' ) );
+  if ( strcmp (gettype ($usedHashs), "array") != 0 ) {$usedHashs = array();}  // if not found, initialize in empty array()
+  array_push ($usedHashs, $hash);
+  $parser->getOutput()->setProperty( 'ParsifalHashsUsed', serialize ($usedHashs));
+  
   $texPath        = $CACHE_PATH.$hash."_pc_pdflatex.tex"; 
   $annotationPath = $CACHE_PATH.$hash."_pc_pdflatex_final.html";                         // the local php file path under which we should find the annotations in form of a (partial) html file
   $finalImgUrl    = $wgServer.$wgScriptPath.CACHE_URL.$hash."_pc_pdflatex_final.png";
@@ -121,25 +135,22 @@ try {
 
   if ($VERBOSE) {self::debugLog ("lazyRender will now Tex2PDF $hash\n") ;}
   
-  
-  if (!file_exists ($CACHE_PATH . $hash . "_pc_pdflatex.pdf" ))       { self::Tex2Pdf ($hash, "_pc_pdflatex", "lazyrender");                                             }
+  if (!file_exists ($CACHE_PATH . $hash . "_pc_pdflatex.pdf" ))       { 
+    if ($VERBOSE) {self::debugLog ("lazyRender starting Tex2Pdf now for: ".$hash);}
+    self::Tex2Pdf ($hash, "_pc_pdflatex", "lazyrender");                                             }
   if (!file_exists ($finalImgPath) || !file_exists ($annotationPath)) { self::Pdf2PngHtmlMT ($hash, self::SCALE(BASIC_SIZE, 15), "_pc_pdflatex", "_pc_pdflatex_final" ); }
 
   // TeXProcessor::manuBoth ( $hash, "_pc_pdflatex", "lazyrender", $hash, self::SCALE(BASIC_SIZE, 15), "_pc_pdflatex", "_pc_pdflatex_final");  // is not yet really working smoothly
   
-  
    // same resolution ?? /////////////////////////////////////////////////////// TODO add theming and resolutions
       
   // self::timeTest ($in, $tag);  // TRIGGERING a TIMING TEST: ONLY DURING DEVELOPMENT, kicks off all possible ways to produce resources
-  
-  // detect the proper processing status: $areWeDone=true means that ALL resources of final quality are already in place
-  if (file_exists ($annotationPath) && file_exists ($finalImgPath)) {$areWeDone = true;} else {$areWeDone = false;}
 
   // the files we will finally use when saving are put into 0660 mode as marker that they are available for consumption; the preview files remain at 0600
-  if (file_exists ($annotationPath) )  { chmod ($annotationPath, 0660);}  
-  if (file_exists ($finalImgPath)   )  { chmod ($finalImgPath, 0660);  }
+  if (file_exists ($annotationPath) )  { chmod ($annotationPath, 0660); }  
+  if (file_exists ($finalImgPath)   )  { chmod ($finalImgPath,   0660); }
   
-  //   $arText = json_encode($ar);    // $ar contains an array of attribute values of the xml tag; convert it to json form
+  //  $arText = json_encode($ar);    // $ar contains an array of attribute values of the xml tag; convert it to json form
 
   // We need a width and height in the img tag to assist the browser to a more smooth and flicker-less reflow.
   // The width MUST be equal to the width of the image (or else the browser must rescale the image, which BLURS the image and takes TIME)
@@ -148,15 +159,13 @@ try {
     if ($ims) {$width = $ims[0]; $height = $ims[1];} else {throw new ErrorException ("Looks like $finalImgPath is not yet ready");}
   } else {throw new ErrorException ("Did not find the image $finalImgPath for purposes of getimagesize");}
 
-  // inline-block ensures we get the proper size and margin-top has an effect
-  // if we want the blocks completely tight, we can add a negative margin-top of -0.5em below
-  // 
   // onload:    delay showing the image until it is completely loaded (prevents user from seeing half of an image during the load process)
-  // onerror:   kickoff generation of image should it be missing (reason probably: file was deleted on the server)
+  // onerror:   kickoff generation of image should it be missing (reason could be: file was (incorrectly) deleted on the server)
  
   $naming = ( array_key_exists ("n", $ar) ? "data-name='".$ar["n"]."' " : "");
   $title = $parser->getTitle ();    // get title of current page (also need this below !   // CAVE:  WILL  need different call,  getPage()   from 1.37 on !!!!!!!!!!!!!!!!!!!!
 
+///// WHAT is THIS ?????
 /////////////// TODO: ??????????????? We must check / ensure that this name has not yet been used already on this page with this name
   if (array_key_exists ("n", $ar)) { // if tag has a name then produce a further copy of the page  
     TeXProcessor::$makeFileStack[$title."/".$ar["n"]] = "<$tag>\n$in\n</$tag>"; 
@@ -229,7 +238,7 @@ public static function htmlDecorator ($img, $ar, $tag) {
 }  
   
   
-  
+/////////////////////////// WHAT IS THIS MEANT FOR ?????
 // create new page in Help: namespace for the named tag elements
   public static function createNewPage () {
     self::debugLog ("*** createNewPage: entered. Stack size is " . count (TeXProcessor::$makeFileStack) . " \n");
@@ -261,7 +270,7 @@ public static function htmlDecorator ($img, $ar, $tag) {
   // NOTE: TeXProcessor::renderPreviewPNG and _base64 and called functions can be called from the web and from mediawiki and hence must not depend on any mediawiki global variables - all configuration done in config.php
 
 
-/* Scaling calculation: Given the number of pixels we have available in the presentation IMG, what is the required DPI value to be used in divpng?
+/* SCALING CALCULATION: Given the number of pixels we have available in the presentation IMG, what is the required DPI value to be used in divpng?
    
    We get 591 pixel width for 100 dpi for a document of Latex width 15cm
    15cm = 5,90551 inches  in resolution 100 dpi we get 590,551 dots and with rounding 591 as width 
@@ -332,7 +341,7 @@ public static function ensureCacheDirectory () {
 
 // called from endpoints/tex-preview.php
 public static function texPreviewEndpoint () {
-  $VERBOSE    = true; 
+  $VERBOSE    = false; 
   $CACHE_PATH = CACHE_PATH;
   
   TeXProcessor::ensureCacheDirectory ();                        // TODO: all the time ??? 
@@ -361,8 +370,12 @@ public static function texPreviewEndpoint () {
         
     $name =  $CACHE_PATH . $hash."_pc_pdflatex.png";
     $scale = self::SCALE($availablePixelWidth, $widthLatexCm); 
-     self::Pdf2PngHtmlMT ($hash, $scale, "_pc_pdflatex", "_pc_pdflatex" );       // png must be redone since scale depends on width of preview area
+    self::Pdf2PngHtmlMT ($hash, $scale, "_pc_pdflatex", "_pc_pdflatex" );          // png must be redone since scale depends on width of preview area
      
+//// TODO: currently it looks like we do not send the annotations and html portion for the preview
+//     this might be ok but why do we then compute them??
+//     and: when load is low we could also kick off generation of the final version
+
     // send the result to the client
     if ($VERBOSE) {self::debugLog ("texPreviewEndpoint: will now send $name to client, dpi=$dpi, gamma=$gamma \n");}
     if (filesize($name) == 0) { throw new Exception ("texPreviewEndpoint sent a PNG file of size zero. filename: " . $name); }
@@ -395,12 +408,12 @@ public static function texPreviewEndpoint () {
       
                         header ("X-Parsifal-ErrorDetails:".$errorDetails);  // only: if we want to send more detailed errors to client alread in case of soft errors   
                       }  
+
     header("Content-type:image/png");  header("Content-Length: " . filesize($name));  // set MANDATORY http reply headers
     fpassthru($fp); 
     fclose ($fp);
   } catch (Exception $ex) { 
     self::renderError ("texPreviewEndpoint Error: ", $ex, $hash); 
-  
   }
   if ($VERBOSE) {self::debugLog ("texPreviewEndpoint: returns from call for " . $tag . " widthLatexCm: ". $widthLatexCm . "  availablePixelWidth: ". $availablePixelWidth . " \n");}
 }
@@ -669,7 +682,7 @@ private static function Tex2Pdf ($hash, $inFinal, $note) {
   if ($VERBOSE) { $startTime = microtime(true); self::debugLog ("Tex2Pdf started ($note) for $hash$inFinal, command is: $cmd \n");}   
   $output = null;  $retval = null;   
   $res = exec ( $cmd, $output, $retval );    
-  if ($VERBOSE) { $endTime = microtime (true); $duration = $endTime - $startTime; self::debugLog ("  completed Tex2Pdf ($note). DURATION: $duration RETURN: $retval \n"); }   
+  if ($VERBOSE) { $endTime = microtime (true); $duration = $endTime - $startTime; self::debugLog ("  completed Tex2Pdf ($note) for $hash$inFinal. DURATION: $duration RETURN: $retval \n"); }   
   file_put_contents ( $CACHE_PATH . $hash. "$inFinal.mrk", ( $retval != 0 ? "ERROR" : "" ) ); // write ERROR into .mrk file if there is an error to know about this later when we only access file system
   if (! file_exists ( "$CACHE_PATH$hash$inFinal.pdf") )  {
     throw new Exception ("Tex2Pdf: Did not generate $CACHE_PATH$hash$inFinal.pdf for this content. Probably TeX error or transient problem while editing.");} 
