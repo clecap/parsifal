@@ -1,0 +1,138 @@
+<?php
+
+/*** NOTE: This config.php file MUST contain only const declarations and no declarations of global variables 
+ *   This is due to a number of issues with PHP design where 1) const cannot be used in string interpolation 
+ *   and 2) const definitions are not allowed to contain (most) operations and 3) the peculiar way we neeed this 
+ *   file in mediawiki as well as in our own endpoint files.
+*/
+
+require_once ("config-paths.php");  // load the path settings required for this operating system scenario (MUST ADJUST this file!)
+require_once ("config-env.php");    // load the environment settings required by TeXLive (MIGHT NEED TO ADJUST this file!)
+
+/** THE REMAINING PARTS of this file SHOULD NOT BE MODIFIED unless developing the system further */
+
+/* *** ADDING another xml tag ***
+
+1) Parsifal.php         for the hooks       // TODO: make this more flexible
+2) TexProcessor.php     for the mapping     // TODO: make this more flexible
+
+The place where we want to insert the xml tag content:
+  magic-line-identifier-for-inclusion
+
+When we use a preloaded format we must use the correct versions(one for latex, one for pdflatex).
+We do so by placing the formats into different format directories and use different environment variables.
+*/
+
+/* Regular expressions */
+// for detecting a line which starts or ends a Latex text portion */
+/* ensure that the tags are prefix free (so no tex and textest at the same time */
+
+// TODO: deprecated. delete after a while
+// const TAG_REGEX_START_STRING = "<amsmath|<large:amsmath|<pre-amsmath|<tex|<pdftex"; 
+// const TAG_REGEX_END_STRING   = "<\/amsmath>|<\/large:amsmath>|<\/pre-amsmath>|<\/tex>|<\/tex>";
+
+
+const BASIC_SIZE = 1000;
+
+const TAGS = array("amsmath", "tex", "beamer");
+
+const MAGIC_LINE         =  "magic-line-identifier-for-inclusion";                     // this line in the latex template is replaced by the content between the tags
+
+/** IMPORTANT: MUST HAVE SAME VALUE AS IN CONFIG.JS */
+const ERROR_PARSER_START = "START-MARKER-TYPED-OUT-FOR-ERROR-PARSER";
+const ERROR_PARSER_END   = "END-MARKER-TYPED-OUT-FOR-ERROR-PARSER";
+
+/* MAP the tag to the total width used in the template. BE SURE TO INCLUDE MARGINS USED on BOTH SIDES */
+const TAG2WIDTHinCM = array (
+  "amsmath" => 15.14,
+  "tex"     => 15.14
+);
+
+// minipage is used to hold the page width stable   // TODO: cave: as beamer demonstrates: there seems to be no effect of the wiodth - why ???
+
+
+// code for measuring pagelength and placing the result into .ypos file
+const MEASURE = "\\newwrite\\yposoutputfile\\openout\\yposoutputfile=\\jobname.ypos\\pdfsavepos\\write\\yposoutputfile{\\the\\pagetotal}";
+
+
+const PC_LATEX_ADDON = array (
+  "amsmath"    =>      "\\begin{document}\\begin{minipage}{15cm}\myInitialize\\relax ".MAGIC_LINE."\\end{minipage}".MEASURE."\\end{document}",
+  "tex"        =>      MAGIC_LINE,
+  "beamer"     =>      "\\begin{document} ".MAGIC_LINE.MEASURE."\\end{document}"
+);
+
+const PC_PDFLATEX_ADDON = array (
+  "amsmath"    =>    "\\begin{document}\\begin{minipage}{15cm}\myInitialize\\relax ".MAGIC_LINE."\\end{minipage}".MEASURE."\\end{document}",
+  "tex"        =>    MAGIC_LINE,
+  "beamer"     =>    "\\begin{document} ".MAGIC_LINE.MEASURE."\\end{document}"
+);
+
+
+const PREFIX_ERROR = "max_print_line=10000  error_line=254  half_error_line=238";  // prefix for generating reasonable error file format; see https://tex.stackexchange.com/questions/52988/avoid-linebreaks-in-latex-console-log-output-or-increase-columns-in-terminal?rq=1
+
+const LATEX_COMMAND    =  PREFIX_ERROR . " " . LATEX_BINARY . "  --interaction=nonstopmode  -file-line-error-style  "; 
+const PDFLATEX_COMMAND =  PREFIX_ERROR . " ". PDFLATEX_BINARY . " --interaction=nonstopmode -file-line-error-style ";
+
+const NODE_SCRIPT      = __DIR__."/../annos/offline.mjs";                            // path to the offline.mjs script
+const PDF2HTML         = NODE_BINARY." ".__DIR__."/../annos/annoHtml.js ";
+
+/*** System dependent components used in the filesystem path for php ***/
+const TEMPLATE_PATH        =  __DIR__."/../template/";                 // path to the template directory, relative to the installation path $IP  must end with a slash
+const LATEX_FORMAT_PATH    =  __DIR__."/../formats_latex/";     
+const PDFLATEX_FORMAT_PATH =  __DIR__."/../formats_pdflatex/";     
+const JS_PATH              =  __DIR__."/../js/";                                             // path to the directory containing javascript
+const PY_PATH              =  __DIR__."/../py/";                                             // path to the directory containing python scripts
+
+
+/*** The path for the cache ***/
+/* NOTE: we want this outside of extension/Parsifal since this can grow to a very large number of files and then we will have problems when 
+   invoking a directory caching editor on extension/Parsifal */
+const CACHE_PATH    =  __DIR__."/../../../parsifal-cache/";                             // path to the temporary cache directory, must end with a slash
+$CACHE_PATH         = CACHE_PATH;                                                    // moving this from a const to a $ since PHP disallows consts in string extrapolations
+const CACHE_URL     = "/parsifal-cache/";                                            // URL relative to scriptPath, must end with a slash /
+
+
+
+
+/*** Some Log Paths ***/
+const LOG_PATH      =  __DIR__."/../LOGFILE";                                       // path to log file
+const ERR_PATH      =  __DIR__."/../ERRORLOG";                                      // path to log file  // TODO: do we actually need this ???
+
+// map collapsible attributes c-* and o-* to specific names, if existing
+// do this serverside (i.e. compile time) and not clientside (i.e. run time) for page-control by author 
+const ATT2NAME = array (
+  "motivation" => "Motivation", 
+  "proof"    => "Proof",     "beweis"    => "Beweis",
+  "notation" => "Notation", 
+  "example"  => "Example",   "beispiel"  => "Beispiel",
+  "remark"   => "Remark",    "bemerkung" => "Bemerkung",
+  "note"     => "Note"
+);
+
+// styling of the collapse buttons of the Parsifal Latex collapsibles
+const ATT2STYLE_SPEC = array (
+  "motivation" => "background-color:pink;",
+  "proof"      =>  "background-color:yellow;", 
+  "notation"   =>  "background-color:salmon;",
+  "example"    =>  "background-color:PaleGreen;",
+  "remark"     =>  "background-color:lightblue;",
+  "note"       =>  "background-color:AliceBlue;"
+);
+
+// default styling of the clooapse button of the Parsifal Latex collapsible, if no name registered in ATT2STYLE_SPEC is used
+const ATT_DEFAULT_STYLE_SPEC = "background-color:Bisque;";
+
+
+const ATT_DEFAULT_NAME = "Info";
+
+
+/*** Components which may be addressed via URL */
+const TEMPLATE_URL       = "/extensions/Parsifal/template/";
+const ENDPOINT_URL       = "/extensions/Parsifal/endpoints/tex-preview.php";           // endpoint for the preview
+const ENDPOINT_REFRESH   = "/extensions/Parsifal/endpoints/tex-refresh.php";           // endpoint for the preview
+const HTML_URL           = "/extensions/Parsifal/html/";                               // path to the html directory containing texLog.html and others
+
+
+
+
+?>

@@ -1,0 +1,49 @@
+{
+  "name":              "Parsifal",
+  "author":            "Clemens H. Cap",  
+  "url":               "https://github.com/clecap/parsifal",
+  "descriptionmsg":    "parsifal-desc",
+  "version":           "1.1.7",
+  "license-name":      "License",
+  "type":              "other",
+  "AutoloadClasses":   {"Parsifal":            "Parsifal.php",
+                        "ParsifalReset":       "php/Reset.php",
+                        "ParsifalFormat":      "php/Format.php",
+                        "FullPageAction":      "php/FullPage.php",
+                        "ParsifalPreferences": "php/Preferences.php"
+                       }, 
+  "Hooks": {
+    "BeforePageDisplay":                 "Parsifal::onBeforePageDisplay",  
+    "ParserFirstCallInit":               "Parsifal::onParserFirstCallInit",
+    "OutputPageBeforeHTML":              "Parsifal::onOutputPageBeforeHTML",
+    "EditPage::showEditForm:initial":    "Parsifal::onEditPageshowEditForminitial",
+    "EditPage::attemptSave:after":       "Parsifal::afterAttemptSave",
+    "SkinTemplateNavigation::Universal":          "Parsifal::onSkinTemplateNavigation",
+    "SkinEditSectionLinks":              "Parsifal::onSkinEditSectionLinks",
+    "GetPreferences":                    "ParsifalPreferences::onGetPreferences",
+    "UserSaveSettings":                  "ParsifalPreferences::onUserSaveSettings"
+  },
+  "callback":                          "Parsifal::onRegistration",
+  "ResourceModules": {
+    "ext.Parsifal": { 
+        "scripts":      [],
+        "styles":       ["css/latex.css"],
+        "messages":     [],
+        "dependencies": []
+    }
+  },
+  "ResourceFileModulePaths": {  
+    "localBasePath": "",
+    "remoteExtPath": ""
+  },
+  "SpecialPages": {
+    "ParsifalReset":  { "class": "ParsifalReset"  },
+    "ParsifalFormat": { "class": "ParsifalFormat" }  
+  },
+  "ExtensionMessagesFiles": { 
+    "ParsifalAlias":  "Parsifal.alias.php",
+    "ParsifalReset":  "Parsifal.alias.php",
+    "ParsifalFormat": "Parsifal.alias.php"},
+  "MessagesDirs":           { "Parsifal": ["i18n"] },
+  "manifest_version": 2
+}

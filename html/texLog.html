@@ -1,0 +1,155 @@
+<html>
+<head>
+
+<style>
+* {font-family:monospace;}
+#srcContainer {border:2px solid black; border-radius: 10px; height:30%; overflow:scroll; padding:5px;}
+
+#logContainer {border:2px solid black; border-radius: 10px; height:30%; overflow:scroll; padding:5px;}
+  
+.impErr {color:red; font-weight:bold; font-family:monospace;} /* markup class for important parts of the error message */
+</style>
+
+
+<style>
+/* Styling the accordion */
+
+/* Style the buttons that are used to open and close the accordion panel */
+.accordion {  background-color: #eee;  color: #444;  cursor: pointer;  padding: 18px;  width: 100%;  text-align: left;  border-style: solid; border-color: black; border-width: 1px 1px 0px 1px; outline: none;  transition: 0.4s; font-size:16pt; }
+
+/* Add a background color to the button if it is clicked on (add the .active class with JS), and when you move the mouse over it (hover) */
+.active, .accordion:hover {background-color: #ccc;}
+
+/* Style the accordion panel. Note: hidden by default */
+.panel {padding: 0 18px;  background-color: white; display: none;  overflow: hidden;}
+</style>
+</head>
+
+<body>
+<h1>This is a Parsifal LaTeX Transcript.</h1>
+
+<h2>Errors</h2>
+<div id="accContainer"></div>
+
+<h2>Preamble Log</h2>
+<div id="preContainer"></div>
+
+
+<h2>Postamble Log</h2>
+<div id="postContainer"></div>
+
+<h2>Log</h2>
+<div id="logContainer"></div>
+
+<h2>Raw Log</h2>
+<div id="rawLogContainer"></div>
+
+<h2>Source: <span>Loaded from:</span> <span id="srcPath"></span></h2>
+<div id="srcContainer"></div>
+
+<script>
+console.warn ("texLog document.location is: ", document.location.href);
+
+var absolutePath = function(href) {
+    var link = document.createElement("a");
+    link.href = href;
+    return link.href;
+}
+
+console.warn ("js path: " + absolutePath ("../../config/config.js"));
+</script>
+
+<script src="../../../extensions/Parsifal/js/errorParser.js"></script>
+<script src="../../../extensions/Parsifal/config/config.js"></script>
+
+<script>
+const VERBOSE           = true;
+
+/* import parameters from config.js global space into local name space */
+const ERROR_PARSER_START = window.ERROR_PARSER_START;    // at this line the error messages relevant for us start
+const ERROR_PARSER_END   = window.ERROR_PARSER_END;      // at this line the error messages relevant for us end
+
+const logContainer = document.getElementById ("logContainer");  // the container into which we fill in the info
+
+
+function formatLog (name) {
+  var url =  name + ".log";
+  
+  if (VERBOSE) console.info ("Parsifal: texLog.html: Fetching log information at: " + url);
+
+  console.info ("ERROR_PARSER_START: " + ERROR_PARSER_START);
+  console.info ("ERROR_PARSER_END: " + ERROR_PARSER_END);
+
+  fetch(url).then( function(data) {
+    var reader = data.body.getReader();
+    reader.read().then ( res => { 
+      var txt = new TextDecoder("utf-8").decode(res.value);  
+    //  console.info ("GOT: " + txt);
+      
+      var arr = window.errorParser (txt, name);
+      window.errorFormatter (arr);
+      initAccordion();
+    
+      if (markerEle) {markerEle.scrollIntoView (true);}
+   }); // reader
+  }) // end then
+  .catch( function(error) {console.log (error); } );   
+} // end function
+
+// function which fills in the source of the tex run into this page
+function formatSrc (name) {
+
+  var srcPath = document.getElementById ("srcPath");
+  srcPath.innerHTML = name;
+
+  var srcContainer = document.getElementById ("srcContainer");
+  fetch( name + ".tex").then( function(data) {
+    // Here you get the data to modify as you please
+    
+    var reader = data.body.getReader();
+    reader.read().then ( res => { 
+      var txt = new TextDecoder("utf-8").decode(res.value);
+      // console.log (txt);
+      
+    
+    txt.split("\n").map( ele => {      
+      var cont;
+      var idx;
+      
+      var cont = document.createElement ("div");
+      var node = document.createTextNode (ele);
+      cont.appendChild (node);
+      srcContainer.appendChild (cont);
+    });
+    });
+  });
+}
+
+// accordion code
+function initAccordion () {
+  var acc = document.getElementsByClassName("accordion");
+  var i;
+  console.warn ("accordions: initializing: " + acc.length);
+
+  for (i = 0; i < acc.length; i++) {
+    acc[i].addEventListener("click", function() {
+      this.classList.toggle("active");
+      var panel = this.nextElementSibling;
+      if (panel.style.display === "block") {
+        panel.style.display = "none";
+      } else {
+        panel.style.display = "block";
+      }
+    });
+  }
+}
+
+console.log (window.location.search.substring(1));
+
+formatLog  (window.location.search.substring (1));
+formatSrc  (window.location.search.substring (1));
+
+</script>
+
+</body>
+</html>

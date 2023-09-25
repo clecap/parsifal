@@ -1,0 +1,66 @@
+%%
+%% jpabox   json pdf annotation box
+%%
+%
+%  Version:   1.00
+%
+%  The jpabox command produces a PDF annotation in the PDF file
+%
+%  #1  Optional parameter with keys
+%         type
+%         width, height, depth   provides the width, height, depth of the content box
+%         dwidth, dheight, ddepth   provides deltas to the width, height, depth of the content box
+%  #2  JSON object
+%  #3  LaTeX material for the content box, which will become associated with the annotation.
+%
+%
+%
+%
+%
+%
+%
+%
+%
+%
+%
+
+\ifpdf{}\else{}\fi
+
+
+\usepackage{calc}
+
+\makeatletter
+\newlength{\jpa@WIDTH}
+\newlength{\jpa@HEIGHT}
+\newlength{\jpa@DEPTH}
+
+% dwidth: delta in width
+\define@key{jpa}{dwidth}{\def\jpa@DWIDTH{#1}}
+\define@key{jpa}{dheight}{\def\jpa@DHEIGHT{#1}}
+\define@key{jpa}{ddepth}{\def\jpa@DDEPTH{#1}}
+
+% values which we may override
+\define@key{jpa}{width}{\def\jpa@WIDTH{#1}}
+\define@key{jpa}{height}{\def\jpa@HEIGHT{#1}}
+\define@key{jpa}{depth}{\def\jpa@DEPTH{#1}}
+
+\define@key{jpa}{type}{\def\jpa@TYPE{#1}}
+\define@key{jpa}{para}{\def\jpa@PARA{#1}}
+
+\DeclareRobustCommand*{\jpabox}[3][]{%
+  \setkeys{jpa}{dwidth=0cm,dheight=0cm,ddepth=0cm,type=Hover,para={}}% ensure defaults
+  \pdfstringdef\jpa@contents{#2}%             need \pdfstringdef in order to get proper handling of umlauts in utf-8 encoding
+  \setlength{\jpa@WIDTH}{\widthof{#3}}%       get the width of the content box
+  \setlength{\jpa@HEIGHT}{\heightof{#3}}%     get the height of the content box
+  \setlength{\jpa@DEPTH}{\depthof{#3}}%       get the depth of the content box
+  \setkeys{jpa}{#1}%                          allow overwrite of width, height, depth
+\ifpdf{%
+  \expandafter\pdfannot width \dimexpr \jpa@WIDTH + \jpa@DWIDTH height \dimexpr \jpa@HEIGHT + \jpa@DHEIGHT depth \dimexpr \jpa@DEPTH + \jpa@DDEPTH {
+  /Subtype /\jpa@TYPE
+  /F 3\space%
+  /M (\jpa@PARA)%
+  /Contents (\jpa@contents)
+}#3}\else{\color{Orange}#3}\fi%
+}
+
+\makeatother

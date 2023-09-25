@@ -1,0 +1,32 @@
+
+
+
+.CodeMirror {
+  resize:horizontal;
+  height:100%;
+  border:3px solid yellow;
+  box-sizing:border-box;
+}
+
+
+/* prevent the chrome standard of showing focused text area elements with blue outline and adjust the focus colors  */      
+.CodeMirror:focus {outline:none; border-color:red !important;}
+.CodeMirror:not(:focus) {border-color:grey !important;}
+
+
+div.CodeMirror span.CodeMirror-matchingbracket {color: red; font-size:larger; font-weight:bold; text-decoration:underline;}
+
+/* div.CodeMirror span.CodeMirror-nonmatchingbracket {color: magenta;} */ /* does not work */
+
+.cm-s-default .cm-bracket {color:orange;}
+
+/*
+.Codemirror-scroll {
+  margin-right:0px;
+  padding-bottom:0px;
+
+
+}
+
+
+*/

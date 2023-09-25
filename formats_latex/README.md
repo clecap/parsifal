@@ -1,0 +1,1 @@
+This directory receives the automagically precompiled latex formats.
