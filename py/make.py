@@ -5,7 +5,7 @@
 
 import fitz
 import sys
-import math
+import math  
 
 print ("Found parameters ", len(sys.argv))
 
