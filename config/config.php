@@ -36,7 +36,12 @@ const BASIC_SIZE = 1000;
 
 const TAGS = array("amsmath", "tex", "beamer");
 
+const END_PREAMBLE_HOOK = "magic-line-for-end-preamble-hook";
+const BEFORE_CONTENT_HOOK = "magic-line-for-before-content-hook";
+
 const MAGIC_LINE         =  "magic-line-identifier-for-inclusion";                     // this line in the latex template is replaced by the content between the tags
+
+const AFTER_CONTENT_HOOK = "magic-line-for-after-content-hook";
 
 /** IMPORTANT: MUST HAVE SAME VALUE AS IN CONFIG.JS */
 const ERROR_PARSER_START = "START-MARKER-TYPED-OUT-FOR-ERROR-PARSER";
@@ -48,9 +53,11 @@ const TAG2WIDTHinCM = array (
   "tex"     => 15.14
 );
 
+
+
 // minipage is used to hold the page width stable   // TODO: cave: as beamer demonstrates: there seems to be no effect of the wiodth - why ???
 
-
+// TODO: do we still need this for our rendering structure - or do we only need this for PDF rendering ??
 // code for measuring pagelength and placing the result into .ypos file
 const MEASURE = "\\newwrite\\yposoutputfile\\openout\\yposoutputfile=\\jobname.ypos\\pdfsavepos\\write\\yposoutputfile{\\the\\pagetotal}";
 

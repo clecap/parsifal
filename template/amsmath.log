@@ -1,14 +1,14 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.21 (TeX Live 2020) (preloaded format=pdflatex 2020.6.26)  19 JAN 2023 23:45
+This is pdfTeX, Version 3.14159265-2.6-1.40.21 (TeX Live 2020) (preloaded format=pdflatex 2020.6.26)  28 SEP 2023 22:32
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
  %&-line parsing enabled.
-**/Users/cap/DOCKER/continuous-deployment-test/volumes/full/content/wiki-dir/extensions/Parsifal/template/amsmath.tex
-(/Users/cap/DOCKER/continuous-deployment-test/volumes/full/content/wiki-dir/extensions/Parsifal/template/amsmath.tex
+**/Users/cap/DOCKER/dante-wiki/volumes/full/content/wiki-dir/extensions/Parsifal/template/amsmath.tex
+(/Users/cap/DOCKER/dante-wiki/volumes/full/content/wiki-dir/extensions/Parsifal/template/amsmath.tex
 LaTeX2e <2020-02-02> patch level 5
 L3 programming layer <2020-03-06>
 
-/Users/cap/DOCKER/continuous-deployment-test/volumes/full/content/wiki-dir/extensions/Parsifal/template/amsmath.tex:1: LaTeX Error: Missing \begin{document}.
+/Users/cap/DOCKER/dante-wiki/volumes/full/content/wiki-dir/extensions/Parsifal/template/amsmath.tex:1: LaTeX Error: Missing \begin{document}.
 
 See the LaTeX manual or LaTeX Companion for explanation.
 Type  H <return>  for immediate help.
@@ -446,6 +446,49 @@ Package: trimspaces 2009/09/17 v1.1 Trim spaces around a token list
 \tcb@temp=\box70
 \tcb@out=\write4
 \tcb@record@out=\write5
+) (/usr/local/texlive/2020/texmf-dist/tex/latex/pgf/frontendlayer/tikz.sty (/usr/local/texlive/2020/texmf-dist/tex/latex/pgf/utilities/pgffor.sty (/usr/local/texlive/2020/texmf-dist/tex/latex/pgf/utilities/pgfkeys.sty (/usr/local/texlive/2020/texmf-dist/tex/generic/pgf/utilities/pgfkeys.code.tex)) (/usr/local/texlive/2020/texmf-dist/tex/latex/pgf/math/pgfmath.sty (/usr/local/texlive/2020/texmf-dist/tex/generic/pgf/math/pgfmath.code.tex)) (/usr/local/texlive/2020/texmf-dist/tex/generic/pgf/utilities/pgffor.code.tex
+Package: pgffor 2020/01/08 v3.1.5b (3.1.5b)
+ (/usr/local/texlive/2020/texmf-dist/tex/generic/pgf/math/pgfmath.code.tex)
+\pgffor@iter=\dimen274
+\pgffor@skip=\dimen275
+\pgffor@stack=\toks41
+\pgffor@toks=\toks42
+)) (/usr/local/texlive/2020/texmf-dist/tex/generic/pgf/frontendlayer/tikz/tikz.code.tex
+Package: tikz 2020/01/08 v3.1.5b (3.1.5b)
+ (/usr/local/texlive/2020/texmf-dist/tex/generic/pgf/libraries/pgflibraryplothandlers.code.tex
+File: pgflibraryplothandlers.code.tex 2020/01/08 v3.1.5b (3.1.5b)
+\pgf@plot@mark@count=\count286
+\pgfplotmarksize=\dimen276
+)
+\tikz@lastx=\dimen277
+\tikz@lasty=\dimen278
+\tikz@lastxsaved=\dimen279
+\tikz@lastysaved=\dimen280
+\tikz@lastmovetox=\dimen281
+\tikz@lastmovetoy=\dimen282
+\tikzleveldistance=\dimen283
+\tikzsiblingdistance=\dimen284
+\tikz@figbox=\box71
+\tikz@figbox@bg=\box72
+\tikz@tempbox=\box73
+\tikz@tempbox@bg=\box74
+\tikztreelevel=\count287
+\tikznumberofchildren=\count288
+\tikznumberofcurrentchild=\count289
+\tikz@fig@count=\count290
+ (/usr/local/texlive/2020/texmf-dist/tex/generic/pgf/modules/pgfmodulematrix.code.tex
+File: pgfmodulematrix.code.tex 2020/01/08 v3.1.5b (3.1.5b)
+\pgfmatrixcurrentrow=\count291
+\pgfmatrixcurrentcolumn=\count292
+\pgf@matrix@numberofcolumns=\count293
+)
+\tikz@expandcount=\count294
+ (/usr/local/texlive/2020/texmf-dist/tex/generic/pgf/frontendlayer/tikz/libraries/tikzlibrarytopaths.code.tex
+File: tikzlibrarytopaths.code.tex 2020/01/08 v3.1.5b (3.1.5b)
+))) (/usr/local/texlive/2020/texmf-dist/tex/generic/pgf/frontendlayer/tikz/libraries/tikzlibrarytrees.code.tex
+File: tikzlibrarytrees.code.tex 2020/01/08 v3.1.5b (3.1.5b)
+) (/usr/local/texlive/2020/texmf-dist/tex/generic/pgf/frontendlayer/tikz/libraries/tikzlibrarypositioning.code.tex
+File: tikzlibrarypositioning.code.tex 2020/01/08 v3.1.5b (3.1.5b)
 )
 
 ! LaTeX Error: File `chc-jpabox.tex' not found.
@@ -454,20 +497,20 @@ Type X to quit or <RETURN> to proceed,
 or enter new name. (Default extension: tex)
 
 Enter file name: 
-/Users/cap/DOCKER/continuous-deployment-test/volumes/full/content/wiki-dir/extensions/Parsifal/template/amsmath.tex:34: Emergency stop.
+/Users/cap/DOCKER/dante-wiki/volumes/full/content/wiki-dir/extensions/Parsifal/template/amsmath.tex:39: Emergency stop.
 <read *> 
          
-l.34 \input{chc-jpabox.tex}
+l.39 \input{chc-jpabox.tex}
                            ^^M
 *** (cannot \read from terminal in nonstop modes)
 
  
 Here is how much of TeX's memory you used:
- 13823 strings out of 480608
- 266963 string characters out of 9653630
- 10507479 words of memory out of 15000000
- 29485 multiletter control sequences out of 15000+600000
+ 16319 strings out of 480608
+ 326412 string characters out of 9653630
+ 10554478 words of memory out of 15000000
+ 31938 multiletter control sequences out of 15000+600000
  532338 words of font info for 24 fonts, out of 10000000 for 9000
  1141 hyphenation exceptions out of 8191
- 59i,4n,75p,924b,107s stack positions out of 5000i,500n,10000p,10000000b,80000s
-/Users/cap/DOCKER/continuous-deployment-test/volumes/full/content/wiki-dir/extensions/Parsifal/template/amsmath.tex:34:  ==> Fatal error occurred, no output PDF file produced!
+ 59i,4n,75p,908b,107s stack positions out of 5000i,500n,10000p,10000000b,80000s
+/Users/cap/DOCKER/dante-wiki/volumes/full/content/wiki-dir/extensions/Parsifal/template/amsmath.tex:39:  ==> Fatal error occurred, no output PDF file produced!
