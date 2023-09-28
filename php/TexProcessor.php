@@ -94,7 +94,7 @@ public static function timeTest ($in, $tag) {
 
 private static function generateEndPreambleStuff ($ar, $tag) {
   $stuff = "";
-  if ( array_key_exists ( "sans", $ar ) ) { $stuff = $stuff."\\input{font-sans-serif.tex}"; }
+  if ( array_key_exists ( "sans", $ar ) ) { $stuff = $stuff."\\renewcommand{\\familydefault}{\\sfdefault}"; }
   return $stuff;
 }
 
@@ -277,12 +277,18 @@ try {  // GLOBAL EXCEPTION PROTECTED AREA
   
   //  $arText = json_encode($ar);    // $ar contains an array of attribute values of the xml tag; convert it to json form
 
+ 
   // We need a width and height in the img tag to assist the browser to a more smooth and flicker-less reflow.
   // The width MUST be equal to the width of the image (or else the browser must rescale the image, which BLURS the image and takes TIME)
   if (file_exists ( $finalImgPath ) ) {
+     $hasError = "";
     $ims = @getimagesize ( $finalImgPath ); 
     if ($ims) {$width = $ims[0]; $height = $ims[1];} else {throw new ErrorException ("Looks like $finalImgPath is not yet ready");}   } 
-  else {return "Currently we have no image for display. It is possible that the LaTeX source did not produce any output. Missing file is $finalImgPath"; }
+  else {  
+      $width=200; $height=200; $hasError = "data-error='missing-image'";  // signal to JS runtime that we know the image is in error
+      // return "Currently we have no image for display. It is possible that the LaTeX source did not produce any output. Missing file is $finalImgPath"; 
+
+  }
 
   $scaling = 25;
 
@@ -321,7 +327,7 @@ try {  // GLOBAL EXCEPTION PROTECTED AREA
 
   $cache_url = CACHE_URL;
 
-  $imgTag      = "<img $naming id=\"$hash\"    $titleInfo  data-timestamp='$timestamp'  $style  class='texImage' alt='Image is being processed, please wait, will fault it in automatically as soon as it is ready'></img>";
+  $imgTag      = "<img $naming id=\"$hash\"  $hasError  $titleInfo  data-timestamp='$timestamp'  $style  class='texImage' alt='Image is being processed, please wait, will fault it in automatically as soon as it is ready'></img>";
   $handlerTag  = "<script>PRT.srcDebug(\"$hash\"); PRT.init(\"$hash\", \"$wgServer\", \"$wgScriptPath\", \"$cache_url\"  ); </script>"; // TODO: maybe move outside of the decorator 
 
 //  $imgTag = "<img $naming id=\"$hash\"  src=\"$finalImgUrl\"   data-timestamp='$timestamp'  style='$style' data-hash='$hash'  class='texImage' alt='Image is being processed, please wait, will fault it in automatically as soon as it is ready'></img>";

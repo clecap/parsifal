@@ -63,7 +63,8 @@ const init = (hash, wgServer, wgScriptPath, cache_url) => {
   // let imgs = document.querySelectorAll ("#" + hash);     // in new version of chrome this produces a hard error since this is not a valid descriptor
   let imgs = [document.getElementById (hash)];
   const iniEle = (ele) => {  // function which is initializing an img element
-    Object.assign ( ele, {onerror: imageIsMissing, onload: showImage} );
+    if (ele.hasAttribute ("data-error")) {} 
+    else {Object.assign ( ele, {onerror: imageIsMissing, onload: showImage} );}
     let finalImgUrl3   = wgServer + wgScriptPath + cache_url + hash + "_pc_pdflatex_final_3.png"; 
     ele.setAttribute ("src", `${finalImgUrl3}`);
   };
