@@ -1,16 +1,10 @@
 \documentclass[varwidth=15cm,margin=0.07cm]{standalone} 
   
 
-
-
-
 \usepackage[utf8]{inputenc}          % expecting text as UTF-8
 \usepackage{ucs}                     % unicode support
-\usepackage[fleqn]{amsmath}          % ams math package with flushed left equations
-\usepackage{amssymb,amscd}           % math symbols
-\usepackage{mathtools}               % fixes deficiencies in amsmath
-\usepackage{wasysym}                 % some symbols
-\usepackage{bussproofs}              % proof trees
+
+
      
 \usepackage{csquotes}                % quotes
 
@@ -24,11 +18,29 @@
 \usetikzlibrary{trees,positioning}
 
 
-
+%%
+%% Math Specialities
+%%
+\usepackage[fleqn]{amsmath}          % ams math package with flushed left equations
+\usepackage{amssymb,amscd}           % math symbols
+\usepackage{mathtools}               % fixes deficiencies in amsmath
 \usepackage[all]{xy}
+\usepackage{bussproofs}              % proof trees
+
+%%
+%% TWEAK amsmath macro to allow \begin{pmatrix}[1.5] for having more space see https://tex.stackexchange.com/questions/14071/how-can-i-increase-the-line-spacing-in-a-matrix
+%%
+\makeatletter
+\renewcommand*\env@matrix[1][\arraystretch]{%
+  \edef\arraystretch{#1}%
+  \hskip -\arraycolsep
+  \let\@ifnextchar\new@ifnextchar
+  \array{*\c@MaxMatrixCols c}}
+\makeatother
+
+%\input prooftree
 
 
-   
 %%
 %% Include local packages
 %%
@@ -87,8 +99,6 @@
 \chcdisplayskipadjust%
 
 
-
-
 \def\myInitialize{%   needed for initializations to be done after begin{document} which are taken out by the precompilation process
   \parindent 0pt
   \parskip 0.25cm
@@ -98,7 +108,7 @@
 
 %%
 %% HYPERREF
-%%               
+%%
 
 \usepackage[colorlinks,hyperfootnotes=false]{hyperref}
 \hypersetup{breaklinks=true}
@@ -112,12 +122,8 @@
 
 
 
-
-
-%\input prooftree
-
 %%
-%% ENUMERATION and ITEMIZATION and ARRAYs
+%% ENUMERATION and ITEMIZATION
 %%
 
 \usepackage[inline]{enumitem}
@@ -129,19 +135,58 @@
 %         4) for \newlist defined custom lists the settings do not carry over from the non-starred to the starred versions
 %         SIGH !
 
-\setlist[enumerate]{partopsep=\parskip,topsep=-\parskip,itemsep=0cm,label=\textbf{(\arabic*)},after={\vskip 2\parskip }}%%% overwritten below
-\setlist{itemjoin={\hspace{0.5cm}}}%                                                                                       a bit of space as joiner for the inline version
+\setlist{itemjoin={\hspace{0.5cm}}}%                     bit of space as joiner for the inline version
+
+\def\enumerateWithDots{
+  \setlist[enumerate]{
+    partopsep=1.0\parskip,  % separation added when the preceding is a paragraph
+    topsep=-0.5\parskip,    % separation added when the preceding is only a line with no paragraph ending
+    itemsep=0cm,
+    label=\textbf{(\arabic*)},
+    after={\vspace*{1.5\parskip}}
+  }
+}
+
+\def\enumerateWithBrackets{
+  \setlist[enumerate]{
+    partopsep=1.0\parskip,  % separation added when the preceding is a paragraph
+    topsep=-0.5\parskip,    % separation added when the preceding is only a line with no paragraph ending
+    itemsep=0cm,
+    label=\textbf{(\arabic*)},
+    after={\vspace*{1.5\parskip}}
+  }
+}
+
+\enumerateWithBrackets
+
 
 %% define enumerated as dotted version should we nevertheless need it.
 \newlist{enumerated}{enumerate}{3}\setlist[enumerated]{topsep=0pt,itemsep=0cm,label=\textbf{\arabic*.}}  
 \newlist{enumerated*}{enumerate*}{3}\setlist[enumerated*]{topsep=0pt,itemsep=0cm,label=\textbf{\arabic*.}} % need that since for custom lists the * automatism does not work
 
-\setlist[itemize]{topsep=0pt,itemsep=0cm}
+\setlist[itemize]{
+  partopsep=1.0\parskip,
+  topsep=-0.5\parskip,
+  itemsep=0cm
+}
+
 \setlist[description]{itemindent=-1.5em, labelsep=0pt,partopsep=\parskip,topsep=-\parskip}
 
-\usepackage{array}% load the new array package
+
+
+%%
+%% TABLES and ARRAYS
+%%
+
+\usepackage{array}%                            load the new array package
 
 \arraycolsep=1.0pt \def\arraystretch{1.0}
+
+
+
+
+
+
 
 
 \usepackage{marginnote}
@@ -162,22 +207,8 @@
 \usepackage{stix}                  % needed for \operp and similar symbols
 \usepackage{stmaryrd}              % needed for \bigsqcap
 \usepackage{fontawesome}           % make fontawesome with some additional symbols available, for example \faTV etc
+\usepackage{wasysym}               % some symbols
 
-
-
-
-
-
-%%
-%% TWEAK amsmath macro to allow \begin{pmatrix}[1.5] for having more space see https://tex.stackexchange.com/questions/14071/how-can-i-increase-the-line-spacing-in-a-matrix
-%%
-\makeatletter
-\renewcommand*\env@matrix[1][\arraystretch]{%
-  \edef\arraystretch{#1}%
-  \hskip -\arraycolsep
-  \let\@ifnextchar\new@ifnextchar
-  \array{*\c@MaxMatrixCols c}}
-\makeatother
 
 
 
@@ -303,8 +334,7 @@
 \def\tDO{\mbox{\tt \ do }}
 \def\tREPEAT{\mbox{\tt \ repeat }}
 \def\tUNTIL{\mbox{\tt \ until }}
- 
- 
+
 %% 
 %% Category Theory
 %% 
@@ -386,18 +416,54 @@
 
 
 
-\setlist[enumerate]{partopsep=0.5\parskip,topsep=-0.5\parskip,itemsep=0cm,label=\textbf{(\arabic*)},after={\vspace*{1.5\parskip}}}
 
 
 
-\begin{document}\chcdisplayskipadjust\typeout{HERESTARTSTHEMAINDOCUMENT}%
+\begin{document}\myInitialize\typeout{HERESTARTSTHEMAINDOCUMENT}%
 
 magic-line-identifier-for-inclusion
 
 
-Here starts my document.
+Here starts my document, and it starts with a longer line to see where
+the Umbruch is going to take place in this sampel documnet.
 
 Some math $a=b^2$
+
+Eine Überschrift ohne Absatz
+\begin{itemize}
+\item one
+\item two
+\item three
+\end{itemize}
+
+Eine Überschrift mit Absatz
+
+\begin{itemize}
+\item one
+\item two
+\item three
+\end{itemize}
+
+
+
+Eine Überschrift ohne Absatz
+\begin{enumerate}
+\item one
+\item two
+\item three
+\end{enumerate}
+
+Eine Überschrift mit Absatz
+
+\begin{enumerate}
+\item one
+\item two
+\item three
+\end{enumerate}
+
+
+
+
 
 \end{document}
 
