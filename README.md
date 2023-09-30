@@ -30,6 +30,9 @@
 * [Goals](doc/GOALS.md)
 * [Installation](doc/INSTALL.md)
 
+## Requirements
+
+As mediawiki extensionm Parsifal requires DantePresentations (for the preview funcitonality)
 
 
 # Contributing

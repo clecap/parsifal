@@ -95,11 +95,93 @@ public static function timeTest ($in, $tag) {
 private static function generateEndPreambleStuff ($ar, $tag) {
   $stuff = "";
   if ( array_key_exists ( "sans", $ar ) ) { $stuff = $stuff."\\renewcommand{\\familydefault}{\\sfdefault}"; }
-  return $stuff;
+
+
+
+/*
+%  2) The contents of \begin{minted}  ... \end{minted} needs to be properly layouted and have at least one newline character
+%     or the scanner of minted might fail
+%
+%  This part is in  a seperate file. minted fails if we have it as part of the precompiled preamble.
+%
+%% CAVE: If we want to do parallel runs using \backJob we MUST NOT provide a single cache directory or minted will crash
+
+ % for highlighting program listing
+                                                      % MUST specify a seperate output directory if one is used in TeXStudio
+                                                      % MUST use newfloat=true, otherwise the listing environment is broken for minted
+
+
+
+
+% patch minted so as to get a centered version thereof
+% https://tex.stackexchange.com/questions/161124/how-to-make-a-minted-code-listing-centered-on-a-page
+
+
+  if ( array_key_exists ("minted", $ar) ) { $stuff = $stuff . "\\usepackage[outputdir=build,newfloat=true,cache]{minted}"; }
+
+-output-directory=$CACHE_PATH 
+
+*/
+// emacs
+
+  $light = array ("manny", "rrt", "perldoc", "borland", "colorful", "murphy", "vs", "trac", "tango", "autumn", "bw", "emacs", "pastie", "friendly");
+  $dark = array ( "fruity", "vim", "native", "monokai");
+
+  if ( array_key_exists ("minted", $ar) ) {  // if we have aminted attribute, include minted stuff
+    if ( in_array ($ar["minted"], $light) ) { $style=$ar["minted"]; } else { $style = "emacs";}  // check if style is known, if not, use emacs as default
+
+    $stuff = $stuff . "\\usepackage[outputdir=".CACHE_PATH.",newfloat=true,cache]{minted}\\usemintedstyle{" .$style. "}\\initializeMinted"; 
+
+
+  }
+
+/*
+\usepackage{xpatch,letltxmacro}
+%\LetLtxMacro{\cminted}{\minted}
+%\let\endcminted\endminted
+%\xpretocmd{\cminted}{\RecustomVerbatimEnvironment{Verbatim}{BVerbatim}{}}{}{}
+
+
+\usepackage[framemethod=TikZ]{mdframed}
+
+\mdfsetup{middlelinecolor=blue,middlelinewidth=0.5pt,backgroundcolor=red!5,roundcorner=10pt,align=center,
+leftmargin=0pt,innerleftmargin=6pt}
+
+\BeforeBeginEnvironment{minted}{\begin{mdframed}}
+\AfterEndEnvironment{minted}{\end{mdframed}}
+
+\setminted{linenos,fontsize=\footnotesize}
+\setmintedinline{fontsize=\normalsize}
+
+*/
+
+
+$optional = <<<EOD
+
+\\usepackage{environ}%         Needed for some additional definitions
+\\usepackage{ocg-p}%
+
+\\newcounter{optionals}
+\\NewEnviron{opt}[1]{
+  \\stepcounter{optionals}
+  \\begin{ocg}{#1}{oxc\\theoptionals}{0}%  Argument is name.  Body is content. It is initially not visible.
+  \\BODY%
+  \\end{ocg}%
+}
+\\NewEnviron{OPT}[1]{%    capitalized: initially visible
+  \\stepcounter{optionals}
+  \\begin{ocg}{#1}{oxc\\theoptionals}{1}%  Argument is name.  Body is content. It is initially visible.
+  \\BODY%
+  \\end{ocg}%
+}
+EOD;
+
+
+  return $stuff . $optional;
 }
 
 
-// minipage is used to hold the page width stable
+// minipage is used to hold the page width stable. without it we also get some indentation artifacts with enumitem.
 
 // TODO: do we still need this for our rendering structure - or do we only need this for PDF rendering ??
 // code for measuring pagelength and placing the result into .ypos file
@@ -661,8 +743,11 @@ private static function generateTex ( string $rawContent, string $tag, string $m
   $CACHE_PATH    = CACHE_PATH;
   $TEMPLATE_PATH = TEMPLATE_PATH;  $LATEX_FORMAT_PATH = LATEX_FORMAT_PATH;  $PDFLATEX_FORMAT_PATH = PDFLATEX_FORMAT_PATH;
   
-  $hash = md5($rawContent);                            // derive a unique file name - only from the hash of the INPUT (not of the template or attributes or tags used)
+  // self::debugLog ("generateTex: attribute array is: ".print_r ($ar, true). "\n");
 
+  ksort($ar);                                        // sort array on keys, in place, so that the hash becomes independent on the sequence 
+  $stringAr = print_r ($ar, true);             // go from php array to a full string representation
+  $hash     = md5 ($tag.$stringAr.$rawContent);           // derive a unique file name - need dependency on tag, content and attributes as all of this has impact on looks.
 
   switch ($mode) {
     case "pc_latex":           // we use a precompilation made for the latex processor     
@@ -754,7 +839,7 @@ private static function Pdf2PngHtmlMT ($hash, $scale, $inFinal, $outFinal, &$dur
   
   self::debugLog ("\n TeXProcessor:: mutool execution for scale=$scale hash=$hash had a duration of: ".$duration . "\n"); 
 
-  // self::debugLog ("\n TeXProcessor:: mutool run output shellexecutor: \n".$output); 
+  self::debugLog ("\n TeXProcessor:: mutool run output shellexecutor: \n".$output); 
   // TODO: error handling
 }
 
@@ -934,8 +1019,8 @@ private static function Tex2Pdf ($hash, $inFinal, $note) {
   $VERBOSE = false;  $CACHE_PATH = CACHE_PATH;
   ASSERT_FILE ("$CACHE_PATH$hash$inFinal.tex"); 
   // if ($VERBOSE) {self::debugLog ("Tex2Pdf sees the following environment: \n".print_r (getenv(), true) );}  // uncomment to check the active environment
-  $cmd = PREFIX_ERROR . " pdflatex  --interaction=nonstopmode  -file-line-error-style -output-directory=$CACHE_PATH $CACHE_PATH$hash$inFinal.tex"; 
-  if ($VERBOSE) { self::debugLog ("Tex2Pdf started ($note) for $hash$inFinal, command is: $cmd \n");}   
+  $cmd = PREFIX_ERROR . " pdflatex  --shell-escape --interaction=nonstopmode  -file-line-error-style -output-directory=$CACHE_PATH $CACHE_PATH$hash$inFinal.tex"; 
+  if ($VERBOSE || true) { self::debugLog ("Tex2Pdf started ($note) for $hash$inFinal, command is: $cmd \n");}   
   $retval = TeXProcessor::executor ( $cmd, $output, $error, false );
 
 // 127   a fundamental error such as command not found
@@ -973,16 +1058,17 @@ static function generateHTML ($hash, $htmlScale =1, $horizontalDelta=0, $vertica
 }
 
 
-
+// TODO: why do we still have this function - AND the function Tex2Pdf as well (which we use in lazyRenderer ???)
+// TODO: deprecate this one here ??  
 /** GENERATE PDF via PDFLATEX  from  $hash.tex => $hash.pdf
  *  Assume there is a $has.tex file, generate a $hash_pdflatex.pdf file using pdflatex
  *  Used jobname is $hash_pdflatex in order to have all intermediary files (such as .aux, .log) seperate from other tex engines which might be in use as well
  *  returns exit value
  */
 static function generatePDF ($hash) {
-  $VERBOSE = false;
+  $VERBOSE = true;
   $CACHE_PATH = CACHE_PATH;
-  ASSERT_FILE ("$CACHE_PATH$hash.tex"); 
+  ASSERT_FILE ("$CACHE_PATH$hash.tex");
   $cmd = PDFLATEX_COMMAND ." -output-directory=$CACHE_PATH $CACHE_PATH$hash.tex ";  
   if ($VERBOSE) { $startTime = microtime(true); self::debugLog ("generatePDF started for $hash, command is: $cmd \n");}   
   $output = null;  $retVal = null;   

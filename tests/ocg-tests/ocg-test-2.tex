@@ -1,4 +1,3 @@
-<pre>
 \documentclass[varwidth=15cm,margin=0.07cm]{standalone} 
 
 
@@ -119,8 +118,7 @@
 %% Include local packages
 %%
 
-%%\input{../local/chc-jpabox.tex}
-%% Taken out currently do debug ocg
+
 
 
 
@@ -519,13 +517,26 @@
 
 
 
-\begin{document}\chcdisplayskipadjust\typeout{HERESTARTSTHEMAINDOCUMENT}%
 
-magic-line-identifier-for-inclusion
+\usepackage{environ}%         Needed for some additional definitions
+\usepackage{ocg-p}%
 
-\end{document}
-</pre>
+\newcounter{optionals}  
+\NewEnviron{opt}[1]{
+  \stepcounter{optionals}
+  \begin{ocg}{#1}{oxc\theoptionals}{0}%  Argument is name.  Body is content. It is initially not visible.
+  \BODY%
+  \end{ocg}%
+}
+\NewEnviron{OPT}[1]{%    capitalized: initially visible
+  \stepcounter{optionals}
+  \begin{ocg}{#1}{oxc\theoptionals}{1}%  Argument is name.  Body is content. It is initially visible.
+  \BODY%
+  \end{ocg}%
+}\begin{document}\begin{minipage}{15cm}\myInitialize\relax \typeout{START-MARKER-TYPED-OUT-FOR-ERROR-PARSER}
+  
+\begin{opt}{namex}initially invisible\end{opt}
+  
+\begin{OPT}{namex}initially visible\end{OPT}
 
-
-[[Category:Boot]]
-[[Category:ParsifalTemplate]]
+\typeout{END-MARKER-TYPED-OUT-FOR-ERROR-PARSER}\end{minipage}\newwrite\yposoutputfile\openout\yposoutputfile=\jobname.ypos\pdfsavepos\write\yposoutputfile{\the\pagetotal}\end{document}

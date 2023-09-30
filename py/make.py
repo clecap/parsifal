@@ -7,10 +7,10 @@ import fitz
 import sys
 import math  
 
-print ("Found parameters ", len(sys.argv))
+print ("Found argv ", len(sys.argv))
 
 if len(sys.argv) != 4 :
-  print("use:  scale-parameter path")  
+  print("use:  scale-parameter in-path out-path")  
   exit(-1)
 
 print ("found script args: scale=" + sys.argv[1] + " in-path= " + sys.argv[2] + " out-path= " + sys.argv[3] );
@@ -34,7 +34,7 @@ print ()
 ocgLayers = doc.layer_ui_configs()
 ocgNum    = len(ocgLayers)
 if ( ocgNum > 0) :
-  print ("Having " + str(ocgNum + " OCG layers"))
+  print ("Having " + str(ocgNum) + " OCG layers")
   index = 0
   for item in doc.layer_ui_configs():     # for all the ocg layers we know
     print (item)                          # print the layer

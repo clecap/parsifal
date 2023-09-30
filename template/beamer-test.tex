@@ -1,31 +1,81 @@
 \documentclass[varwidth=15cm,margin=0.07cm]{standalone} 
-  
 
-\usepackage[utf8]{inputenc}          % expecting text as UTF-8
+% NOTE: minted is included in dynamic-slides.tex
+
+\usepackage{minted}
+
+%%
+%% Standard package imports
+%%
+
+\usepackage[T1]{fontenc}             % fontencoding - FIRST load fontencoding 
+\usepackage[utf8]{inputenc}          % and only THEN load UTF-8 see https://tex.stackexchange.com/questions/13067/
 \usepackage{ucs}                     % unicode support
+\usepackage{comment}                 %    allows to flag portions of the document using \begin{comment} ... \end{comment}
 
-
-     
 \usepackage{csquotes}                % quotes
-
-\usepackage{tabto}
-
-\usepackage[usenames]{color}         %    Should load before tcolorbox                  
+\usepackage{tabto}                   % command \tabto{2cm}
+\usepackage{xcolor}                  % Should load before tcolorbox                  
 \usepackage{tcolorbox}
 
+%%
+%% DRAWING and GRAPHICS
+%%
 
 \usepackage{tikz}
 \usetikzlibrary{trees,positioning}
+\usetikzlibrary{fpu}
+\usetikzlibrary{arrows.meta,calc,decorations.markings,math}
+\usetikzlibrary{intersections}
+\usetikzlibrary{positioning,fit}%
+\usetikzlibrary{quotes,angles}
+\usetikzlibrary{mindmap}%  
+\usetikzlibrary{shadows}%                           % needed by mindmaps
+
+
+\usepackage{qrcode}                                   % defines \qrcode[height=1cm,level=L]{ABCD} level: L M Q H for low medium ... quality
+\usepackage[percent]{overpic}                         % wrote some text directly over a picture, see 
+                                                      % https://tex.stackexchange.com/questions/20792/how-to-superimpose-latex-on-a-picture
+
+\usepackage{pgfplots}
+\pgfplotsset{compat=newest}
+\pgfplotsset{trig format plots=rad}                   % trigonometry MUST clearly be done in radiants 
+
+\tikzset{trig format=rad}%      pgfplotsset only affects plots, also need this for all of tikz
+
+\usepackage{tikz-uml}
+
+\def\tikzrad{\pgfplotsset{trig format plots=rad}\tikzset{trig format=rad}}
+\def\tikzdeg{\pgfplotsset{trig format plots=deg}\tikzset{trig format=deg}}
+
+%% TODO: what is this for ??
+\newcommand*{\info}[4][16.3]{%
+  \node [ annotation, #3, scale=0.65, text width = #1em, inner sep = 2mm ] at (#2) {%
+  %\vspace*{-0.5em}%
+  \def\BL{\list{$\bullet$}{\topsep=0pt\itemsep=0pt\parsep=0pt\parskip=0pt\labelwidth=8pt\leftmargin=8pt\itemindent=0pt\labelsep=2pt}%
+    \def\EL{\endlist}%\baselineskip12pt%
+  }%
+ \par\nointerlineskip  #4%
+  };
+}
+
+
+
+
+
 
 
 %%
-%% Math Specialities
+%% MATHEMATICS
 %%
 \usepackage[fleqn]{amsmath}          % ams math package with flushed left equations
 \usepackage{amssymb,amscd}           % math symbols
 \usepackage{mathtools}               % fixes deficiencies in amsmath
 \usepackage[all]{xy}
 \usepackage{bussproofs}              % proof trees
+
+
+
 
 %%
 %% TWEAK amsmath macro to allow \begin{pmatrix}[1.5] for having more space see https://tex.stackexchange.com/questions/14071/how-can-i-increase-the-line-spacing-in-a-matrix
@@ -45,7 +95,7 @@
 %% Include local packages
 %%
 
-%\input{../local/chc-jpabox.tex}
+\input{../local/chc-jpabox.tex}
 
 
 
@@ -64,12 +114,6 @@
 %% Adjusting the lengths
 %%
 
-\paperheight 30cm
-\paperwidth 15cm
-\setlength{\hoffset}{-1in}
-\setlength{\voffset}{-1in}
-\oddsidemargin  0cm
-\evensidemargin 0cm
 \marginparsep   0cm
 \marginparwidth 0cm
 \headsep        0cm
@@ -109,11 +153,44 @@
 %%
 %% HYPERREF
 %%
+\usepackage[hyphens,obeyspaces,spaces]{url}  % must be loaded before hyperref
+\usepackage[
+  colorlinks,
+  hyperfootnotes=true,    % footnote marks as links
+  unicode=true,           % https://tex.stackexchange.com/questions/10555/hyperref-warning-token-not-allowed-in-a-pdf-string
+  breaklinks=true,         % allow to break links
+  hypertexnames=true
+]{hyperref}
 
-\usepackage[colorlinks,hyperfootnotes=false]{hyperref}
-\hypersetup{breaklinks=true}
+%%
+%% BELOW configures the line breaking algorithm of the url package.
+%% DO NOT TOUCH since an additional blank at the wron place may break the algo
+%%
+\makeatletter
+\def\UrlBreaks{\do\.\do\@\do\\\do\/\do\!\do\_\do\|\do\;\do\>\do\]%
+  \do\)\do\,\do\?\do\'\do+\do\=\do\#%
+  \do A\do B\do C\do D\do E\do F\do G\do H\do I\do J\do K\do L\do M%
+  \do N\do O\do P\do Q\do R\do S\do T\do U\do V\do W\do X\do Y\do Z%
+  \do a\do b\do c\do d\do e\do f\do g\do h\do i\do j\do k\do l\do m%
+  \do n\do o\do p\do q\do r\do s\do t\do u\do v\do w\do x\do y\do z%
+  \do 0\do 1\do 2\do 3\do 4\do 5\do 6\do 7\do 8\do 9\do\:%
+  \do\.\do\@\do\\\do\/\do\!\do\_\do\|\do\;\do\>\do\]%
+  \do\)\do\,\do\?\do\&\do\'\do+\do\=\do\#}%
+%\def\UrlBigBreaks{\do\:\do@url@hyp\do\/}%
+\def\UrlNoBreaks{}
+%\def\UrlOrds{\do\*\do\-\do\~\do\'\do\"\do\-\do\/\do\e}%
+\makeatother
+
+
+
+
+
+
+
+
 
 \renewcommand{\thempfootnote}{\arabic{mpfootnote}}%    forces footnotes in standalone class to be numeric
+
 
 %%
 %% LOCALIZATION
@@ -178,16 +255,12 @@
 %% TABLES and ARRAYS
 %%
 
-\usepackage{array}%                            load the new array package
+\usepackage{array}%                       load the new array package
 
-\arraycolsep=1.0pt \def\arraystretch{1.0}
+\arraycolsep=3.0pt%                       adds to the separation of array columns
+\def\arraystretch{1.2}%                   increase the distance between rows of an array
 
-
-
-
-
-
-
+\usepackage{adjustbox}%   used for alignment https://tex.stackexchange.com/questions/127056/vertical-alignment-of-graphic-and-tabular
 
 \usepackage{marginnote}
 \def\mymarg#1{\hspace*{-6cm}\marginnote{#1}}
@@ -208,7 +281,7 @@
 \usepackage{stmaryrd}              % needed for \bigsqcap
 \usepackage{fontawesome}           % make fontawesome with some additional symbols available, for example \faTV etc
 \usepackage{wasysym}               % some symbols
-
+\usepackage{eurosym}               % euro symbol
 
 
 
@@ -372,8 +445,10 @@
 \def\THEN{\Rightarrow}
 \def\IFF{\Leftrightarrow}
 
+
+
 %%%
-%%%
+%%% LEGACY STUFF
 %%%
 \newcounter{myc}
 \newenvironment{mitemize}%
@@ -419,9 +494,10 @@
 
 
 
-\begin{document}\myInitialize\typeout{HERESTARTSTHEMAINDOCUMENT}%
+\begin{document}\begin{minipage}{15cm}\myInitialize\typeout{HERESTARTSTHEMAINDOCUMENT}%
 
 magic-line-identifier-for-inclusion
+
 
 
 Here starts my document, and it starts with a longer line to see where
@@ -445,13 +521,14 @@ Eine Überschrift mit Absatz
 \end{itemize}
 
 
-
 Eine Überschrift ohne Absatz
 \begin{enumerate}
 \item one
 \item two
 \item three
 \end{enumerate}
+
+asd
 
 Eine Überschrift mit Absatz
 
@@ -461,10 +538,34 @@ Eine Überschrift mit Absatz
 \item three
 \end{enumerate}
 
+qwe
+
+Nun some\footnote{Fußnote}
+
+Nun ein Text mit einer URL die einen Umbruch enthält und dabei 
+die \url{https://www.texthjkuihjioz.de/undnuneinsehrlangertextmiteinemumbruchproblem.html}
+
+\[
+\begin{array}[]{lll}
+a & b & c \\
+d & e & f
+\end{array}
+\]
 
 
+\begin{tabular}[]{lll}
+a & b & c \\
+d & e & f
+\end{tabular}
+
+\begin{minted}[linenos=true, frame=lines %, bgcolor=black!10
+]{c}
+int axgqo;      
+float bcj;      
+main() {} 
+\end{minted}
 
 
-\end{document}
+\end{minipage}\end{document}
 
 
