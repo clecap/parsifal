@@ -31,6 +31,16 @@ class Parsifal {                                  // glue class of the extension
 
     foreach (TAGS as $key => $tag) { $parser->setHook ($tag, function  ($in, $ar, $parser, $frame) use ($tag) { return  TeXProcessor::lazyRender ($in, $ar, $tag, $parser, $frame);} ); } // for every tag in TAGS implement a Latex-like parser hook
 
+    $parser->setHook ("dtex", function  ($in, $ar, $parser, $frame) use ($tag) { 
+      $ar["number-of-instance"] = "1";
+      $res1 = TeXProcessor::lazyRender ($in, $ar, "amstex", $parser, $frame);} 
+      $ar["number-of-instance"] = "2";
+      $res2 = TeXProcessor::lazyRender ($in, $ar, "amstex", $parser, $frame);} 
+      return $res1.$res2;
+    );
+
+
+
     $parser->setHook ( 'block',            function ($in, $ar, $parser, $frame) { return  Parsifal::block ($in, $ar);}    );         // implement a <block> construct
   }
 
