@@ -222,6 +222,7 @@ class Parsifal {                                  // glue class of the extension
           $myTitle   = Title::newFromText( $titleText, NS_MEDIAWIKI );
           $myArticle = new Article( $myTitle );
           $content = $myArticle->getPage()->getContent();
+          if (!$content) {throw new Exception ("Could not get content for page $titleText, maybe the Template does not exist");}
           $template  = $content->getNativeData();  // the data in MediaWiki:ParsifalTemplate/$shortName
 
           $templateFileName = "$TEMPLATE_PATH$shortName.tex";
