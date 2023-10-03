@@ -26,14 +26,14 @@ html.sizeLimit  .parsifalContainer {max-width:1000px;}
 
 
 /* marker class for first variant */
-.instance_1 { border: 10px solid red;}
+.instance_1 { border: 2px solid red;}
 
 /*marker class for second variant */
-.instance_2 { border: 10px solid green;}
+.instance_2 { border: 2px solid green;}
 
 /* showing different variants */
-html.showVariants  .instance_1 { border:20px solid yellow;}
-html.showVariants .instance_2 { border:20px solid pink;}
+html.showVariants .instance_1 { display:block; }
+html.showVariants .instance_2 { display:none;  }
 
 
 
