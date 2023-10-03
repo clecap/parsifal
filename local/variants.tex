@@ -1,0 +1,16 @@
+
+
+\usepackage{ifthen}
+
+\def\initializeVariants{
+  \newif\ifOne
+  \newif\ifTwo
+  \Onefalse\Twofalse
+  \ifthenelse{\numberOfInstance = 1}{\Onetrue}{}
+  \ifthenelse{\numberOfInstance = 2}{\Twotrue}{}
+  \typeout{initializeVariants has been called}
+}
+
+\typeout{Local File variants.tex has been loaded}
+
+

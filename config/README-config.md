@@ -15,8 +15,6 @@
 
 * **config-env.php** defines the environment variables used by Tex (not clear still how much we still need of this)
 
-* **config-old.php** is phased out. It is no longer used.
-
 * config-paths.php
 
 config.php

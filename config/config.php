@@ -61,20 +61,6 @@ const TAG2WIDTHinCM = array (
 // code for measuring pagelength and placing the result into .ypos file
 const MEASURE = "\\newwrite\\yposoutputfile\\openout\\yposoutputfile=\\jobname.ypos\\pdfsavepos\\write\\yposoutputfile{\\the\\pagetotal}";
 
-// DEPRECATED
-/*
-const PC_LATEX_ADDON = array (
-  "amsmath"    =>      "\\begin{document}\\begin{minipage}{15cm}\myInitialize\\relax ".MAGIC_LINE."\\end{minipage}".MEASURE."\\end{document}",
-  "tex"        =>      MAGIC_LINE,
-  "beamer"     =>      "\\begin{document} ".MAGIC_LINE.MEASURE."\\end{document}"
-);
-
-const PC_PDFLATEX_ADDON = array (
-  "amsmath"    =>    "\\begin{document}\\begin{minipage}{15cm}\myInitialize\\relax ".MAGIC_LINE."\\end{minipage}".MEASURE."\\end{document}",
-  "tex"        =>    MAGIC_LINE,
-  "beamer"     =>    "\\begin{document} ".MAGIC_LINE.MEASURE."\\end{document}"
-);
-*/
 
 const PREFIX_ERROR = "max_print_line=10000  error_line=254  half_error_line=238";  // prefix for generating reasonable error file format; see https://tex.stackexchange.com/questions/52988/avoid-linebreaks-in-latex-console-log-output-or-increase-columns-in-terminal?rq=1
 

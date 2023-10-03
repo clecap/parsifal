@@ -92,6 +92,18 @@ Mark the area as collapsible with a click on the area.
 Forces an outline on the image. Helpful for debugging and adjusting distances.
 
 
+# Attributes
+
+* ```sans```  Use sans serif fonts
+* ```double```````
+* ocg
+* rerun
+
+
+
+
+
+
 
 ## LaTeX Typesetting
 

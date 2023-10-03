@@ -23,6 +23,20 @@ h6 .mw-editsection {margin-left:500px !important; }
 /* this is overridden in DantePresentations showEndpoint.css */
 html.sizeLimit  .parsifalContainer {max-width:1000px;}
 
+
+
+/* marker class for first variant */
+.instance_1 { border: 10px solid red;}
+
+/*marker class for second variant */
+.instance_2 { border: 10px solid green;}
+
+/* showing different variants */
+html.showVariants  .instance_1 { border:20px solid yellow;}
+html.showVariants .instance_2 { border:20px solid pink;}
+
+
+
 .parsifalBlock {max-width:1000px;}
 html .vector-body h1, html .vector-body h2, html .vector-body h4, html .vector-body h4, html .vector-body h5, html .vector-body h6 {max-width:998px;}
 

@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.21 (TeX Live 2020) (preloaded format=pdflatex 2020.9.4)  3 OCT 2023 13:09
+This is pdfTeX, Version 3.14159265-2.6-1.40.21 (TeX Live 2020) (preloaded format=pdflatex 2020.9.4)  3 OCT 2023 16:04
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -663,7 +663,11 @@ Proof Tree (bussproofs) style macros. Version 1.1.
 \jpa@WIDTH=\skip59
 \jpa@HEIGHT=\skip60
 \jpa@DEPTH=\skip61
-) (../local/variants.tex) (/usr/local/texlive/2020/texmf-dist/tex/latex/url/url.sty
+) (../local/variants.tex (/usr/local/texlive/2020/texmf-dist/tex/latex/base/ifthen.sty
+Package: ifthen 2014/09/29 v1.1c Standard LaTeX ifthen package (DPC)
+)
+Local File variants.tex has been loaded
+) (/usr/local/texlive/2020/texmf-dist/tex/latex/url/url.sty
 \Urlmuskip=\muskip17
 Package: url 2013/09/16  ver 3.4  Verb mode for urls, etc.
 ) (/usr/local/texlive/2020/texmf-dist/tex/latex/hyperref/hyperref.sty
@@ -981,10 +985,10 @@ Package: soul 2003/11/17 v2.4 letterspacing/underlining (mf)
 
  
 Here is how much of TeX's memory you used:
- 44741 strings out of 480608
- 930482 string characters out of 8653631
- 10306874 words of memory out of 14000000
- 59914 multiletter control sequences out of 15000+600000
+ 44793 strings out of 480608
+ 931063 string characters out of 8653631
+ 10307591 words of memory out of 14000000
+ 59963 multiletter control sequences out of 15000+600000
  534863 words of font info for 35 fonts, out of 9000000 for 9000
  1141 hyphenation exceptions out of 8191
  79i,1n,136p,3264b,609s stack positions out of 5000i,500n,10000p,9000000b,80000s

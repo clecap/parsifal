@@ -255,6 +255,20 @@ const implementLimitedSize = () => {
 
 
 
+const showVariants = (flag) => { 
+  window.localStorage.setItem ("Parsifal-show-variants", (flag ? "true" : "false"));
+  implementShowVariants();
+};
+
+const implementShowVariants = () => {
+  let showVariants = window.localStorage.getItem ("Parsifal-show-variants") === "true";  
+  if (showVariants) { document.documentElement.classList.add     ("showVariants"); }
+  else           { document.documentElement.classList.remove  ("showVariants");}
+};
+
+
+
+
 
 // patches the edit section links before a parsifal container
 // called for every parsifal container via php injected script tag line
@@ -277,7 +291,9 @@ const patchParsifalEditLinks = (sc) => {
 };
 
 return ( {imageIsMissing, renderPDF, jsRender, showImage, srcDebug, init, 
-         limitSize, implementLimitedSize, patchParsifalEditLinks});    // export functions to the PRT Parsifal Run Time object
+         limitSize, implementLimitedSize, 
+         showVariants, implementShowVariants,
+         patchParsifalEditLinks});    // export functions to the PRT Parsifal Run Time object
 
 })();  // END of object PRT definition
 
@@ -286,5 +302,7 @@ return ( {imageIsMissing, renderPDF, jsRender, showImage, srcDebug, init,
 // if (typeof window.PRTLC === "undefined") {console.error ("first time loaded"); window.PRTLC = 1;} else {console.error ("multiple times loaded - why??");}
 
 PRT.implementLimitedSize();
+
+PRT.implementShowVariants();
 
 console.error ("Parsifal runtime.js has loaded successfully");

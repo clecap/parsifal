@@ -12,19 +12,22 @@
 
 class Decorator {
 
-  private $kern;       // the kernel which shall be decorated here
-  private $content;    // the content as it has been decorated thus far
-  private $width;      // width of the image
-  private $height;     // height of the image
+  private $kern;           // the kernel which shall be decorated here
+  private $content;        // the content as it has been decorated thus far (this is amended throughout the process)
+  private $width;          // width of the image
+  private $height;         // height of the image
 
+  private $markingClass;   // classes to be added to parsifalContainer
 
-  function __construct ($kern, $width, $height) { $this->kern = $kern; $this->content = $kern; $this->width=$width; $this->height = $height;}
+  function __construct ($kern, $width, $height, $markingClass) { $this->kern = $kern; $this->content = $kern; $this->width=$width; $this->height = $height;
+     $this->markingClass = "parsifalContainer ".$markingClass;
+    }
 
   public function wrapDivX () {
     $annotations ="";
     $errorInjector ="";
 
-    $this->content =  "<div class='parsifalContainer' data-src='wrapDiv'>" 
+    $this->content =  "<div class='".$this->markingClass."' data-src='wrapDiv'>" 
                       .$this->kern 
                       ."<div class='annoLayer'>".$annotations."</div>"
                      .$errorInjector
@@ -53,7 +56,7 @@ class Decorator {
     $aspect = $this->width / $this->height;
     $width = $this->width;  $height=$this->height;    ////// TODO: is this required for proper interpolation ????
 
-    $this->content =  "<div class='parsifalContainer' style=\"aspect-ratio: $aspect\">" 
+    $this->content =  "<div class='".$this->markingClass."' style=\"aspect-ratio: $aspect\">" 
                       .$this->kern 
 //
 // THIS BELOW WORKS FOR HTML

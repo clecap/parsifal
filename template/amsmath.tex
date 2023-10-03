@@ -3,7 +3,7 @@
 
 %%
 %% Standard package imports
-%%
+%% 
 
 \usepackage[T1]{fontenc}             % fontencoding - FIRST load fontencoding 
 \usepackage[utf8]{inputenc}          % and only THEN load UTF-8 see https://tex.stackexchange.com/questions/13067/
@@ -58,12 +58,6 @@
   };
 }
 
-
-
-
-
-
-
 %%
 %% MATHEMATICS
 %%
@@ -72,9 +66,6 @@
 \usepackage{mathtools}               % fixes deficiencies in amsmath
 \usepackage[all]{xy}
 \usepackage{bussproofs}              % proof trees
-
-
-
 
 %%
 %% TWEAK amsmath macro to allow \begin{pmatrix}[1.5] for having more space see https://tex.stackexchange.com/questions/14071/how-can-i-increase-the-line-spacing-in-a-matrix
@@ -148,6 +139,7 @@
   \parindent 0pt
   \parskip 0.25cm
   \chcdisplayskipadjust
+  \initializeVariants
 }
 
 
@@ -489,10 +481,6 @@
 %%
 
 \def\title#1{\textbf{\large #1}}
-
-
-
-
 
 \begin{document}\chcdisplayskipadjust\typeout{HERESTARTSTHEMAINDOCUMENT}%
 

@@ -96,8 +96,6 @@ private static function generateEndPreambleStuff ($ar, $tag) {
   $stuff = "";
   if ( array_key_exists ( "sans", $ar ) ) { $stuff = $stuff."\\renewcommand{\\familydefault}{\\sfdefault}"; }
 
-
-
 /*
 %  2) The contents of \begin{minted}  ... \end{minted} needs to be properly layouted and have at least one newline character
 %     or the scanner of minted might fail
@@ -252,7 +250,6 @@ public static function lazyRender ($in, $ar, $tag, $parser, $frame) {
 
   self::debugLog ("Attributes: " . print_r ($ar, true)."\n");
 
-
   $CACHE_PATH = CACHE_PATH;
   $VERBOSE    = true;
 
@@ -268,16 +265,6 @@ try {  // GLOBAL EXCEPTION PROTECTED AREA
     if ($VERBOSE) {self::debugLog ("----------------------------------------lazyRender sees hookInvokes=".$wgTopDante->hookInvokes."\n") ;}
 
   self::ensureEnvironment ();
-
-  // IMPORTANT: for consistency with the Javascript pickup and parse mechanism we need to remove everything up to and including the first newline - we MUST get the same hash value in both cases and for identical rendering this must be ignored by latex
-
-  if (false) {  // TODO: MUST CHECK COMPATIBILITY with javascript - but for now we use the entire content of the tag; seems to be more user friendly
-    $startingAt = strpos ($in, "\n");                               // find the first \n
-    $in         = substr ($in, $startingAt+1);                      // and jump over it
-  }
-
-  
-
   $hash       = self::generateTex ($in, $tag, "pc_pdflatex", $ar);      // generate $hash_pc_pdflatex.tex and obtain hash of raw LaTeX source located in Mediawiki
   
   // accumulate in the parser connected output object of that page an array with all the hash values used on this page; do so for cleaning up hashs which became stale // TODO
@@ -288,13 +275,7 @@ try {  // GLOBAL EXCEPTION PROTECTED AREA
   
   // set some paths
   $texPath        = $CACHE_PATH.$hash."_pc_pdflatex.tex"; 
-
-
-
-
   $finalImgUrl    = $wgServer.$wgScriptPath.CACHE_URL.$hash."_pc_pdflatex_final.png"; 
-
-
 
   $annotationPath = $CACHE_PATH.$hash."_pc_pdflatex_final_3.html";                         // the local php file path under which we should find the annotations in form of a (partial) html file  // TODO: hardcoded resolution is bad
   $finalImgPath   = $CACHE_PATH.$hash."_pc_pdflatex_final_3.png";   // TODO: cave hardcoded resolution is bad
@@ -341,21 +322,20 @@ try {  // GLOBAL EXCEPTION PROTECTED AREA
   // self::debugLog ("\n\n\n ZOOM: ar=" . $ar["scale"]. "  and  ". $tagScale. "   base=" . $baseScale);
 
 
-// TODO: WE STILL have some DURCHEINANDER hier. Looks like we need the final and the final_3 files, one for the preview the other for the final stuff
-//       the idea is to have the preview earlier but to have the final version ready for the page and it looks like there are timing issues with that
-//       when we do some stuff in the background and some in the foreground
 
 // baseScale=1  sehr groß
 // basescale = 50 sehr klein, barely readable
-//    self::Pdf2PngHtmlMT ($hash, self::SCALE(BASIC_SIZE, $baseScale), "_pc_pdflatex", "_pc_pdflatex_final", $duration );  // 15 
-//    if ($VERBOSE) {self::debugLog ("completed after $duration \n");}
-
-// this thing is done in the foreground
-    $arr = array(3);
+/*
+  $arr = array(3);
     foreach ($arr as &$baseScale) {
+
       self::Pdf2PngHtmlMT ($hash, self::SCALE(BASIC_SIZE, $baseScale), "_pc_pdflatex", "_pc_pdflatex_final_".$baseScale, $duration );  // 15 
       if ($VERBOSE) {self::debugLog ("******************************** completed for $baseScale after $duration \n");}
     }
+*/
+  $baseScale = 3;
+  self::Pdf2PngHtmlMT ($hash, self::SCALE(BASIC_SIZE, $baseScale), "_pc_pdflatex", "_pc_pdflatex_final_".$baseScale, $duration );  // 15 
+
   }
   else { if ($VERBOSE) {self::debugLog ("both files found on disc, no need to call processor\n");} }
 
@@ -365,10 +345,7 @@ try {  // GLOBAL EXCEPTION PROTECTED AREA
   // the files we will finally use when saving are put into 0660 mode as marker that they are available for consumption; the preview files remain at 0600 // TODO: is this still used for this purpose ?!?!?
   if (file_exists ($annotationPath) )  { chmod ($annotationPath, 0660); }
   if (file_exists ($finalImgPath)   )  { chmod ($finalImgPath,   0660); }
-  
-  //  $arText = json_encode($ar);    // $ar contains an array of attribute values of the xml tag; convert it to json form
-
- 
+   
   // We need a width and height in the img tag to assist the browser to a more smooth and flicker-less reflow.
   // The width MUST be equal to the width of the image (or else the browser must rescale the image, which BLURS the image and takes TIME)
   if (file_exists ( $finalImgPath ) ) {
@@ -378,7 +355,6 @@ try {  // GLOBAL EXCEPTION PROTECTED AREA
   else {  
       $width=200; $height=200; $hasError = "data-error='missing-image'";  // signal to JS runtime that we know the image is in error
       // return "Currently we have no image for display. It is possible that the LaTeX source did not produce any output. Missing file is $finalImgPath"; 
-
   }
 
   $scaling = 25;
@@ -396,13 +372,20 @@ try {  // GLOBAL EXCEPTION PROTECTED AREA
 /// this should mirgate into DanteSnippets
   if (array_key_exists ("n", $ar)) { // if tag has a name then produce a further copy of the page
 //    TeXProcessor::$makeFileStack[$title."/".$ar["n"]] = "<$tag>\n$in\n</$tag>"; 
-
     MWDebug::log ( "Found a name : ".$ar['n']."\n" );
    //$snip =  new Snippets ( ) ;  
   }
  
   // image tag style
   $style = "style=\"";
+
+
+  $markingClass = "";
+  if ( array_key_exists ("number-of-instance", $ar) ) { $style .= "margin:20px;"; 
+    $markingClass = "instance_".$ar["number-of-instance"];
+  }
+
+
   if ( array_key_exists ("b", $ar) )  { $style .= "border:1px solid gold;";            }     // add a border
   if ( array_key_exists ("br", $ar) ) { $style .= "border-radius:5px;";                }     // add a border radius
   if ( array_key_exists ("bs", $ar) ) { $style .= "box-shadow: 10px 10px lightgrey;";  }     // add a box shadow
@@ -413,7 +396,7 @@ try {  // GLOBAL EXCEPTION PROTECTED AREA
 
   $titleInfo = "title=\"I am a title information\"";
 
-  $finalImgUrl3    = $wgServer.$wgScriptPath.CACHE_URL.$hash."_pc_pdflatex_final_3.png"; 
+  $finalImgUrl3   = $wgServer.$wgScriptPath.CACHE_URL.$hash."_pc_pdflatex_final_3.png"; 
   $finalImgUrl    = $wgServer.$wgScriptPath.CACHE_URL.$hash."_pc_pdflatex_final.png"; 
 
   $cache_url = CACHE_URL;
@@ -421,16 +404,16 @@ try {  // GLOBAL EXCEPTION PROTECTED AREA
   $imgTag      = "<img $naming id=\"$hash\"  $hasError  $titleInfo  data-timestamp='$timestamp'  $style  class='texImage' alt='Image is being processed, please wait, will fault it in automatically as soon as it is ready'></img>";
   $handlerTag  = "<script>PRT.srcDebug(\"$hash\"); PRT.init(\"$hash\", \"$wgServer\", \"$wgScriptPath\", \"$cache_url\"  ); </script>"; // TODO: maybe move outside of the decorator 
 
-//  $imgTag = "<img $naming id=\"$hash\"  src=\"$finalImgUrl\"   data-timestamp='$timestamp'  style='$style' data-hash='$hash'  class='texImage' alt='Image is being processed, please wait, will fault it in automatically as soon as it is ready'></img>";
-
   $imgResult = $imgTag . $handlerTag;  // the image tag which will be used
 
   $annotations  = (file_exists ($annotationPath) ? file_get_contents ($annotationPath) :  null );  // get annotations, if no file present, use null
 
-  $core = new Decorator ( $imgResult, $width, $height);
-  $core->wrap ( $annotations, $softError, $errorPath);   // wrap with annotations and error information   
-  $core->collapsible ( $ar );                                          // decorate with collapsibles
-  $ret = $core->getHTML ();                                            // generate HTML which includes the decorations
+
+
+  $core = new Decorator ( $imgResult, $width, $height, $markingClass);
+  $core->wrap ( $annotations, $softError, $errorPath);      // wrap with annotations and error information   
+  $core->collapsible ( $ar );                               // decorate with collapsibles
+  $ret = $core->getHTML ();                                 // generate HTML which includes the decorations
 
   if ($VERBOSE) {$endTime = microtime (true); $totalDuration = $endTime - $startTime;  self::debugLog ("lazyRender: COMPLETED. TOTAL RUNTIME OF lazyRender =$totalDuration ------------------------------------------------- \n\n\n");}
 
