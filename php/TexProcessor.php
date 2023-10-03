@@ -188,18 +188,27 @@ EOD;
 const MEASURE = "\\newwrite\\yposoutputfile\\openout\\yposoutputfile=\\jobname.ypos\\pdfsavepos\\write\\yposoutputfile{\\the\\pagetotal}";
 
 private static function generateBeforeContentStuff ($ar, $tag) {
-  $stuff = "";
+  $stuff    = "";
+  $variants = "";
   
+  // implement size related attributes
   $size="15cm";
   if ( array_key_exists ( "wide", $ar ) ) { $size="25cm";}
   if ( array_key_exists ( "slim", $ar ) ) { $size="5cm";}
 
+  // implement variant related properties
+  if ( array_key_exists ( "number-of-instance", $ar ) ) { 
+    $variants = "\\gdef\\numberOfInstance{" . $ar["number-of-instance"] . "}";
+  }
+
   # CAVE: confusion between tex { } and php { } should be avoided !
   switch ($tag) {
-    case "amsmath":   $stuff = "\\begin{document}\\begin{minipage}{".$size."}\myInitialize\\relax ".MAGIC_LINE."\\end{minipage}".MEASURE."\\end{document}"; break;
+    case "amsmath":   $stuff = "\\begin{document}\\begin{minipage}{".$size."}\\myInitialize\\relax ".MAGIC_LINE."\\end{minipage}".MEASURE."\\end{document}"; break;
     case "tex":       $stuff = MAGIC_LINE; break;
     case "beamer":    $stuff = "\\begin{document} ".MAGIC_LINE.MEASURE."\\end{document}"; break;
   }
+
+  $stuff = $variants . $stuff;
 
   return $stuff;
 }

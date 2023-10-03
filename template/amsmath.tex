@@ -1,7 +1,6 @@
 <pre>
 \documentclass[varwidth=15cm,margin=0.07cm]{standalone} 
 
-
 %%
 %% Standard package imports
 %%
@@ -13,34 +12,10 @@
 
 \usepackage{csquotes}                % quotes
 \usepackage{tabto}                   % command \tabto{2cm}
-
-
-\usepackage{xcolor}         % Should load before tcolorbox                  
+\usepackage[usenames]{color}         % Should load before tcolorbox                  
 \usepackage{tcolorbox}
 
-%%
-%% Delayed minted initialization code
-%% * We do not load minted here as part of the normal preamble as it slows down normal latex compilation
-%% * we only load minted on demand using attribute minted
-%% * When using minted in document class standalone, we do not see the line numbers which we usually want
-%%   since they lie outside of the area displayed by standalone (we see this if we increase the standalone margin
-%%   parameter but then the remaining part of the document is too large
-%% * Therefore we need a small patch.
-%% * We want to make this patch available as part of an editable ParsifalTemplate and not just hardcode it
-%%   into php code.
-%% * However we cannot execute this in situations where we do not load the minted package
-%% * Therefore we define a (delayed executing) macro \initializeMinted here and - in case the user sets the minted
-%%   attribute in the Latex tag - inject this as part of the PHP code.
-%% * Still we have the code here and can edit it as part of Dantewiki :-)
-%%
-\def\initializeMinted{
-  \tcbuselibrary{breakable}
-  \tcbuselibrary{minted}
-  \renewcommand\theFancyVerbLine{\footnotesize\arabic{FancyVerbLine}}
-  \BeforeBeginEnvironment{minted}{\begin{tcolorbox}[boxsep=10pt,boxrule=0pt]}
-  \AfterEndEnvironment{minted}{\end{tcolorbox}}
-}
-
+%% minted is included dynamically
 
 %%
 %% DRAWING and GRAPHICS
@@ -119,8 +94,8 @@
 %% Include local packages
 %%
 
-%%\input{../local/chc-jpabox.tex}
-%% Taken out currently do debug ocg
+\input{../local/chc-jpabox.tex}
+\input{../local/variants.tex}
 
 
 
