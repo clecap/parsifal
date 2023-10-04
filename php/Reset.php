@@ -14,8 +14,7 @@ class ParsifalReset extends FormSpecialPage {
   public function onSubmit( array $data )  {
     $VERBOSE = false;  // CAVE: if we debug this and set this to true we MUST comment away the deletion of LOGFILE below or we will not see what we log !!
     
-    
-
+ 
     global $IP;
     if (! $this->getUser()->isAllowed ("resetParsifal") ) {return false;}                                       // check for permission "resetParsifal" 
     $dir = new DirectoryIterator( CACHE_PATH );                                                                 // iterate the CACHE_PATH

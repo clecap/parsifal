@@ -26,10 +26,10 @@ html.sizeLimit  .parsifalContainer {max-width:1000px;}
 
 
 /* marker class for first variant */
-.instance_1 { border: 2px solid red;}
+.instance_1 { border: 2px solid red; border-radius:5px;}
 
 /*marker class for second variant */
-.instance_2 { border: 2px solid green;}
+.instance_2 { border: 2px solid green; border-radius:5px;}
 
 /* showing different variants */
 html.showVariants .instance_1 { display:block; }

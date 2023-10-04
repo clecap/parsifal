@@ -290,6 +290,21 @@ const patchParsifalEditLinks = (sc) => {
     err.appendChild (es);
 };
 
+
+// when this function is called on an element ele then the hash id of the image contained in this element
+// is broadcast 
+const broadcastPosition = (ele) => {
+  let danteBC = new BroadcastChannel ("danteBC" );
+  let img = ele.querySelector ("img.texImage");
+  let id  = img.id; 
+  danteBC.postMessage (  {"positionAtId": id } );  
+};
+
+
+
+
+
+
 return ( {imageIsMissing, renderPDF, jsRender, showImage, srcDebug, init, 
          limitSize, implementLimitedSize, 
          showVariants, implementShowVariants,

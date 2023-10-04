@@ -11,9 +11,16 @@ $specialPageAliases = [];
 
 $specialPageAliases['en'] = [
   'ParsifalReset' => [ 'ParsifalReset', 'Parsifal Reset' ],
-  'ParsifalFormat' => [ 'ParsifalFormat', 'Parsifal Format' ] 
+  'ParsifalFormat' => [ 'ParsifalFormat', 'Parsifal Format' ] ,
+  'ParsifalDebug' => [ 'ParsifalDebug', 'Parsifal Debug' ],
+
  ];
 
-$specialPageAliases['de'] = ['ParsifalReset' => [ 'ParsifalReset', 'Parsifal Reset' ],
-'ParsifalFormat' => [ 'ParsifalFormat', 'Parsifal Format' ] ];
+$specialPageAliases['de'] = [
+  'ParsifalReset' => [ 'ParsifalReset', 'Parsifal Reset' ],
+  'ParsifalFormat' => [ 'ParsifalFormat', 'Parsifal Format' ], 
+  'ParsifalDebug' => [ 'ParsifalDebug', 'Parsifal Debug' ]
+
+
+];
 

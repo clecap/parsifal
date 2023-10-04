@@ -6,6 +6,8 @@
   "parsifalreset-legend":    "Press submit to clear the Parsifal cache and log file and clear the page and parser caches",
   "parsifalformat":   "Parsifal: Format page for TeX, Print, PDF",  
   "parsifal-desc": "An extension enabling LaTeX and other high-quality media processing in Mediawiki",
-  "prefs-parsifal":  "Parsifal"
+  "prefs-parsifal":  "Parsifal",
+  "parsifaldebug": "Parsifal: Debug",
+  "parsifaldebug-legend": "Clear Op Cache"
 
 }

@@ -9,6 +9,7 @@
   "AutoloadClasses":   {"Parsifal":            "Parsifal.php",
                         "ParsifalReset":       "php/Reset.php",
                         "ParsifalFormat":      "php/Format.php",
+                        "ParsifalDebug":       "php/Debug.php",
                         "FullPageAction":      "php/FullPage.php",
                         "ParsifalPreferences": "php/Preferences.php"
                        }, 
@@ -38,7 +39,8 @@
   },
   "SpecialPages": {
     "ParsifalReset":  { "class": "ParsifalReset"  },
-    "ParsifalFormat": { "class": "ParsifalFormat" }  
+    "ParsifalFormat": { "class": "ParsifalFormat" },
+    "ParsifalDebug":  { "class": "ParsifalDebug"  }
   },
   "ExtensionMessagesFiles": { 
     "ParsifalAlias":  "Parsifal.alias.php",
