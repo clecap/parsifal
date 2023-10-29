@@ -14,15 +14,13 @@ class ParsifalDebug extends FormSpecialPage {
   public function onSubmit( array $data )  {
     global $IP;
     $VERBOSE = false;  // CAVE: if we debug this and set this to true we MUST comment away the deletion of LOGFILE below or we will not see what we log !!
-     
-    echo "FOUND: ".print_r ($data, true);
-    if ($data["radio"] == 0) { echo "IS NULL";
+    if ($data["radio"] == 0) { 
       copy ("$IP/DanteSettings-production.php", "$IP/DanteSettings-used.php");
     }
-    if ($data["radio"] == 1) { echo "IS ONE"; 
+    if ($data["radio"] == 1) { 
       copy ("$IP/DanteSettings-development.php", "$IP/DanteSettings-used.php");
     }
-    echo "AFTER";
+   
 
     global $IP;
     if (! $this->getUser()->isAllowed ("resetParsifal") ) {return false;}                                       // check for permission "resetParsifal"   
