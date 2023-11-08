@@ -3,7 +3,7 @@
 
 %%
 %% Standard package imports
-%%
+%% 
 
 \usepackage[T1]{fontenc}             % fontencoding - FIRST load fontencoding 
 \usepackage[utf8]{inputenc}          % and only THEN load UTF-8 see https://tex.stackexchange.com/questions/13067/
@@ -30,7 +30,9 @@
 \usetikzlibrary{quotes,angles}
 \usetikzlibrary{mindmap}%  
 \usetikzlibrary{shadows}%                           % needed by mindmaps
+\usetikzlibrary{automata, arrows}
 
+\usepackage{tikz-qtree}
 
 \usepackage{qrcode}                                   % defines \qrcode[height=1cm,level=L]{ABCD} level: L M Q H for low medium ... quality
 \usepackage[percent]{overpic}                         % wrote some text directly over a picture, see 
@@ -46,6 +48,20 @@
 
 \def\tikzrad{\pgfplotsset{trig format plots=rad}\tikzset{trig format=rad}}
 \def\tikzdeg{\pgfplotsset{trig format plots=deg}\tikzset{trig format=deg}}
+
+
+\def\tikzAutomaton{
+  \tikzdeg%
+  \tikzset{
+    ->,                                       % makes the edges directed
+    >=stealth,                                % makes the arrow heads bold
+    node distance=2cm,                        % specifies the minimum distance between two nodes. Change if necessary.
+    every state/.style={thick, fill=gray!10}, % sets the properties for each ’state’ node
+    initial text=$ $,                         % sets the text that appears on the start arrow
+  }%
+}
+
+
 
 %% TODO: what is this for ??
 \newcommand*{\info}[4][16.3]{%
@@ -137,7 +153,7 @@
 
 \def\myInitialize{%   needed for initializations to be done after begin{document} which are taken out by the precompilation process
   \parindent 0pt
-  \parskip 0.25cm
+  \parskip 0.2cm
   \chcdisplayskipadjust
   \initializeVariants
 }
@@ -225,6 +241,9 @@
     label=\textbf{(\arabic*)},
     after={\vspace*{1.5\parskip}}
   }
+  \setlist[enumerate,2]{
+    label=(\arabic*)
+  }
 }
 
 \enumerateWithBrackets
@@ -237,7 +256,8 @@
 \setlist[itemize]{
   partopsep=1.0\parskip,
   topsep=-0.5\parskip,
-  itemsep=0cm
+  itemsep=0cm,
+  after={\vspace*{1.5\parskip}}
 }
 
 \setlist[description]{itemindent=-1.5em, labelsep=0pt,partopsep=\parskip,topsep=-\parskip}
@@ -271,7 +291,7 @@
 %\usepackage{txfonts}
 
 \usepackage{stix}                  % needed for \operp and similar symbols
-\usepackage{stmaryrd}              % needed for \bigsqcap
+\usepackage{stmaryrd}               % needed for \bigsqcap
 \usepackage{fontawesome}           % make fontawesome with some additional symbols available, for example \faTV etc
 \usepackage{wasysym}               % some symbols
 \usepackage{eurosym}               % euro symbol
@@ -284,6 +304,8 @@
 \def\be{\begin{equation}}
 \def\ee{\end{equation}}
 
+% underline boldface
+\def\ubf#1{\underline{\textbf{#1}}}
 
 
 % add shortcut for roman literals
@@ -490,5 +512,5 @@ magic-line-identifier-for-inclusion
 </pre>
 
 
-[[Category:Boot]]
+[[Category:DanteInitialContents]]
 [[Category:ParsifalTemplate]]
