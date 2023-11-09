@@ -144,8 +144,8 @@ body.shift-down  .inline-edit-preview-img   {border:4px solid red;}
 
 
 /* defined in Decorator.php */
-.errorWrap {position:absolute;top:-14px; right:0px; background-color:white; padding-left:8px; padding-right:8px;}
-
+.errorWrap {position:absolute;top:-14px; right:0px; background-color:white; padding-left:8px; padding-right:2px; font-size:small;}
+.hasError {color:red;}
 
 
 /* ANNOTATION-LAYER: for the anchors  */

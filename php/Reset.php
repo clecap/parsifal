@@ -53,6 +53,15 @@ class ParsifalReset extends FormSpecialPage {
     }  // end outer foreach
     
     if ( file_exists ( LOG_PATH ) ) {unlink ( LOG_PATH );}                                                      // unlink the main log (only if it exists - to prevent any error messages from being displayed)
+
+    // names of other files to be removed
+    $otherFiles = array ( "DantePresentations/endpoints/ENDPOINT_LOG",  "DantePresentations/LOGFILE",  "DanteLinks/DANTELINKS-LOGFILE",  "DanteTree/LOGFILE");
+    foreach ($otherFiles as &$fileName) {
+      $full =  $IP. "/extensions/" . $fileName;      
+      if ( file_exists ($full) ) {unlink ($full);}
+    }
+
+
     touch($IP."/LocalSettings.php");
   }
 

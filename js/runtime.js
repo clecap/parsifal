@@ -100,8 +100,9 @@ const imageIsMissing = (title, hash, url) => {
 
 
 const showImage = (e) => {
-  // console.warn ("-------- Parsifal runtime: showing image:", e.target.currentSrc, "width=", e.target.width, e.target,  " viewportwidth=", window.visualViewport.width);
+//  console.warn ("-------- Parsifal runtime: showing image:", e.target.currentSrc, "width=", e.target.width, e.target,  " viewportwidth=", window.visualViewport.width);
   e.target.style.display = "inline-block";
+
 }
 
 const editPreviewPatch = () => {  // the clutch to PHP; we may adapat it to use CodeMirror, textarea or whatever client side editor we desire
@@ -267,25 +268,24 @@ const implementShowVariants = () => {
 };
 
 
-
-
-
 // patches the edit section links before a parsifal container
 // called for every parsifal container via php injected script tag line
 const patchParsifalEditLinks = (sc) => {
-    console.info ("runtime.js: patchParsifalEditLinks: ", sc);
+    //console.info ("runtime.js: patchParsifalEditLinks: ", sc);
     var pc       = sc.previousSibling;
-    console.info ("parsifalContainer: ", pc);
+    //console.info ("parsifalContainer: ", pc);
+
+   pc.addEventListener ("mouseenter", (e) => { if (e.shiftKey) {pc.style.outline = "1px dotted grey";} } );
+   pc.addEventListener ("mouseleave", (e) => { pc.style.outline = ""; } );
+
 
     var hElement = pc.previousSibling;
-    while ( hElement && !["H1","H2","H3","H4","H5","H6"].includes (hElement.tagName)) {
-      
-      hElement = hElement.previousSibling;}
-    console.info ("h-element", hElement);
+    while ( hElement && !["H1","H2","H3","H4","H5","H6"].includes (hElement.tagName)) { hElement = hElement.previousSibling;}
+    //console.info ("h-element", hElement);
     var err = pc.querySelector (".errorWrap");
-    console.info ("err", err);
+    //console.info ("err", err);
     var es = hElement.querySelector (".mw-editsection");
-    console.info ("editsection", es);
+    //console.info ("editsection", es);
     es.parentNode.removeChild (es);
     err.appendChild (es);
 };
@@ -300,7 +300,14 @@ const broadcastPosition = (ele) => {
   danteBC.postMessage (  {"positionAtId": id } );  
 };
 
+/*
+$(".parsifalContainer").on("keydown", (e) => { Object.assign (e.currentTarget.style, {border:"1px solid red;"}); });
 
+$(".parsifalContainer").on("keyup", (e) => { Object.assign (e.currentTarget.style, { }); });
+*/
+
+
+// document.body.addEventListener ( "keydown", (e) => { Object.assign (e.currentTarget.style, {border:"1px solid red;"}); } );
 
 
 

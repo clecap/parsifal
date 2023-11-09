@@ -201,7 +201,7 @@ private static function generateBeforeContentStuff ($ar, $tag) {
 
   # CAVE: confusion between tex { } and php { } should be avoided !
   switch ($tag) {
-    case "amsmath":   $stuff = "\\begin{document}\\begin{minipage}{".$size."}\\myInitialize\\relax ".MAGIC_LINE."\\end{minipage}".MEASURE."\\end{document}"; break;
+    case "amsmath":   $stuff = "\\begin{document}\\begin{minipage}{".$size."}\\relax ".MAGIC_LINE."\\end{minipage}".MEASURE."\\end{document}"; break;
     case "tex":       $stuff = MAGIC_LINE; break;
     case "beamer":    $stuff = "\\begin{document} ".MAGIC_LINE.MEASURE."\\end{document}"; break;
   }
@@ -281,7 +281,7 @@ try {  // GLOBAL EXCEPTION PROTECTED AREA
   $finalImgPath   = $CACHE_PATH.$hash."_pc_pdflatex_final_3.png";   // TODO: cave hardcoded resolution is bad
   $errorPath      = "$wgScriptPath/extensions/Parsifal/html/texLog.html?"."$wgServer$wgScriptPath".CACHE_URL.$hash."_pc_pdflatex";
 
-  $softError = 0;
+  $softError = "";
 
   // LATEX to PDF production step
   if ($VERBOSE) {self::debugLog ("lazyRender will now Tex2PDF $hash... ") ;}
@@ -294,8 +294,8 @@ try {  // GLOBAL EXCEPTION PROTECTED AREA
     if ($VERBOSE) {self::debugLog ( "found file on disc\n" );}
     $fileSize = filesize ( $CACHE_PATH . $hash. "_pc_pdflatex.mrk");
     if ( $fileSize === false ) { throw new ErrorException ("lazyRender: Could not find error marker file " . $CACHE_PATH . $hash. "_pc_pdflatex.mrk");  }
-    else if ( $fileSize > 0 ) { $softError = 1;       MWDebug::log ( "Softerror Case 2 is: $softError \n" );}
-    else { $softError = 0;        MWDebug::log ( "Softerror Case 3 is: $softError \n" );}
+    else if ( $fileSize > 0 ) {   MWDebug::log ( "Softerror Case 2 is: $softError \n" );}
+    else { $softError = "";        MWDebug::log ( "Error Marker file is empty \n" );  }
   }
 
   // NOW we should have a PDF file - if not it could still be a transient error from latex which in this particular situation was unable to produce a pdf although it could run  TODO: do an error handling for this scenario !!
@@ -407,8 +407,6 @@ try {  // GLOBAL EXCEPTION PROTECTED AREA
   $imgResult = $imgTag . $handlerTag;  // the image tag which will be used
 
   $annotations  = (file_exists ($annotationPath) ? file_get_contents ($annotationPath) :  null );  // get annotations, if no file present, use null
-
-
 
   $core = new Decorator ( $imgResult, $width, $height, $markingClass);
   $core->wrap ( $annotations, $softError, $errorPath);      // wrap with annotations and error information   
@@ -1006,29 +1004,48 @@ private static function Tex2DviPdflatex ($hash, $inFinal="") {
  *    Hard error: Throw
  *    Soft error: Return non-zero (retval): Caller may show link to parsed latex error log
  *    No error: Return zero
+ *   
+ *    Returns:
+ *      0 no error at all
+ *      1 tex returned error, but we did not find an error message
+ *    127 command not found
+ *    string  error text as the error parser felt fit to parse it
  */
 private static function Tex2Pdf ($hash, $inFinal, $note) {
   $VERBOSE = false;  $CACHE_PATH = CACHE_PATH;
-  ASSERT_FILE ("$CACHE_PATH$hash$inFinal.tex"); 
+  $texFileName = "$CACHE_PATH$hash$inFinal.tex";
+  ASSERT_FILE ($texFileName); 
   // if ($VERBOSE) {self::debugLog ("Tex2Pdf sees the following environment: \n".print_r (getenv(), true) );}  // uncomment to check the active environment
-  $cmd = PREFIX_ERROR . " pdflatex  --shell-escape --interaction=nonstopmode  -file-line-error-style -output-directory=$CACHE_PATH $CACHE_PATH$hash$inFinal.tex"; 
+  $cmd = PREFIX_ERROR . " pdflatex  --shell-escape --interaction=nonstopmode  -file-line-error-style -output-directory=$CACHE_PATH $texFileName"; 
   if ($VERBOSE || true) { self::debugLog ("Tex2Pdf started ($note) for $hash$inFinal, command is: $cmd \n");}   
   $retval = TeXProcessor::executor ( $cmd, $output, $error, false );
+  //  127   a fundamental error such as command not found
+  //   1   a small tex error, but might be worth mentioning
+  //   0   no error at all
+  
+  if ($retval == 0)        { $ret="";}
+  else if ($retval == 127) { $ret="System error. Code 127. Check logs or inform manufacturer.";}
+  else if ($retval == 1)   {
+    $logfileContents = file_get_contents ( $CACHE_PATH . $hash . "_pc_pdflatex.log");
+    if ($logfileContents === false) { $ret= "Tex signalled an error but we could not find an error file. Hash is ".$hash; }
+    else {
+      $index=strpos ($logfileContents, $texFileName.":");
+      $substring = substr($logfileContents, $index);
+      $index=strpos ($substring,":");
+      $substring = substr ($substring, $index+1);
+      $newlinePos = strpos($substring, "\n");
+      if ($newlinePos !== false) { $ret= substr($substring, 0, $newlinePos); } else { $ret = $substring; }
+  } }
+  else                     { $ret=" Unknown errorcode received from Tex driver. Value is ".$retval; }
 
-// 127   a fundamental error such as command not found
-//   1   a small tex error, but might be worth mentioning
-//   0   no error at all
+  file_put_contents ( $CACHE_PATH . $hash. "$inFinal.mrk", $ret ); // write ERROR into .mrk file if there is a soft error to know about this later when we only access file system
+  if ($VERBOSE) {self::debugLog ("Tex2Pdf: Error: $ret \n");}
 
-  file_put_contents ( $CACHE_PATH . $hash. "$inFinal.mrk", ( $retval != 0 ? "ERROR" : "" ) ); // write ERROR into .mrk file if there is a soft error to know about this later when we only access file system
-
-  if ($retval == 0 || $retval == 1) {
-    if ($VERBOSE) {self::debugLog ("Tex2Pdf: Soft error: return value = $retval \n");}
-    return $retval;}
-  else {
-    throw new Exception ("Tex2Pdf: Looks like a hard error: \n ".  (file_exists ( "$CACHE_PATH$hash$inFinal.pdf") ? " Have a pdf file\n" : " Have NO pdf file\n" )  ." Executor return value: $res \n Output: $output \n Error: $error \n File: $CACHE_PATH$hash$inFinal.pdf\n");   
-  }
+//  else {
+//    throw new Exception ("Tex2Pdf: Looks like a hard error: \n ".  (file_exists ( "$CACHE_PATH$hash$inFinal.pdf") ? " Have a pdf file\n" : " Have NO pdf file\n" )  ." Executor return value: $res \n Output: $output \n Error: $error \n File: $CACHE_PATH$hash$inFinal.pdf\n");   
+//  }
+  return $ret;
 }
-
 
 
 
