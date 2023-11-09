@@ -117,7 +117,7 @@ class Parsifal {                                  // glue class of the extension
   // when we edit a page, intercept the edit process via javascript and insert an edit preview (if appropriate)
   public static function onEditPageshowEditForminitial ( EditPage &$editPage, OutputPage $output) {
 
-     // the functionality of preventing Latex preview since we have no Latex on this page is done in editpreviewPatch() in helper.js Javascript
+
     $output->addJSConfigVars ( 'Parsifal', Parsifal::prepareJSConfig() );             // export configuration to HTML code for access via Javascript
     
     if (false) { // version without Codemirror  // TODO: MUST ReSPECT user choice !!

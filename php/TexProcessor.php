@@ -90,72 +90,61 @@ public static function timeTest ($in, $tag) {
 
 
 
-
-
+/** generate stuff to be placed into the preamble but at the end of the preamble
+ *  this is of particular importance for those parts of the preamble which cannot be precompiled
+ */
 private static function generateEndPreambleStuff ($ar, $tag) {
   $stuff = "";
+
+  // array key   "sans"  turns the default font into a sans serif font
   if ( array_key_exists ( "sans", $ar ) ) { $stuff = $stuff."\\renewcommand{\\familydefault}{\\sfdefault}"; }
+
+  // array keys  de, nde, babel   and  default: english
+  if ( array_key_exists ( "de", $ar ) )          { $stuff = $stuff."\\usepackage[shorthands=off,german]{babel}";   }
+  else if ( array_key_exists ( "nde", $ar ) )    { $stuff = $stuff."\\usepackage[shorthands=off,ngerman]{babel}";  }
+  else if ( array_key_exists ( "babel", $ar ) )  { $stuff = $stuff."\\usepackage[shorthands=off,".$ar["babel"]."]{babel}";  }
+  else                                           { $stuff = $stuff."\\usepackage[shorthands=off,english]{babel}";  }
 
 /*
 %  2) The contents of \begin{minted}  ... \end{minted} needs to be properly layouted and have at least one newline character
 %     or the scanner of minted might fail
-%
-%  This part is in  a seperate file. minted fails if we have it as part of the precompiled preamble.
-%
-%% CAVE: If we want to do parallel runs using \backJob we MUST NOT provide a single cache directory or minted will crash
-
- % for highlighting program listing
-                                                      % MUST specify a seperate output directory if one is used in TeXStudio
-                                                      % MUST use newfloat=true, otherwise the listing environment is broken for minted
-
-
-
-
 % patch minted so as to get a centered version thereof
 % https://tex.stackexchange.com/questions/161124/how-to-make-a-minted-code-listing-centered-on-a-page
-
-
-  if ( array_key_exists ("minted", $ar) ) { $stuff = $stuff . "\\usepackage[outputdir=build,newfloat=true,cache]{minted}"; }
-
--output-directory=$CACHE_PATH 
-
 */
-// emacs
 
   $light = array ("manny", "rrt", "perldoc", "borland", "colorful", "murphy", "vs", "trac", "tango", "autumn", "bw", "emacs", "pastie", "friendly");
-  $dark = array ( "fruity", "vim", "native", "monokai");
+  $dark  = array ( "fruity", "vim", "native", "monokai");
 
-  if ( array_key_exists ("minted", $ar) ) {  // if we have aminted attribute, include minted stuff
-    if ( in_array ($ar["minted"], $light) ) { $style=$ar["minted"]; } else { $style = "emacs";}  // check if style is known, if not, use emacs as default
-
+  // array key   "minted"  if present: adds package minted and uses style emacs
+  //                       if present and has a value: uses that value as style for minted, provided the style is known
+  if ( array_key_exists ("minted", $ar) ) {                                                       // if we have a minted attribute, include minted stuff
+    if ( in_array ($ar["minted"], $light) ) { $style=$ar["minted"]; } else { $style = "emacs";}   // check if style is known. If it is not, use emacs as default
     $stuff = $stuff . "\\usepackage[outputdir=".CACHE_PATH.",newfloat=true,cache]{minted}\\usemintedstyle{" .$style. "}\\initializeMinted"; 
-
-
   }
 
-/*
-\usepackage{xpatch,letltxmacro}
-%\LetLtxMacro{\cminted}{\minted}
-%\let\endcminted\endminted
-%\xpretocmd{\cminted}{\RecustomVerbatimEnvironment{Verbatim}{BVerbatim}{}}{}{}
+
+  // array key    "pa" if present and has contents
+  //                   if contents starts with [[  and ends with ]] then use the string in between as reference to a Mediawiki parsifal template file
+  $addPreamble = "";
+  if ( array_key_exists ("pa", $ar) ) {
+    if ( str_starts_with ( $ar["pa"], "[[") &&  str_ends_with ( $ar["pa"], "]]" ) ) {
+      $name = substr  ($ar["pa"], 2, -2 );
+      $configPage = "ParsifalTemplate/$name";                                                              // name of the MediaWiki:Sidebar$name configuration page of this portlet
+      $title      = Title::newFromText( $configPage, NS_MEDIAWIKI );                              // build title object for MediaWiki:SidebarTree
+      if ($title == null) { throw new Exception ("no template file $name found for Parsifal");}                                                         // signal the caller that we did not find a configuration page for this portlet
+      $wikipage   = new WikiPage ($title);                                                        // get the WikiPage for that title
+      if ($wikipage == null) { throw new Exception ("no wikipage $name found for Parsifal");}                                                      // signal the caller that we did not get a WikiPage
+      $contentObject = $wikipage->getContent();                                                   // and obtain the content object for that
+      if (!$contentObject) { throw new Exception ("no contentobject $name found for Parsifal"); }
+      $contentText = ContentHandler::getContentText( $contentObject );    
+      $addPreamble = extractPreContents ($contentText);
+    }   
+  else { $addPreamble = $ar["pa"];}
+  }
 
 
-\usepackage[framemethod=TikZ]{mdframed}
-
-\mdfsetup{middlelinecolor=blue,middlelinewidth=0.5pt,backgroundcolor=red!5,roundcorner=10pt,align=center,
-leftmargin=0pt,innerleftmargin=6pt}
-
-\BeforeBeginEnvironment{minted}{\begin{mdframed}}
-\AfterEndEnvironment{minted}{\end{mdframed}}
-
-\setminted{linenos,fontsize=\footnotesize}
-\setmintedinline{fontsize=\normalsize}
-
-*/
-
-
-$optional = <<<EOD
-
+  // add some further stuff into the preamble
+  $optional = <<<EOD
 \\usepackage{environ}%         Needed for some additional definitions
 \\usepackage{ocg-p}%
 
@@ -175,7 +164,7 @@ $optional = <<<EOD
 EOD;
 
 
-  return $stuff . $optional;
+  return $stuff . $optional . $addPreamble;
 }
 
 
@@ -184,6 +173,8 @@ EOD;
 // TODO: do we still need this for our rendering structure - or do we only need this for PDF rendering ??
 // code for measuring pagelength and placing the result into .ypos file
 const MEASURE = "\\newwrite\\yposoutputfile\\openout\\yposoutputfile=\\jobname.ypos\\pdfsavepos\\write\\yposoutputfile{\\the\\pagetotal}";
+
+
 
 private static function generateBeforeContentStuff ($ar, $tag) {
   $stuff    = "";
@@ -292,10 +283,11 @@ try {  // GLOBAL EXCEPTION PROTECTED AREA
   }
   else {                                                             // if the PDF file does exist, pick up the earlier softError status from the marker file
     if ($VERBOSE) {self::debugLog ( "found file on disc\n" );}
-    $fileSize = filesize ( $CACHE_PATH . $hash. "_pc_pdflatex.mrk");
+    $mrkFileName = $CACHE_PATH . $hash. "_pc_pdflatex.mrk";
+    $fileSize = filesize ( $mrkFileName );
     if ( $fileSize === false ) { throw new ErrorException ("lazyRender: Could not find error marker file " . $CACHE_PATH . $hash. "_pc_pdflatex.mrk");  }
-    else if ( $fileSize > 0 ) {   MWDebug::log ( "Softerror Case 2 is: $softError \n" );}
-    else { $softError = "";        MWDebug::log ( "Error Marker file is empty \n" );  }
+    else if ( $fileSize > 0 ) { $softError = file_get_contents ($mrkFileName);  MWDebug::log ( "Softerror Case 2 is: $softError \n" );}
+    else /* fileSize == 0 */  { $softError = "";                                MWDebug::log ( "Error Marker file is empty \n" );  }
   }
 
   // NOW we should have a PDF file - if not it could still be a transient error from latex which in this particular situation was unable to produce a pdf although it could run  TODO: do an error handling for this scenario !!
@@ -319,20 +311,7 @@ try {  // GLOBAL EXCEPTION PROTECTED AREA
       $tagScale = floatval($ar["scale"]); 
       if ( is_float ($tagScale) ) { $baseScale = 15/$tagScale;   }
     }
-  // self::debugLog ("\n\n\n ZOOM: ar=" . $ar["scale"]. "  and  ". $tagScale. "   base=" . $baseScale);
 
-
-
-// baseScale=1  sehr groß
-// basescale = 50 sehr klein, barely readable
-/*
-  $arr = array(3);
-    foreach ($arr as &$baseScale) {
-
-      self::Pdf2PngHtmlMT ($hash, self::SCALE(BASIC_SIZE, $baseScale), "_pc_pdflatex", "_pc_pdflatex_final_".$baseScale, $duration );  // 15 
-      if ($VERBOSE) {self::debugLog ("******************************** completed for $baseScale after $duration \n");}
-    }
-*/
   $baseScale = 3;
   self::Pdf2PngHtmlMT ($hash, self::SCALE(BASIC_SIZE, $baseScale), "_pc_pdflatex", "_pc_pdflatex_final_".$baseScale, $duration );  // 15 
 
@@ -350,8 +329,11 @@ try {  // GLOBAL EXCEPTION PROTECTED AREA
   // The width MUST be equal to the width of the image (or else the browser must rescale the image, which BLURS the image and takes TIME)
   if (file_exists ( $finalImgPath ) ) {
      $hasError = "";
+     clearstatcache ( true, $finalImgPath );  // looks like htis is necessary to ensure getimagesize gets the correct answer all the time
     $ims = @getimagesize ( $finalImgPath ); 
-    if ($ims) {$width = $ims[0]; $height = $ims[1];} else {throw new ErrorException ("Looks like $finalImgPath is not yet ready");}   } 
+    if ($ims) {$width = $ims[0]; $height = $ims[1];} else {
+      $imgFileSize = filesize ( $finalImgPath );
+      throw new ErrorException ("Looks like $finalImgPath is not yet ready. File size reports it as $imgFileSize ");}   } 
   else {  
       $width=200; $height=200; $hasError = "data-error='missing-image'";  // signal to JS runtime that we know the image is in error
       // return "Currently we have no image for display. It is possible that the LaTeX source did not produce any output. Missing file is $finalImgPath"; 
@@ -723,20 +705,19 @@ private static function ensureFmtFile ($fmt) {
 
 #region generateTex
 /** determine hash code of content and if no TeX file is there, build one
- *    $rawContent     string containing latex content
- *    $tag            string with tagname of xml tag /
- *    $mode           the mode tag, i.e.  "" or "pc_latex" or "pc_pdflatex"  which controls how we inject the raw content into the template or precompilation
- *    $endPreambleStuff    endPreambleStuff: stuff which, mostly dependent on the attribute of the tag, should be part of the preamble
+ *    $rawContent          string containing latex content
+ *    $tag                 string with tagname of xml tag /
+ *    $mode                the mode tag, i.e.  "" or "pc_latex" or "pc_pdflatex"  which controls how we inject the raw content into the template or precompilation
+ *    $ar                  array of key => value form with the attributes
  */
 private static function generateTex ( string $rawContent, string $tag, string $mode, $ar = array() ) : string {
   $VERBOSE       = false;
   $CACHE_PATH    = CACHE_PATH;
   $TEMPLATE_PATH = TEMPLATE_PATH;  $LATEX_FORMAT_PATH = LATEX_FORMAT_PATH;  $PDFLATEX_FORMAT_PATH = PDFLATEX_FORMAT_PATH;
   
-  // self::debugLog ("generateTex: attribute array is: ".print_r ($ar, true). "\n");
-
-  ksort($ar);                                        // sort array on keys, in place, so that the hash becomes independent on the sequence 
-  $stringAr = print_r ($ar, true);             // go from php array to a full string representation
+  if ($VERBOSE) {self::debugLog ("generateTex: attribute array is: ".print_r ($ar, true). "\n");}
+  ksort($ar);                                             // sort array on keys, in place, so that the hash becomes independent on the sequence 
+  $stringAr = print_r ($ar, true);                        // go from php array to a full string representation
   $hash     = md5 ($tag.$stringAr.$rawContent);           // derive a unique file name - need dependency on tag, content and attributes as all of this has impact on looks.
 
   switch ($mode) {
@@ -768,7 +749,6 @@ private static function generateTex ( string $rawContent, string $tag, string $m
     default: 
       throw new Exception ("generateTex: received illegal mode $mode");
   }
-
 
   if (strpos ($template, MAGIC_LINE) == FALSE)   {
     $msg = "generateTex: could not find MAGIC_LINE in template file " . $templateFileName . "\nFor more information see logfile at " .LOG_PATH. "\n";
@@ -905,29 +885,6 @@ private static function Pdf2SvgMT ($hash, $dpi, $final="_mt", $inFinal="_pdflate
 
 
 
-
-
-
-// DEPRECATE
-/** GENERATE DVI via LATEX
- *  Assume there is a $hash.tex file, generate a $hash.dvi file 
- *  We sometimes need different png resolutions from the save .tex file, so using just one tex to dvi run is better than merging this
- */
- /*
-private static function generateDvi ($hash) {
-  $VERBOSE = true;
-  $CACHE_PATH = CACHE_PATH;
-  $cmd = LATEX_COMMAND . " -output-dir=$CACHE_PATH $CACHE_PATH$hash.tex";              // MUST do a cd, since latex may generate some files in the local directory // TODO????????????????????????????? use build directoiry ???????
-  if ($VERBOSE) {$startTime = microtime(true); self::debugLog ("generateDvi started for $hash, command is: $cmd \n");} 
-  $output = null;  $retVal = null;
-  exec ( $cmd, $output, $retVal ); 
-  if ($VERBOSE) {$endTime = microtime (true); $duration = $endTime - $startTime; self::debugLog ("  completed generateDvi. DURATION: $duration \n"); }
-
-  // we could have partially usable LaTeX output and still have errors. This can be seen in the exit code and is signaled in the .mrk file across different endpoint invocations
-  file_put_contents ( $CACHE_PATH . $hash. ".mrk", ( $retVal != 0 ? "ERROR" : "" ) );
-  if (! file_exists ( "$CACHE_PATH$hash.tex") )  {throw new Exception ("Could not generate ANY DVI for this content. Probably TeX error or transient problem while editing.");} 
-}
-*/
 
 /** Generate dvi from tex using latex processor (works for ANY tex file, independently of precompilation settings) */
 

@@ -271,6 +271,11 @@ const implementShowVariants = () => {
 // patches the edit section links before a parsifal container
 // called for every parsifal container via php injected script tag line
 const patchParsifalEditLinks = (sc) => {
+
+
+  return;
+
+
     //console.info ("runtime.js: patchParsifalEditLinks: ", sc);
     var pc       = sc.previousSibling;
     //console.info ("parsifalContainer: ", pc);
@@ -300,18 +305,6 @@ const broadcastPosition = (ele) => {
   danteBC.postMessage (  {"positionAtId": id } );  
 };
 
-/*
-$(".parsifalContainer").on("keydown", (e) => { Object.assign (e.currentTarget.style, {border:"1px solid red;"}); });
-
-$(".parsifalContainer").on("keyup", (e) => { Object.assign (e.currentTarget.style, { }); });
-*/
-
-
-// document.body.addEventListener ( "keydown", (e) => { Object.assign (e.currentTarget.style, {border:"1px solid red;"}); } );
-
-
-
-
 return ( {imageIsMissing, renderPDF, jsRender, showImage, srcDebug, init, 
          limitSize, implementLimitedSize, 
          showVariants, implementShowVariants,
@@ -327,4 +320,4 @@ PRT.implementLimitedSize();
 
 PRT.implementShowVariants();
 
-console.error ("Parsifal runtime.js has loaded successfully");
+// console.error ("Parsifal runtime.js has loaded successfully");
