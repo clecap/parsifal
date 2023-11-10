@@ -226,23 +226,20 @@ private static function generateBeforeContentStuff ($ar, $tag) {
  *   PDF  we render using PDF format
  * 
  * Package modes:
- * 
- *
- *   
- *
  *
  *
  */
 public static function lazyRender ($in, $ar, $tag, $parser, $frame) {
   global $wgServer, $wgScriptPath, $wgOut; 
   global $wgTopDante;
+  global $wgAllowVerbose; $VERBOSE = true && $wgAllowVerbose;
 
-  $micro = microtime();  self::debugLog ("lazyRender called at $micro \n");
-
-  self::debugLog ("Attributes: " . print_r ($ar, true)."\n");
+  $micro = microtime();  
+  if ($VERBOSE) {self::debugLog ("lazyRender called at $micro \n");}
+  if ($VERBOSE) {self::debugLog ("Attributes: " . print_r ($ar, true)."\n");}
 
   $CACHE_PATH = CACHE_PATH;
-  $VERBOSE    = true;
+
 
   $timestamp = strftime ("%d.%m.%Y at %H:%M:%S", time() );         // want a timestamp in the img tag on when the page was translated for debugging purposes
   $hrTimestamp = hrtime(true);
