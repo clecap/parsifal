@@ -57,9 +57,9 @@ const TAG2WIDTHinCM = array (
 
 // minipage is used to hold the page width stable   // TODO: cave: as beamer demonstrates: there seems to be no effect of the wiodth - why ???
 
-// TODO: do we still need this for our rendering structure - or do we only need this for PDF rendering ??
-// code for measuring pagelength and placing the result into .ypos file
-const MEASURE = "\\newwrite\\yposoutputfile\\openout\\yposoutputfile=\\jobname.ypos\\pdfsavepos\\write\\yposoutputfile{\\the\\pagetotal}";
+
+// THIS we can deprecate
+// const MEASURE = "\\newwrite\\yposoutputfile\\openout\\yposoutputfile=\\jobname.ypos\\pdfsavepos\\write\\yposoutputfile{\\the\\pagetotal}";
 
 
 const PREFIX_ERROR = "max_print_line=10000  error_line=254  half_error_line=238";  // prefix for generating reasonable error file format; see https://tex.stackexchange.com/questions/52988/avoid-linebreaks-in-latex-console-log-output-or-increase-columns-in-terminal?rq=1

@@ -9,7 +9,7 @@ require_once ("Decorator.php");
 class TeXProcessor {
 
 /** purges the parser cache of a page with given title */
-public static function purgeByTitle ($titleText) {
+private static function purgeByTitle ($titleText) {
   $title   = Title::newFromText($titleText);
   $article = new Article($parentTitle);
   $article->mTitle->invalidateCache();
@@ -57,7 +57,7 @@ public static function precompile ($name) {
   else {return false;}
 }
 
-// TODO: the array with attributes is missing in timeTest and in the generateTex calls - generateTex will fill in a default - wanted ????
+
 #region timeTest:  testing function during development to see how long the individual production chains run
 public static function timeTest ($in, $tag) {
   self::debugLog ("------------------- STARTING TIME TEST --------------------------\n");
@@ -94,6 +94,7 @@ public static function timeTest ($in, $tag) {
  *  this is of particular importance for those parts of the preamble which cannot be precompiled
  */
 private static function generateEndPreambleStuff ($ar, $tag) {
+  global $wgServer, $wgScriptPath;
   $stuff = "";
 
   // array key   "sans"  turns the default font into a sans serif font
@@ -104,13 +105,6 @@ private static function generateEndPreambleStuff ($ar, $tag) {
   else if ( array_key_exists ( "nde", $ar ) )    { $stuff = $stuff."\\usepackage[shorthands=off,ngerman]{babel}";  }
   else if ( array_key_exists ( "babel", $ar ) )  { $stuff = $stuff."\\usepackage[shorthands=off,".$ar["babel"]."]{babel}";  }
   else                                           { $stuff = $stuff."\\usepackage[shorthands=off,english]{babel}";  }
-
-/*
-%  2) The contents of \begin{minted}  ... \end{minted} needs to be properly layouted and have at least one newline character
-%     or the scanner of minted might fail
-% patch minted so as to get a centered version thereof
-% https://tex.stackexchange.com/questions/161124/how-to-make-a-minted-code-listing-centered-on-a-page
-*/
 
   $light = array ("manny", "rrt", "perldoc", "borland", "colorful", "murphy", "vs", "trac", "tango", "autumn", "bw", "emacs", "pastie", "friendly");
   $dark  = array ( "fruity", "vim", "native", "monokai");
@@ -142,7 +136,6 @@ private static function generateEndPreambleStuff ($ar, $tag) {
   else { $addPreamble = $ar["pa"];}
   }
 
-
   // add some further stuff into the preamble
   $optional = <<<EOD
 \\usepackage{environ}%         Needed for some additional definitions
@@ -163,20 +156,19 @@ private static function generateEndPreambleStuff ($ar, $tag) {
 }
 EOD;
 
+  
 
-  return $stuff . $optional . $addPreamble;
+//  $urlStuff = "\\newcommand{\dref}[1]{ \\StrSubstitute{#1}{ }{_}[\\temp]\\href{".   $wgServer.$wgScriptPath . "/index.php?title="."\\temp}{#1}}";
+
+ $urlStuff = "\\newcommand{\dref}[1]{ \\StrSubstitute{#1}{ }{_}[\\temp]\\href{".   $wgServer.$wgScriptPath . "/index.php/"."\\temp}{#1}}";
+
+
+  return $stuff . $urlStuff. $optional . $addPreamble;
 }
-
 
 // minipage is used to hold the page width stable. without it we also get some indentation artifacts with enumitem.
 
-// TODO: do we still need this for our rendering structure - or do we only need this for PDF rendering ??
-// code for measuring pagelength and placing the result into .ypos file
-const MEASURE = "\\newwrite\\yposoutputfile\\openout\\yposoutputfile=\\jobname.ypos\\pdfsavepos\\write\\yposoutputfile{\\the\\pagetotal}";
-
-
-
-private static function generateBeforeContentStuff ($ar, $tag) {
+private static function generateBeforeContentStuff ($ar, $tag) { 
   $stuff    = "";
   $variants = "";
   
@@ -184,17 +176,24 @@ private static function generateBeforeContentStuff ($ar, $tag) {
   $size="15cm";
   if ( array_key_exists ( "wide", $ar ) ) { $size="25cm";}
   if ( array_key_exists ( "slim", $ar ) ) { $size="5cm";}
+  if ( array_key_exists ( "width", $ar) ) { $size=$ar["width"];}
+
+  $margin="0cm";
+  if ( array_key_exists ( "margin", $ar) ) { $margin=$ar["margin"];}
+
+  $config = "\\standaloneconfig{varwidth=".$size.",margin=".$margin."}"; // need to override the standalone documentclass option of the template
 
   // implement variant related properties
   if ( array_key_exists ( "number-of-instance", $ar ) ) { 
     $variants = "\\gdef\\numberOfInstance{" . $ar["number-of-instance"] . "}";
   }
 
+
   # CAVE: confusion between tex { } and php { } should be avoided !
   switch ($tag) {
-    case "amsmath":   $stuff = "\\begin{document}\\begin{minipage}{".$size."}\\relax ".MAGIC_LINE."\\end{minipage}".MEASURE."\\end{document}"; break;
+    case "amsmath":   $stuff = $config."\\begin{document}"."\\begin{minipage}{".$size."}\\relax ".MAGIC_LINE."\\end{minipage}\\end{document}"; break;
     case "tex":       $stuff = MAGIC_LINE; break;
-    case "beamer":    $stuff = "\\begin{document} ".MAGIC_LINE.MEASURE."\\end{document}"; break;
+    case "beamer":    $stuff = "\\begin{document} ".MAGIC_LINE."\\end{document}"; break;
   }
 
   $stuff = $variants . $stuff;
@@ -240,7 +239,6 @@ public static function lazyRender ($in, $ar, $tag, $parser, $frame) {
 
   $CACHE_PATH = CACHE_PATH;
 
-
   $timestamp = strftime ("%d.%m.%Y at %H:%M:%S", time() );         // want a timestamp in the img tag on when the page was translated for debugging purposes
   $hrTimestamp = hrtime(true);
   if ($VERBOSE) {$startTime = microtime (true); self::debugLog ("lazyRender called at: $timestamp nanos=$hrTimestamp $hrTimestamp for pageTitle " . $parser->getTitle()."  Page starts with: ". trim(substr(trim($in), 0, 20)) . "\n");}
@@ -271,7 +269,7 @@ try {  // GLOBAL EXCEPTION PROTECTED AREA
 
   $softError = "";
 
-  // LATEX to PDF production step
+  /** LATEX to PDF production step **/
   if ($VERBOSE) {self::debugLog ("lazyRender will now Tex2PDF $hash... ") ;}
   if ( !file_exists ($CACHE_PATH . $hash . "_pc_pdflatex.pdf" ) ) {  // if the PDF file does not exist, make it and pick up error status from function
     if ($VERBOSE) {self::debugLog ( "did not find file " . $CACHE_PATH . $hash . "_pc_pdflatex.pdf, starting processor... " . $hash );}
@@ -289,11 +287,7 @@ try {  // GLOBAL EXCEPTION PROTECTED AREA
 
   // NOW we should have a PDF file - if not it could still be a transient error from latex which in this particular situation was unable to produce a pdf although it could run  TODO: do an error handling for this scenario !!
 
-  // PICK up the size of the PDF file as written by LaTeX
-
-  if (file_exists ($CACHE_PATH . $hash . "_pc_pdflatex.ypos")) { // TODO: do that only when we render PDF !
-    $pdfHeightString = file_get_contents ($CACHE_PATH . $hash . "_pc_pdflatex.ypos");
-  }
+ 
 
   $mustDoImage = $mustDoAnnotations = false;
   if ( !file_exists ($finalImgPath)   ) { $mustDoImage       = true;  if ($VERBOSE) {self::debugLog (" $finalImgPath is missing, need to call processor...");} }
@@ -303,20 +297,23 @@ try {  // GLOBAL EXCEPTION PROTECTED AREA
     if ($VERBOSE) {self::debugLog (" one of the files detected missing, calling the processor...");}
 
   // TODO: ALLOW to set some basic scale somewhere in or by or for the ParsifalTemplate !!!! itself - so we do nto need to add it in the (in every) tag.
-    $baseScale = 15;
-    if ( array_key_exists ("scale",$ar)) {  
-      $tagScale = floatval($ar["scale"]); 
-      if ( is_float ($tagScale) ) { $baseScale = 15/$tagScale;   }
-    }
 
   $baseScale = 3;
-  self::Pdf2PngHtmlMT ($hash, self::SCALE(BASIC_SIZE, $baseScale), "_pc_pdflatex", "_pc_pdflatex_final_".$baseScale, $duration );  // 15 
+  if ( array_key_exists ("scale",$ar)) {  
+    $tagScale = floatval($ar["scale"]);
+      if ( is_float ($tagScale) ) { $baseScale = 15/$tagScale;   }
+  }
+ //    echo "SCALE: " . $baseScale;
+
+  $scaler = self::SCALE(BASIC_SIZE, $baseScale);
+ // echo "SCALER: ". $scaler;
+
+  $pdfscale = $scaler;
+  if ( array_key_exists ("pdfscale",$ar)) {  $pdfscale = floatval($ar["pdfscale"]); }
+  self::Pdf2PngHtmlMT ($hash, $pdfscale, "_pc_pdflatex", "_pc_pdflatex_final_3", $duration );  // 15 
 
   }
   else { if ($VERBOSE) {self::debugLog ("both files found on disc, no need to call processor\n");} }
-
-  // same resolution ?? /////////////////////////////////////////////////////// TODO add theming and resolutions  
-  // self::timeTest ($in, $tag);  // TRIGGERING a TIMING TEST: ONLY DURING DEVELOPMENT, kicks off all possible ways to produce resources
 
   // the files we will finally use when saving are put into 0660 mode as marker that they are available for consumption; the preview files remain at 0600 // TODO: is this still used for this purpose ?!?!?
   if (file_exists ($annotationPath) )  { chmod ($annotationPath, 0660); }
@@ -338,9 +335,7 @@ try {  // GLOBAL EXCEPTION PROTECTED AREA
 
   $scaling = 25;
 
-  if (isset ($pdfHeightString) ) {  // check this as not every template does the ypos writing for $pdfHeightString
-    $heightPx = (ceil ($scaling*floatval ($pdfHeightString) )  )    . "px";
-  }
+ 
 
   // onload:    delay showing the image until it is completely loaded (prevents user from seeing half of an image during the load process)
   // onerror:   kickoff generation of image should it be missing (reason could be: file was (incorrectly) deleted on the server)
@@ -358,18 +353,16 @@ try {  // GLOBAL EXCEPTION PROTECTED AREA
   // image tag style
   $style = "style=\"";
 
-
   $markingClass = "";
   if ( array_key_exists ("number-of-instance", $ar) ) { $style .= "margin:20px;"; 
     $markingClass = "instance_".$ar["number-of-instance"];
   }
 
-
   if ( array_key_exists ("b", $ar) )  { $style .= "border:1px solid gold;";            }     // add a border
   if ( array_key_exists ("br", $ar) ) { $style .= "border-radius:5px;";                }     // add a border radius
   if ( array_key_exists ("bs", $ar) ) { $style .= "box-shadow: 10px 10px lightgrey;";  }     // add a box shadow
   if ( array_key_exists ("style", $ar) )  { $style .= $ar["style"];            }             // add custom style
-  $style .= "width:100%;";  //////// width ???  /// height??
+  $style .= "width:100%;";
   $style .= "display:none;";
   $style .= "\" ";
 
@@ -380,15 +373,15 @@ try {  // GLOBAL EXCEPTION PROTECTED AREA
 
   $cache_url = CACHE_URL;
 
-  $imgTag      = "<img $naming id=\"$hash\"  $hasError  $titleInfo  data-timestamp='$timestamp'  $style  class='texImage' alt='Image is being processed, please wait, will fault it in automatically as soon as it is ready'></img>";
-  $handlerTag  = "<script>PRT.srcDebug(\"$hash\"); PRT.init(\"$hash\", \"$wgServer\", \"$wgScriptPath\", \"$cache_url\"  ); </script>"; // TODO: maybe move outside of the decorator 
+  $imgTag      = "<img $naming id=\"$hash\"  $hasError  data-timestamp='$timestamp'  $style  class='texImage' alt='Image is being processed, please wait, will fault it in automatically as soon as it is ready'></img>";
+  $handlerTag  = "<script>PRT.srcDebug(\"$hash\"); PRT.init(\"$hash\", \"$wgServer\", \"$wgScriptPath\", \"$cache_url\"  ); </script>"; 
 
   $imgResult = $imgTag . $handlerTag;  // the image tag which will be used
 
   $annotations  = (file_exists ($annotationPath) ? file_get_contents ($annotationPath) :  null );  // get annotations, if no file present, use null
 
   $core = new Decorator ( $imgResult, $width, $height, $markingClass);
-  $core->wrap ( $annotations, $softError, $errorPath);      // wrap with annotations and error information   
+  $core->wrap ( $annotations, $softError, $errorPath, $titleInfo);      // wrap with annotations and error information   
   $core->collapsible ( $ar );                               // decorate with collapsibles
   $ret = $core->getHTML ();                                 // generate HTML which includes the decorations
 
@@ -698,6 +691,31 @@ private static function ensureFmtFile ($fmt) {
 }
 
 
+// modify raw tex input for various purposes
+private static function modifyTex ( string $rawContent, string $tag, string $mode, $ar = array() ) : string {
+
+
+/*
+ \\dref\{([^{}]*)\}
+ */
+
+
+  $callback = function ($matches) {
+    self::debugLog ( "\n\n Callback found " . count($matches) . " matches \n");
+    foreach ($matches as $value) {
+      
+    }
+  };
+
+ $newContent =  preg_replace_callback ("/\\dref\{([^{}]*)\}/", $callback, $rawContent);
+  
+  self::debugLog ( "\n\n New contents. " . $newContent . " \n------------------\n\n");
+
+
+  return $newContent;
+
+}
+
 
 
 #region generateTex
@@ -712,6 +730,9 @@ private static function generateTex ( string $rawContent, string $tag, string $m
   $CACHE_PATH    = CACHE_PATH;
   $TEMPLATE_PATH = TEMPLATE_PATH;  $LATEX_FORMAT_PATH = LATEX_FORMAT_PATH;  $PDFLATEX_FORMAT_PATH = PDFLATEX_FORMAT_PATH;
   
+  $rawContent = self::modifyTex ( $rawContent, $tag, $mode, $ar);
+
+
   if ($VERBOSE) {self::debugLog ("generateTex: attribute array is: ".print_r ($ar, true). "\n");}
   ksort($ar);                                             // sort array on keys, in place, so that the hash becomes independent on the sequence 
   $stringAr = print_r ($ar, true);                        // go from php array to a full string representation
@@ -796,18 +817,17 @@ private static function Pdf2PngMT ($hash, $dpi, $inFinal, $outFinal) {
 
 /** GENERATE PNG from PDF via mutool. Transforms $hash$inFinal.pdf into $hash$inFinal.png */
 private static function Pdf2PngHtmlMT ($hash, $scale, $inFinal, $outFinal, &$duration = null) {
-  $VERBOSE = true; $JS_PATH = JS_PATH;  $CACHE_PATH = CACHE_PATH;  $PY_PATH = PY_PATH;
+  $VERBOSE = false; 
+  $JS_PATH = JS_PATH;  $CACHE_PATH = CACHE_PATH;  $PY_PATH = PY_PATH;
 
-  $cmd = MUTOOL. " run  $JS_PATH/my-device.js $scale $CACHE_PATH$hash$inFinal $CACHE_PATH$hash$outFinal ";      // COMMAND:   /usr/bin/mutool  run 
+//  $cmd = MUTOOL. " run  $JS_PATH/my-device.js $scale $CACHE_PATH$hash$inFinal $CACHE_PATH$hash$outFinal ";      // COMMAND:   /usr/bin/mutool  run 
+
   $cmd = "$PY_PATH/make.py $scale $CACHE_PATH$hash$inFinal $CACHE_PATH$hash$outFinal "; 
-
-  // $output = null;  $retVal = null;  $error = null;
   $retVal = TeXProcessor::executor ($cmd, $output, $error, false, $duration);
   
-  self::debugLog ("\n TeXProcessor:: mutool execution for scale=$scale hash=$hash had a duration of: ".$duration . "\n"); 
-
-  self::debugLog ("\n TeXProcessor:: mutool run output shellexecutor: \n".$output); 
-  // TODO: error handling
+  if ($VERBOSE)  { self::debugLog ("\n TeXProcessor:: mutool execution for scale=$scale hash=$hash had a duration of: ".$duration . "\n"); }
+  if ($VERBOSE)  { self::debugLog ("\n TeXProcessor:: mutool run output shellexecutor: \n".$output); }
+  // TODO: better error handling
 }
 
 
@@ -966,7 +986,8 @@ private static function Tex2DviPdflatex ($hash, $inFinal="") {
  *    string  error text as the error parser felt fit to parse it
  */
 private static function Tex2Pdf ($hash, $inFinal, $note) {
-  $VERBOSE = false;  $CACHE_PATH = CACHE_PATH;
+  $VERBOSE = false;  
+  $CACHE_PATH = CACHE_PATH;
   $texFileName = "$CACHE_PATH$hash$inFinal.tex";
   ASSERT_FILE ($texFileName); 
   // if ($VERBOSE) {self::debugLog ("Tex2Pdf sees the following environment: \n".print_r (getenv(), true) );}  // uncomment to check the active environment

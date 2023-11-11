@@ -1,8 +1,8 @@
 <pre>
-\documentclass[varwidth=15cm,margin=0.07cm]{standalone} 
+\documentclass[]{standalone} 
 
-%%
-%% Standard package imports
+%%   
+%% Standard package imports        
 %%
 
 \usepackage[T1]{fontenc}             % fontencoding - FIRST load fontencoding 
@@ -13,7 +13,13 @@
 \usepackage{csquotes}                % quotes
 \usepackage{tabto}                   % command \tabto{2cm}
 \usepackage[usenames]{color}         % Should load before tcolorbox                  
+
+
 \usepackage{tcolorbox}
+
+
+
+\usepackage{xstring}
 
 %% minted is included dynamically
 
@@ -460,6 +466,7 @@
 %%%  END OF TWEAK ITEMIZATIONS
 %%%
 
+\def\ubf#1{\underline{\textbf{#1}}}
 
 %%
 %% SPACING MACROS

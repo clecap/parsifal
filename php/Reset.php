@@ -61,6 +61,8 @@ class ParsifalReset extends FormSpecialPage {
       if ( file_exists ($full) ) {unlink ($full);}
     }
 
+  if ( file_exists ($IP."/sidebarcache") ) { unlink ( $IP."/sidebarcache" ); }
+
 
     touch($IP."/LocalSettings.php");
   }

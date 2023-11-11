@@ -242,6 +242,10 @@ const jsRender = (hash, width, height, scale, titelInfo, wgServer, wgScriptPath,
 }
 
 
+const toggleLimitSize = () => {
+  let sizeLimit = window.localStorage.getItem ("Parsifal-size-limit") === "true";  
+  limitSize ( !sizeLimit);
+};
 
 const limitSize = (flag) => { 
   window.localStorage.setItem ("Parsifal-size-limit", (flag ? "true" : "false"));
@@ -256,34 +260,36 @@ const implementLimitedSize = () => {
 
 
 
+const toggleVariants = () => {
+  let showingVariants= window.localStorage.getItem ("Parsifal-show-variants") === "true";  
+  showVariants ( !showingVariants);
+};
+
 const showVariants = (flag) => { 
   window.localStorage.setItem ("Parsifal-show-variants", (flag ? "true" : "false"));
   implementShowVariants();
 };
 
 const implementShowVariants = () => {
-  let showVariants = window.localStorage.getItem ("Parsifal-show-variants") === "true";  
-  if (showVariants) { document.documentElement.classList.add     ("showVariants"); }
-  else           { document.documentElement.classList.remove  ("showVariants");}
+  let showingVariants = window.localStorage.getItem ("Parsifal-show-variants") === "true";  
+  if (showingVariants) { document.documentElement.classList.add     ("showVariants"); }
+  else                 { document.documentElement.classList.remove  ("showVariants");}
 };
 
 
 // patches the edit section links before a parsifal container
 // called for every parsifal container via php injected script tag line
 const patchParsifalEditLinks = (sc) => {
+  //console.info ("runtime.js: patchParsifalEditLinks: ", sc);
+  var pc       = sc.previousSibling;
+  //console.info ("parsifalContainer: ", pc);
 
-
+  pc.addEventListener ("mouseenter", (e) => { if (e.shiftKey) {pc.style.outline = "1px dotted grey";} } );
+  pc.addEventListener ("mouseleave", (e) => { pc.style.outline = ""; } );
   return;
 
 
-    //console.info ("runtime.js: patchParsifalEditLinks: ", sc);
-    var pc       = sc.previousSibling;
-    //console.info ("parsifalContainer: ", pc);
-
-   pc.addEventListener ("mouseenter", (e) => { if (e.shiftKey) {pc.style.outline = "1px dotted grey";} } );
-   pc.addEventListener ("mouseleave", (e) => { pc.style.outline = ""; } );
-
-
+  
     var hElement = pc.previousSibling;
     while ( hElement && !["H1","H2","H3","H4","H5","H6"].includes (hElement.tagName)) { hElement = hElement.previousSibling;}
     //console.info ("h-element", hElement);
@@ -306,8 +312,8 @@ const broadcastPosition = (ele) => {
 };
 
 return ( {imageIsMissing, renderPDF, jsRender, showImage, srcDebug, init, 
-         limitSize, implementLimitedSize, 
-         showVariants, implementShowVariants,
+         limitSize, implementLimitedSize, toggleLimitSize,
+         showVariants, implementShowVariants, toggleVariants,
          patchParsifalEditLinks});    // export functions to the PRT Parsifal Run Time object
 
 })();  // END of object PRT definition

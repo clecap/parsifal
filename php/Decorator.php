@@ -44,18 +44,14 @@ class Decorator {
   //  $annotations    null or HTML string of the annotations layer
   //                  if string (even if empty) add an annotation layer with this contents
   //                  null:  do not add an annotation layer at all
-  public function wrap ( ?string $annotations = "", string $softError = "", string $errPath = "") {
+  public function wrap ( ?string $annotations = "", string $softError = "", string $errPath = "", string $titleInfo) {
     global $wgScriptPath;
     $errorInjector = ( $softError === "" ? "<span class='errorWrap'><a href='$errPath' title='Click to see tex log' target='_blank'>Log</a></span>" : "<span class='errorWrap'><a href='$errPath' class='hasError' title='$softError Click to see log.' target='_blank'>Err</a></span>");
 
-// <script async src='$wgScriptPath/load.php?lang=en&modules=ext.Parsifal&only=scripts'></script>
-
-//$addRuntime = true;
-  // die ("value " . $this->width . "  " . $this->height);
     $aspect = $this->width / $this->height;
     $width = $this->width;  $height=$this->height;    ////// TODO: is this required for proper interpolation ????
 
-    $this->content =  "<div class='".$this->markingClass."' style=\"aspect-ratio: $aspect\">" 
+    $this->content =  "<div class='".$this->markingClass."' $titleInfo style=\"aspect-ratio: $aspect\">" 
                       .$this->kern 
 //
 // THIS BELOW WORKS FOR HTML
@@ -65,7 +61,6 @@ class Decorator {
                       .$errorInjector
                       ."</div>"
       ."<script> PRT.patchParsifalEditLinks (document.currentScript);</script>"
-
     ;  
     return $this;
   }
@@ -106,8 +101,6 @@ class Decorator {
                       "<div onclick='toggleImg(event);' style='$styleIni' class='collapseResult'>".$this->content."</div>";
   return $this;
   }
-
-
 
 
   public function getHTML () : string { return $this->content;}
