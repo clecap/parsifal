@@ -116,8 +116,6 @@ class Parsifal {                                  // glue class of the extension
 
   // when we edit a page, intercept the edit process via javascript and insert an edit preview (if appropriate)
   public static function onEditPageshowEditForminitial ( EditPage &$editPage, OutputPage $output) {
-
-
     $output->addJSConfigVars ( 'Parsifal', Parsifal::prepareJSConfig() );             // export configuration to HTML code for access via Javascript
     
     if (false) { // version without Codemirror  // TODO: MUST ReSPECT user choice !!
@@ -136,13 +134,15 @@ class Parsifal {                                  // glue class of the extension
   }
   
 
+// DEPRECATE: Not used 
+/*
   public static function bootstrapTemplates ( ) {
     TeXProcessor::precompile ("amsmath.tex");
-
-
   }
+*/
 
-
+// DEPRECATE THIS
+/*
   // this hook is used to ensure that after editing a Parsifal template in the MediaWiki namespace the file is copied back to the file system
   // this is necessary since the templates must be picked up from the file system due to the manner how the preview endpoint is constructed
   public static function afterAttemptSaveOLD (EditPage $editPage, Status $status, $details) {
@@ -193,16 +193,16 @@ class Parsifal {                                  // glue class of the extension
     }
   }  // end function afterAttemptSave
     
-
+*/
 
 
 
 
 
   // this hook is used to ensure that after editing a Parsifal template in the MediaWiki namespace the file is copied back to the file system
-  // this is necessary since the templates must be picked up from the file system due to the manner how the preview endpoint is constructed
+  // this is necessary since the templates must be picked up from the file system 
   public static function afterAttemptSave (EditPage $editPage, Status $status, $details) {
-    $VERBOSE = true;
+    $VERBOSE = false;
     $TEMPLATE_PATH = TEMPLATE_PATH; $LATEX_FORMAT_PATH = LATEX_FORMAT_PATH;   $PDFLATEX_FORMAT_PATH = PDFLATEX_FORMAT_PATH;
     if ($VERBOSE) {TeXProcessor::debugLog( "Parsifal::afterAttemptSave called, title is namespace is ".$editPage->getTitle()->getNamespace()." \n");}
 
@@ -211,10 +211,6 @@ class Parsifal {                                  // glue class of the extension
       if ( str_starts_with($titleText, "ParsifalTemplate/") ) {  Parsifal::reconstructFormat ( $titleText );}
     }  
   }  // end function afterAttemptSave
-    
-
-
-
 
 
 
@@ -224,46 +220,45 @@ class Parsifal {                                  // glue class of the extension
     $TEMPLATE_PATH = TEMPLATE_PATH; $LATEX_FORMAT_PATH = LATEX_FORMAT_PATH;   $PDFLATEX_FORMAT_PATH = PDFLATEX_FORMAT_PATH;
     if ($VERBOSE) {TeXProcessor::debugLog( "Parsifal::reconstructFormat called, titleText is ". $titleText . "\n");}
 
-      if ( str_starts_with($titleText, "ParsifalTemplate/") ) {              // and if the page is a subpage of ParsifalTemplate/
-        $shortName = str_replace ("ParsifalTemplate/", "", $titleText);
+    if ( str_starts_with($titleText, "ParsifalTemplate/") ) {              // and if the page is a subpage of ParsifalTemplate/
+      $shortName = str_replace ("ParsifalTemplate/", "", $titleText);
         
-        if ($VERBOSE) {TeXProcessor::debugLog("Parsifal::reconstructFormat: copying MediaWiki:$titleText to $shortName.tex \n");}
+      if ($VERBOSE) {TeXProcessor::debugLog("Parsifal::reconstructFormat: copying MediaWiki:$titleText to $shortName.tex \n");}
          
-          $myTitle   = Title::newFromText( $titleText, NS_MEDIAWIKI );
-          $myArticle = new Article( $myTitle );
-          $content = $myArticle->getPage()->getContent();
-          if (!$content) {throw new Exception ("Could not get content for page $titleText, maybe the Template does not exist");}
-          $template  = $content->getNativeData();  // the data in MediaWiki:ParsifalTemplate/$shortName
+        $myTitle   = Title::newFromText( $titleText, NS_MEDIAWIKI );
+        $myArticle = new Article( $myTitle );
+        $content = $myArticle->getPage()->getContent();
+        if (!$content) {throw new Exception ("Could not get content for page $titleText, maybe the Template does not exist");}
+        $template  = $content->getNativeData();  // the data in MediaWiki:ParsifalTemplate/$shortName
 
-          $templateFileName = "$TEMPLATE_PATH$shortName.tex";
-          if ($VERBOSE) {TeXProcessor::debugLog("Parsifal::reconstructFormat: copying MediaWiki:ParsifalTemplate/$titleText to $templateFileName \n");}          
-          file_put_contents( $templateFileName, $template, LOCK_EX); 
+        $templateFileName = "$TEMPLATE_PATH$shortName.tex";
+        if ($VERBOSE) {TeXProcessor::debugLog("Parsifal::reconstructFormat: copying MediaWiki:ParsifalTemplate/$titleText to $templateFileName \n");}          
+        file_put_contents( $templateFileName, $template, LOCK_EX); 
           
-          // remove everything beginning with \begin{document}...   and place the rest as source into the format directories
-          $index = strpos ($template, "\begin{document}");
-          $templatePrecompileSrc = substr ($template, 0, $index);
+        // remove everything beginning with \begin{document}...   and place the rest as source into the format directories
+        $index = strpos ($template, "\begin{document}");
+        $templatePrecompileSrc = substr ($template, 0, $index);
           
-          $templatePrecompileSrc = preg_replace ( '/(^<pre>\s*$)|(<^\/pre>\s*$)/m', "", $templatePrecompileSrc );   // remove <pre> ... </pre> which improves display of page
-          $templatePrecompileSrc = Parsifal::injectTemplate ($templatePrecompileSrc);
+        $templatePrecompileSrc = preg_replace ( '/(^<pre>\s*$)|(<^\/pre>\s*$)/m', "", $templatePrecompileSrc );   // remove <pre> ... </pre> which improves display of page
+        $templatePrecompileSrc = Parsifal::injectTemplate ($templatePrecompileSrc);
           
-          file_put_contents( "$LATEX_FORMAT_PATH$shortName.tex",    $templatePrecompileSrc, LOCK_EX);    
-          file_put_contents( "$PDFLATEX_FORMAT_PATH$shortName.tex", $templatePrecompileSrc, LOCK_EX);        
-          
-          TeXProcessor::cleanUpAll ();                                       // cleanup all files since a fresh template requires regeneration anyhow
-          // TODO: A---------------------------- need to register dependencies on the templates 
- 
-          if ($VERBOSE) {TeXProcessor::debugLog("Parsifal::reconstructFormat: will now invoke precompiler on $shortName \n");}          
-          $inError = TeXProcessor::precompile ($shortName);
-          
-          if ($inError == false) {  // no precompilation error
+        file_put_contents( "$LATEX_FORMAT_PATH$shortName.tex",    $templatePrecompileSrc, LOCK_EX);    
+        file_put_contents( "$PDFLATEX_FORMAT_PATH$shortName.tex", $templatePrecompileSrc, LOCK_EX);        
+        
+        TeXProcessor::cleanUpAll ();                                       // cleanup all files since a fresh template requires regeneration anyhow
+        // TODO: A---------------------------- need to register dependencies on the templates 
+
+        if ($VERBOSE) {TeXProcessor::debugLog("Parsifal::reconstructFormat: will now invoke precompiler on $shortName \n");}          
+        $inError = TeXProcessor::precompile ($shortName);
+        
+        if ($inError == false) {  // no precompilation error
             if ($VERBOSE) {TeXProcessor::debugLog("Parsifal::reconstructFormat: completed precompilation successfully on $shortName \n");}             
           }
-          else {
-            throw new Exception ("Error when compiling the Template. Reverting the change. Full error is: \n" . $inError);
-          }
-          if ($VERBOSE) {TeXProcessor::debugLog("Parsifal::reconstructFormat completed on $titleText\n");}
-       
-      }
+        else {
+          throw new Exception ("Error when compiling the Template. Reverting the change. Full error is: \n" . $inError);
+        }
+        if ($VERBOSE) {TeXProcessor::debugLog("Parsifal::reconstructFormat completed on $titleText\n");}
+    }
   }
 
 
@@ -287,7 +282,6 @@ class Parsifal {                                  // glue class of the extension
     }
    return $text;
   }  
-    
     
     
   public static function cleanupParsifalCache () {
