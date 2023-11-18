@@ -47,11 +47,6 @@ const AFTER_CONTENT_HOOK = "magic-line-for-after-content-hook";
 const ERROR_PARSER_START = "START-MARKER-TYPED-OUT-FOR-ERROR-PARSER";
 const ERROR_PARSER_END   = "END-MARKER-TYPED-OUT-FOR-ERROR-PARSER";
 
-/* MAP the tag to the total width used in the template. BE SURE TO INCLUDE MARGINS USED on BOTH SIDES */
-const TAG2WIDTHinCM = array (
-  "amsmath" => 15.14,
-  "tex"     => 15.14
-);
 
 
 
@@ -62,10 +57,11 @@ const TAG2WIDTHinCM = array (
 // const MEASURE = "\\newwrite\\yposoutputfile\\openout\\yposoutputfile=\\jobname.ypos\\pdfsavepos\\write\\yposoutputfile{\\the\\pagetotal}";
 
 
-const PREFIX_ERROR = "max_print_line=10000  error_line=254  half_error_line=238";  // prefix for generating reasonable error file format; see https://tex.stackexchange.com/questions/52988/avoid-linebreaks-in-latex-console-log-output-or-increase-columns-in-terminal?rq=1
 
-const LATEX_COMMAND    =  PREFIX_ERROR . " " . LATEX_BINARY . "  --interaction=nonstopmode  -file-line-error-style  "; 
-const PDFLATEX_COMMAND =  PREFIX_ERROR . " ". PDFLATEX_BINARY . " --interaction=nonstopmode -file-line-error-style ";
+
+
+const LATEX_COMMAND    =  LATEX_BINARY . "  --interaction=nonstopmode  -file-line-error-style  "; 
+const PDFLATEX_COMMAND =  PDFLATEX_BINARY . " --interaction=nonstopmode -file-line-error-style ";
 
 const NODE_SCRIPT      = __DIR__."/../annos/offline.mjs";                            // path to the offline.mjs script
 const PDF2HTML         = NODE_BINARY." ".__DIR__."/../annos/annoHtml.js ";

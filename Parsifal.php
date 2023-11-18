@@ -21,7 +21,8 @@ class Parsifal {                                  // glue class of the extension
     global $initialHashsUsed;  // TODO ????
     $VERBOSE = true;
     $title = $parser->getTitle();
-    if ($VERBOSE) {TeXProcessor::debugLog( "Parsifal::onParserFirstCallInit for page of title: ".$title.  " \n");}
+    $tag = "none";  if ( isset ($parser->danteTag) ) {$tag = $parser->danteTag;}
+    if ($VERBOSE) {TeXProcessor::debugLog( "-------- Parsifal::onParserFirstCallInit $tag for page of title: ".$title.  " \n");}
     
     ///// ???? not clear what this is ??????
     if (property_exists ($parser, "calledFromParsifalFullPage") && $parser->calledFromParsifalFullPage) {
@@ -32,12 +33,17 @@ class Parsifal {                                  // glue class of the extension
     foreach (TAGS as $key => $tag) { $parser->setHook ($tag, function  ($in, $ar, $parser, $frame) use ($tag) { 
       if ( array_key_exists ("double", $ar) ) {
         $ar["number-of-instance"] = "1";
-        $res1 = TeXProcessor::lazyRender ($in, $ar, "amsmath", $parser, $frame);
+        //$res1 = TeXProcessor::lazyRender ($in, $ar, "amsmath", $parser, $frame);
         $ar["number-of-instance"] = "2";
-        $res2 = TeXProcessor::lazyRender ($in, $ar, "amsmath", $parser, $frame); 
+        //$res2 = TeXProcessor::lazyRender ($in, $ar, "amsmath", $parser, $frame); 
         return $res1.$res2;
       }
-      else { return TeXProcessor::lazyRender ($in, $ar, $tag, $parser, $frame); }
+      else { 
+        //TeXProcessor::debugLog( "Parsifal calling lazyRender (1 of 1)\n");
+        $res = TeXProcessor::lazyRender ($in, $ar, $tag, $parser, $frame);
+        //TeXProcessor::debugLog( "Parsifal sees return of lazyRender (1 of 1)\n");
+        return $res;
+      }
       return;  } );
      } // for every tag in TAGS implement a Latex-like parser hook
 
@@ -133,69 +139,6 @@ class Parsifal {                                  // glue class of the extension
     
   }
   
-
-// DEPRECATE: Not used 
-/*
-  public static function bootstrapTemplates ( ) {
-    TeXProcessor::precompile ("amsmath.tex");
-  }
-*/
-
-// DEPRECATE THIS
-/*
-  // this hook is used to ensure that after editing a Parsifal template in the MediaWiki namespace the file is copied back to the file system
-  // this is necessary since the templates must be picked up from the file system due to the manner how the preview endpoint is constructed
-  public static function afterAttemptSaveOLD (EditPage $editPage, Status $status, $details) {
-    $VERBOSE = true;
-    $TEMPLATE_PATH = TEMPLATE_PATH; $LATEX_FORMAT_PATH = LATEX_FORMAT_PATH;   $PDFLATEX_FORMAT_PATH = PDFLATEX_FORMAT_PATH;
-    if ($VERBOSE) {TeXProcessor::debugLog( "Parsifal::afterAttemptSave called, title is namespace is ".$editPage->getTitle()->getNamespace()." \n");}
-
-    if ( $editPage->getTitle()->getNamespace() == NS_MEDIAWIKI) {            // only if the edit takes place in the MediaWiki namespace
-      $titleText = $editPage->getTitle()->getText();
-      if ( str_starts_with($titleText, "ParsifalTemplate/") ) {              // and if the page is a subpage of ParsifalTemplate/
-        $shortName = str_replace ("ParsifalTemplate/", "", $titleText);
-        
-        if ($VERBOSE) {TeXProcessor::debugLog("Parsifal::afterAttemptSave: copying MediaWiki:ParsifalTemplate/$titleText to $shortName.tex \n");}
-         
-          $myTitle   = Title::newFromText( $titleText, NS_MEDIAWIKI );
-          $myArticle = new Article( $myTitle );
-          $template  = $myArticle->getPage()->getContent()->getNativeData();  // the data in MediaWiki:ParsifalTemplate/$shortName
-          
-          $templateFileName = "$TEMPLATE_PATH$shortName.tex";
-          if ($VERBOSE) {TeXProcessor::debugLog("Parsifal::afterAttemptSave: copying MediaWiki:ParsifalTemplate/$titleText to $templateFileName \n");}          
-          file_put_contents( $templateFileName, $template, LOCK_EX); 
-          
-          // remove everything beginning with \begin{document}...   and place the rest as source into the format directories
-          $index = strpos ($template, "\begin{document}");
-          $templatePrecompileSrc = substr ($template, 0, $index);
-          
-          $templatePrecompileSrc = preg_replace ( '/(^<pre>\s*$)|(<^\/pre>\s*$)/m', "", $templatePrecompileSrc );   // remove <pre> ... </pre> which improves display of page
-          $templatePrecompileSrc = Parsifal::injectTemplate ($templatePrecompileSrc);
-          
-          file_put_contents( "$LATEX_FORMAT_PATH$shortName.tex",    $templatePrecompileSrc, LOCK_EX);    
-          file_put_contents( "$PDFLATEX_FORMAT_PATH$shortName.tex", $templatePrecompileSrc, LOCK_EX);        
-          
-          TeXProcessor::cleanUpAll ();                                       // cleanup all files since a fresh template requires regeneration anyhow
-          // TODO: A---------------------------- need to register dependencies on the templates 
- 
-          if ($VERBOSE) {TeXProcessor::debugLog("Parsifal::afterAttemptSave: will now invoke precompiler on $shortName \n");}          
-          $inError = TeXProcessor::precompile ($shortName);
-          
-          if ($inError == false) {  // no precompilation error
-            if ($VERBOSE) {TeXProcessor::debugLog("Parsifal::afterAttemptSave: completed precompilation successfully on $shortName \n");}             
-          }
-          else {
-            throw new Exception ("Error when compiling the Template. Reverting the change. Full error is: \n" . $inError);
-          }
-          if ($VERBOSE) {TeXProcessor::debugLog("Parsifal::afterAttemptSave completed on $titleText\n");}
-       
-      }
-    }
-  }  // end function afterAttemptSave
-    
-*/
-
-
 
 
 

@@ -27,17 +27,13 @@ svgFileName  = sys.argv[3] + ".svg";
 doc = fitz.open(pdfFileName)
 page = doc.load_page(0)               # loads page number 0
 
-#print ("page loaded, bounds are: ", page.bound());  
-#print ()
-
-
 ocgLayers = doc.layer_ui_configs()
 ocgNum    = len(ocgLayers)
 if ( ocgNum > 0) :
   print ("Having " + str(ocgNum) + " OCG layers")
   index = 0
   for item in doc.layer_ui_configs():     # for all the ocg layers we know
-    print (item)                          # print the layer
+#    print (item)                          # print the layer
     doc.set_layer_ui_config(index, action=2)  # switch number index to status 2=OFF 
 
     matrix=fitz.Matrix(scale,scale)        # Matrix (2,2) for 2 zoom    mat = fitz.Matrix(zoom_x, zoom_y) 
@@ -45,16 +41,16 @@ if ( ocgNum > 0) :
     pix.save(pngFileName)                   # store image in a file
     index = index + 1
 else:
-  print ("only one content layer");
+#  print ("only one content layer");
   matrix=fitz.Matrix(scale,scale)        # Matrix (2,2) for 2 zoom    mat = fitz.Matrix(zoom_x, zoom_y) 
   pix = page.get_pixmap(matrix=matrix)
   pix.save(pngFileName)                   # store image in a file
 
-print ("\n")
-print ("Annotations")
+#print ("\n")
+#print ("Annotations")
 
-for annot in page.annots():
-  print (annot) 
+# for annot in page.annots():
+#  print (annot) 
 
 linksHtml = "";  # collecting the A tags for the links
 annosHtml = "";  # collecting the A tags for the hint annotations
@@ -64,7 +60,7 @@ arr       = [];  # stores the IMGs we already have rendered so that we only rend
 
 index = 0
 for link in page.links():
-  print (link)
+  #print (link)
   #print (link["from"])
   #print (link["from"][0])
 
@@ -126,8 +122,8 @@ for link in page.links():
 
 
 with open(htmlFileName, "w") as text_file:
-    text_file.write("<!-- %s -->" % scale)
-    text_file.write("%s" % linksHtml)
-    text_file.write("%s" % annosHtml)
-    text_file.write("%s" % imgHtml)
-    text_file.write("%s" % scripts)
+    print("<!-- %s -->" % scale)
+    print("%s" % linksHtml)
+    print("%s" % annosHtml)
+    print("%s" % imgHtml)
+    print("%s" % scripts)

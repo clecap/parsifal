@@ -79,7 +79,22 @@ const init = (hash, wgServer, wgScriptPath, cache_url) => {
 
 let imageIsMissingCompleted = false; 
 
-const imageIsMissing = (title, hash, url) => {
+const imageIsMissing = (e) => {
+
+  console.log ("image missing at: ", e);
+
+  var src = e.target.src;
+  console.log ("image src was: ", src);
+  window.setTimeout ( () => {e.target.src = src;}, 5);
+
+  return;
+
+
+
+  let title = e.currentTarget.dataset.title;
+  let hash  = e.currentTarget.dataset.hash;
+  let url = "";
+
   if (imageIsMissingCompleted) {return;}
   imageIsMissingCompleted = true;
   console.error (`Parsifal Runtime:imageIsMissing: Found missing image at title=${title} for hash=${hash} and url=${url}, will purge the Mediawiki parser cache and regenerate image` );
@@ -104,6 +119,7 @@ const showImage = (e) => {
   e.target.style.display = "inline-block";
 
 }
+
 
 const editPreviewPatch = () => {  // the clutch to PHP; we may adapat it to use CodeMirror, textarea or whatever client side editor we desire
   initializeTextarea();
