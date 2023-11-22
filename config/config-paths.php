@@ -15,12 +15,13 @@ const NODE_BINARY       = "/usr/local/bin/node";                                
 
 const DVIPNG_BINARY     = "/usr/local/texlive/2021/bin/x86_64-linuxmusl/dvipng";     // path to the dvipng executable:      determine by which dvipng
 
-
 const LATEX_BINARY      = "latex";
 const PDFLATEX_BINARY   = "pdflatex";                                                // path to pdflatex executable;
 
 /** PATH must include normal Linux path (such as sed, uname, mkdir, rm and possibly more) and path to pdflatex */
 const PATH     = "/usr/local/bin:/usr/bin:/bin:/bin:/usr/local/texlive/2024/bin/x86_64-linuxmusl:/usr/local/texlive/2023/bin/x86_64-linuxmusl:/bin:/usr/local/texlive/2022/bin/x86_64-linuxmusl";
+
+
 const HOME        = "/var/www";
 
 

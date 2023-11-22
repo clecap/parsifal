@@ -2,7 +2,6 @@
 
 # call this with: $scale    $CACHE_PATH$hash$inFinal   $CACHE$hash$outFinal
 
-
 import fitz
 import sys
 import math  
