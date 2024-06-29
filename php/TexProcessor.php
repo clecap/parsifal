@@ -180,7 +180,10 @@ public static function lazyRender ($in, $ar, $tag, $parser, $frame) {
   global $wgTopDante;
   global $wgAllowVerbose; $VERBOSE = false && $wgAllowVerbose;
 
-  $pipeMode=true;  // if true: operate this in pipe mode   if false: operate this in file system mode
+
+
+// TODO
+  $pipeMode=false;  // if true: operate this in pipe mode   if false: operate this in file system mode
 
   $startTime = microtime(true);  
   if ($VERBOSE) {self::debugLog ("lazyRender called at $startTime \n");}
@@ -1280,6 +1283,10 @@ static function fwrite_stream($fp, $string) {
     return $written;
 }
 
+
+///// TODO: it currently looks like in the piped mode we spawn pdftex processes but never properly close or release them
+// checked using top in container.
+
 private static function Tex2PdfPiped ($tex, $hash, $inFinal) {
   $VERBOSE = false;  
   $CACHE_PATH = CACHE_PATH;
@@ -1292,9 +1299,7 @@ private static function Tex2PdfPiped ($tex, $hash, $inFinal) {
 //  $tex=str_replace ("\n","\n ", $tex);  // seems to be necessary for proper piping 
   //$tex="\\begin{document}hi\\n\\end{document}";
 
-  $tex = "\\documentclass{standalone}\\begin{document}\\begin{minipage}{15cm}\\relax \\typeout{START-MARKER-TYPED-OUT-FOR-ERROR-PARSER}Abqi\r\njd\\typeout{END-MARKER-TYPED-OUT-FOR-ERROR-PARSER}\\end{minipage}\\end{document}";
-
-
+  $tex = "\\documentclass{standalone}\\begin{document}\\begin{minipage}{15cm}\\relax \\typeout{START-MARKER-TYPED-OUT-FOR-ERROR-PARSER}Abqi\\r\\njd\\typeout{END-MARKER-TYPED-OUT-FOR-ERROR-PARSER}\\end{minipage}\\end{document}";
 
   $proc = proc_open( $cmd,  array(0 => array('pipe','r'), 1 => array('pipe','w'), 2 => array('pipe', 'w')), $pipes, NULL );
   if (is_resource($proc)) {
@@ -1302,15 +1307,13 @@ private static function Tex2PdfPiped ($tex, $hash, $inFinal) {
    self::fwrite_stream ($pipes[0], $tex);
 //   $written= fwrite($pipes[0], $tex, 10000);    // TODO: commata correction missing
 
- 
-
-$output = stream_get_contents($pipes[1]);
-    $errorOutput = stream_get_contents($pipes[2]);
-    fclose($pipes[1]);
-    fclose($pipes[2]);
+  $output = stream_get_contents($pipes[1]);
+  $errorOutput = stream_get_contents($pipes[2]);
+  fclose($pipes[1]);
+  fclose($pipes[2]);
   fclose($pipes[0]);
 
- $closed= proc_close($proc);
+  $closed= proc_close($proc);
 
   }
 

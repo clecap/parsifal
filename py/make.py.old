@@ -1,4 +1,4 @@
-#!/opt/myenv/bin/python
+#!/usr/bin/python
 
 # call this with: $scale    $CACHE_PATH$hash$inFinal   $CACHE$hash$outFinal
 
