@@ -213,12 +213,17 @@ try {  // GLOBAL EXCEPTION PROTECTED AREA
   // $tag = "none";  if ( isset ($parser->danteTag) ) {$tag = $parser->danteTag;}
   // self::debugLog ("lazy $tag sees $hash\n");
 
+  // TODO: the entire prt here must be fixed !!!!
   // accumulate in the parser connected output object of that page an array with all the hash values used on this page; do so for cleaning up hashs which became stale // TODO
-  $usedHashs = unserialize ( $parser->getOutput()->getPageProperty( 'ParsifalHashsUsed' ) );
-  if ( strcmp (gettype ($usedHashs), "array") != 0 ) {$usedHashs = array();}  // if not found, initialize in empty array()
-  array_push ($usedHashs, $hash); // TODO: ??????? what for 
-  $parser->getOutput()->setPageProperty( 'ParsifalHashsUsed', serialize ($usedHashs));  // TODO: what do we use this for - clearing files ?? - do we still use it for this purpose ??
-  
+  $pageProperty = $parser->getOutput()->getPageProperty( 'ParsifalHashsUsed' );
+  if ($pageProperty == null) {$usedHashs = array();}  // we must check for zero since unserialize does not want a null argument
+  else {
+    $usedHashs = unserialize ( $pageProperty );
+    if ( strcmp (gettype ($usedHashs), "array") != 0 ) {$usedHashs = array();}  // if not found, initialize in empty array()
+    array_push ($usedHashs, $hash); // TODO: ??????? what for 
+    $parser->getOutput()->setPageProperty( 'ParsifalHashsUsed', serialize ($usedHashs));  // TODO: what do we use this for - clearing files ?? - do we still use it for this purpose ??
+  }  
+
   // set some paths
   $texPath        = $CACHE_PATH.$hash."_pc_pdflatex.tex"; 
   $finalImgUrl    = $wgServer.$wgScriptPath.CACHE_URL.$hash."_pc_pdflatex_final.png"; 
@@ -996,10 +1001,10 @@ private static function Pdf2PngMT ($hash, $dpi, $inFinal, $outFinal) {
 
 private static function getPdfSize  ($hash, &$width, &$height) {
   $CACHE_PATH = CACHE_PATH;  $PY_PATH = PY_PATH;
-  $cmd = "$PY_PATH/get-size.py $CACHE_PATH${hash}_pc_pdflatex"; 
+  $cmd = "$PY_PATH/get-size.py {$CACHE_PATH}{$hash}_pc_pdflatex"; 
 
-  $exists = (file_exists ("$CACHE_PATH${hash}_pc_pdflatex.pdf") ? "EXISTS" : "MISSING");
-  $size = filesize ( "$CACHE_PATH${hash}_pc_pdflatex.pdf");
+  $exists = (file_exists ("{$CACHE_PATH}{$hash}_pc_pdflatex.pdf") ? "EXISTS" : "MISSING");
+  $size = filesize ( "{$CACHE_PATH}{$hash}_pc_pdflatex.pdf");
 
   $retval = 0;
   $last =  exec($cmd, $output, $etvarl);

@@ -44,7 +44,7 @@ class Decorator {
   //  $annotations    null or HTML string of the annotations layer
   //                  if string (even if empty) add an annotation layer with this contents
   //                  null:  do not add an annotation layer at all
-  public function wrap ( ?string $annotations = "", string $softError = "", string $errPath = "", string $titleInfo) {
+  public function wrap ( ?string $annotations = "", string $softError = "", string $errPath = "", string $titleInfo ="") {
     global $wgScriptPath;
     $errorInjector = ( $softError === "" ? "<span class='errorWrap'><a href='$errPath' title='Click to see tex log' target='_blank'>Log</a></span>" : "<span class='errorWrap'><a href='$errPath' class='hasError' title='$softError Click to see log.' target='_blank'>Err</a></span>");
 
