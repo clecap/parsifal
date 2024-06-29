@@ -134,7 +134,6 @@ EOD;
   return $stuff . $urlStuff. $optional . $addPreamble;
 }
 
-// minipage is used to hold the page width stable. without it we also get some indentation artifacts with enumitem.
 
 private static function generateBeforeContentStuff ($ar, $tag) { 
   $stuff    = "";
@@ -149,26 +148,22 @@ private static function generateBeforeContentStuff ($ar, $tag) {
   $margin="0cm";
   if ( array_key_exists ( "margin", $ar) ) { $margin=$ar["margin"];}
 
-  $config = "\\standaloneconfig{varwidth=".$size.",margin=".$margin."}"; // need to override the standalone documentclass option of the template
-
+  $config = "\\standaloneconfig{margin=".$margin."}"; // need to override the standalone documentclass option of the template
 
   // implement variant related properties
   if ( array_key_exists ( "number-of-instance", $ar ) ) { 
     $variants = "\\gdef\\numberOfInstance{" . $ar["number-of-instance"] . "}";
   }
 
-
-
-
   # CAVE: confusion between tex { } and php { } should be avoided !
+  // minipage is used to hold the page width stable. without it we also get some indentation artifacts with enumitem.
+
   switch ($tag) {
-    case "amsmath":   $stuff = $config."\\begin{document}"."\\begin{minipage}{".$size."}\\relax ".MAGIC_LINE."\\end{minipage}\\end{document}"; break;
+    case "amsmath":   $stuff = $config."\\begin{document}"."\\begin{minipage}[]{".$size."}\\relax ".MAGIC_LINE."\\end{minipage}\\end{document}"; break;
     case "tex":       $stuff = MAGIC_LINE; break;
     case "beamer":    $stuff = "\\begin{document} ".MAGIC_LINE."\\end{document}"; break;
   }
-
   $stuff = $variants . $stuff;
-
   return $stuff;
 }
 
@@ -1299,7 +1294,7 @@ private static function Tex2PdfPiped ($tex, $hash, $inFinal) {
 //  $tex=str_replace ("\n","\n ", $tex);  // seems to be necessary for proper piping 
   //$tex="\\begin{document}hi\\n\\end{document}";
 
-  $tex = "\\documentclass{standalone}\\begin{document}\\begin{minipage}{15cm}\\relax \\typeout{START-MARKER-TYPED-OUT-FOR-ERROR-PARSER}Abqi\\r\\njd\\typeout{END-MARKER-TYPED-OUT-FOR-ERROR-PARSER}\\end{minipage}\\end{document}";
+  $tex = "\\documentclass{standalone}\\begin{document}\\begin{minipage}[]{15cm}\\relax \\typeout{START-MARKER-TYPED-OUT-FOR-ERROR-PARSER}Abqi\\r\\njd\\typeout{END-MARKER-TYPED-OUT-FOR-ERROR-PARSER}\\end{minipage}\\end{document}";
 
   $proc = proc_open( $cmd,  array(0 => array('pipe','r'), 1 => array('pipe','w'), 2 => array('pipe', 'w')), $pipes, NULL );
   if (is_resource($proc)) {
