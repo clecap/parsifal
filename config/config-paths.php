@@ -13,13 +13,15 @@ const NODE_BINARY       = "/usr/local/bin/node";                                
 // NOTE: we currently are deorecating the use of node.  TODO
 //       as we use mutools instead - but we still keep the sources in
 
-const DVIPNG_BINARY     = "/usr/local/texlive/2021/bin/x86_64-linuxmusl/dvipng";     // path to the dvipng executable:      determine by which dvipng
+
+## TODO: deprecate this maybe - we are not using this anyhow
+const DVIPNG_BINARY     = "/usr/local/texlive/2024/bin/x86_64-linux/dvipng";     // path to the dvipng executable:      determine by which dvipng
 
 const LATEX_BINARY      = "latex";
 const PDFLATEX_BINARY   = "pdflatex";                                                // path to pdflatex executable;
 
 /** PATH must include normal Linux path (such as sed, uname, mkdir, rm and possibly more) and path to pdflatex */
-const PATH     = "/usr/local/bin:/usr/bin:/bin:/bin:/usr/local/texlive/2024/bin/x86_64-linuxmusl:/usr/local/texlive/2023/bin/x86_64-linuxmusl:/bin:/usr/local/texlive/2022/bin/x86_64-linuxmusl";
+const PATH     = "/usr/local/bin:/usr/bin:/bin:/bin:/usr/local/texlive/2024/bin/x86_64-linux";
 
 
 const HOME        = "/var/www";
