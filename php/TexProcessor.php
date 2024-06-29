@@ -196,7 +196,7 @@ public static function lazyRender ($in, $ar, $tag, $parser, $frame) {
 
   $CACHE_PATH = CACHE_PATH;
 
-  $timestamp = strftime ("%d.%m.%Y at %H:%M:%S", time() );         // want a timestamp in the img tag on when the page was translated for debugging purposes
+  $timestamp = date_format( new DateTime(), 'd-m-Y H:i:s'); // want a timestamp in the img tag on when the page was translated for debugging purposes
   $hrTimestamp = hrtime(true);
   if ($VERBOSE) {$startTime = microtime (true); self::debugLog ("lazyRender called at: $timestamp nanos=$hrTimestamp $hrTimestamp for pageTitle " . $parser->getTitle()."  Page starts with: ". trim(substr(trim($in), 0, 20)) . "\n");}
 
