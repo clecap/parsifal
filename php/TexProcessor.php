@@ -206,10 +206,6 @@ try {  // GLOBAL EXCEPTION PROTECTED AREA
 
   $texSource=( $pipeMode ? "FILE" : null);  
   $hash       = self::generateTex ($in, $tag, "pc_pdflatex", $ar, $texSource, false);      // generate $hash_pc_pdflatex.tex and obtain hash of raw LaTeX source located in Mediawiki
-  
-  // can be used to trace from where we have been called
-  // $tag = "none";  if ( isset ($parser->danteTag) ) {$tag = $parser->danteTag;}
-  // self::debugLog ("lazy $tag sees $hash\n");
 
   // TODO: the entire prt here must be fixed !!!!
   // accumulate in the parser connected output object of that page an array with all the hash values used on this page; do so for cleaning up hashs which became stale // TODO

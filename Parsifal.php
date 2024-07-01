@@ -21,8 +21,7 @@ class Parsifal {                                  // glue class of the extension
     global $initialHashsUsed;  // TODO ????
     $VERBOSE = true;
     $title = $parser->getTitle();
-    $tag = "none";  if ( isset ($parser->danteTag) ) {$tag = $parser->danteTag;}
-    if ($VERBOSE) {TeXProcessor::debugLog( "-------- Parsifal::onParserFirstCallInit $tag for page of title: ".$title.  " \n");}
+    if ($VERBOSE) {TeXProcessor::debugLog( "-------- Parsifal::onParserFirstCallInit called for page of title: ".$title.  " \n");}
     
     ///// ???? not clear what this is ??????
     if (property_exists ($parser, "calledFromParsifalFullPage") && $parser->calledFromParsifalFullPage) {

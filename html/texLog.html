@@ -44,7 +44,7 @@
 <h2>Raw Log</h2>
 <div id="rawLogContainer"></div>
 
-<h2>Source: <span>Loaded from:</span> <span id="srcPath"></span></h2>
+<h2>Source: <span>Loaded from:</span> <a id="srcLink" target="_blank" title="Open Tex source in separate window"><span id="srcPath"></span></a></h2>
 <div id="srcContainer"></div>
 
 <script>
@@ -99,8 +99,11 @@ function formatLog (name) {
 // function which fills in the source of the tex run into this page
 function formatSrc (name) {
 
+  name = name + ".tex";
   var srcPath = document.getElementById ("srcPath");
   srcPath.innerHTML = name;
+  var srcLink = document.getElementById ("srcLink");
+  srcLink.href = name;
 
   var srcContainer = document.getElementById ("srcContainer");
   fetch( name + ".tex").then( function(data) {
