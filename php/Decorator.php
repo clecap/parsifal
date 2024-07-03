@@ -105,7 +105,7 @@ class Decorator {
 
     $errorInject = ($errorMarker ? "<span style='border:3px solid red; border-radius:3px;position:absolute;top:14px;right:-3px;' title='There ia s LaTeX error in this collapsible element'></span>" : "" );  // TODO: should probably also allow a peek into the error here !!!
 
-    $this->content  =  "<div onclick='toggleNext(event);' title='Toggle visibility' class='collapseButton' style='$styleBtn'>$label$errorInject</div>".
+    $this->content  =  "<div onclick='toggleNext(event);' title='Click to toggle visibility; with shift for multiple selection' class='collapseButton' style='$styleBtn'>$label$errorInject</div>".
                       "<div onclick='toggleImg(event);' style='$styleIni' class='collapseResult'>".$this->content."</div>";
   return $this;
   }

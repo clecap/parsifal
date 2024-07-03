@@ -89,23 +89,20 @@ const ERR_PATH      =  __DIR__."/../ERRORLOG";                                  
 
 // map collapsible attributes c-* and o-* to specific names, if existing
 // do this serverside (i.e. compile time) and not clientside (i.e. run time) for page-control by author 
-const ATT2NAME = array (
-  "motivation" => "Motivation", 
-  "proof"    => "Proof",       "beweis"    => "Beweis",
-  "notation" => "Notation", 
-  "example"  => "Example",     "beispiel"  => "Beispiel",
-  "remark"   => "Remark",      "bemerkung" => "Bemerkung",
-  "note"     => "Note"
-);
+const ATT2NAME = array ( );
 
-// styling of the collapse buttons of the Parsifal Latex collapsibles
+// maps names shown on collapse-buttons of latex collapsibles to the style to be used for them
 const ATT2STYLE_SPEC = array (
-  "motivation" =>  "background-color:pink;",
-  "proof"      =>  "background-color:yellow;",       "beweis"        =>  "background-color:yellow;",
-  "notation"   =>  "background-color:salmon;",
-  "example"    =>  "background-color:PaleGreen;",    "beispiel"      =>  "background-color:PaleGreen;",
-  "remark"     =>  "background-color:lightblue;",    "bemerkung"     =>  "background-color:lightblue",
-  "note"       =>  "background-color:AliceBlue;"
+  "Motivation"       =>   "background-color:pink;",
+  "Application"      =>   "background-color:pink;",          "Anwendung"       =>  "background-color:pink;",
+  "Proof"            =>   "background-color:yellow;",        "Beweis"          =>  "background-color:yellow;",
+  "Notation"         =>   "background-color:salmon;",
+  "Example"          =>   "background-color:PaleGreen;",     "Beispiel"        =>  "background-color:PaleGreen;",
+  "Counterexample"   =>   "background-color:red;",           "Gegenbeispiel"   =>  "background-color:red;",
+  "Remark"           =>   "background-color:lightblue;",     "Bemerkung"       =>  "background-color:lightblue",
+  "Note"             =>   "background-color:AliceBlue;",     "Notiz"           =>  "background-color:lightblue",
+  "Lemma"            =>   "background-color:AliceBlue;",  
+  "Corollary"        =>   "background-color:AliceBlue;",     "Korollar"        =>  "background-color:lightblue"
 );
 
 // default styling of the clooapse button of the Parsifal Latex collapsible, if no name registered in ATT2STYLE_SPEC is used

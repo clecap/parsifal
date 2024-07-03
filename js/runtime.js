@@ -14,10 +14,11 @@
 /*** COLLAPSIBLES of PARSIFAL ***/
 // #region
 // defines a function which is used by <script> tags injected in TexProcessor for rendering collapsibles
+// called when user clicks on a collapsing button
 window.toggleNext = function toggleNext (e) { 
+  console.log ("parsifal: toggleNext");
   const button = e.target;
   const ele    = e.target.nextSibling;   
-  // console.log ("button: ", button); console.log ("element: ", ele);
   $(ele).slideToggle(300);                               // slide open  // TODO: put to more prominent and thus better visible and adjustable place 
 
 // trying to get it done without jquery since we do not have that loaded now !
