@@ -175,10 +175,7 @@ public static function lazyRender ($in, $ar, $tag, $parser, $frame) {
   global $wgTopDante;
   global $wgAllowVerbose; $VERBOSE = false && $wgAllowVerbose;
 
-
-
-// TODO
-  $pipeMode=false;  // if true: operate this in pipe mode   if false: operate this in file system mode
+  $pipeMode=false;  // if true: operate this in pipe mode   if false: operate this in file system mode  // TODO
 
   $startTime = microtime(true);  
   if ($VERBOSE) {self::debugLog ("lazyRender called at $startTime \n");}
@@ -188,6 +185,17 @@ public static function lazyRender ($in, $ar, $tag, $parser, $frame) {
   $titleText = ""; 
   $title = $parser->getTitle();
   if ($title) {$titleText = $title->getText();}
+
+
+
+  $property = $parser->getOutput()->getPageProperty ("Parsifals");
+  if ( is_numeric ($property) ) {
+        $parser->getOutput()->setPageProperty ("Parsifals", $property + 1);  // initialize to a first value
+  }
+  else {
+     $parser->getOutput()->setPageProperty ("Parsifals", 1);  // initialize to a first value
+  }
+
 
   $CACHE_PATH = CACHE_PATH;
 
@@ -207,15 +215,15 @@ try {  // GLOBAL EXCEPTION PROTECTED AREA
   $texSource=( $pipeMode ? "FILE" : null);  
   $hash       = self::generateTex ($in, $tag, "pc_pdflatex", $ar, $texSource, false);      // generate $hash_pc_pdflatex.tex and obtain hash of raw LaTeX source located in Mediawiki
 
-  // TODO: the entire prt here must be fixed !!!!
-  // accumulate in the parser connected output object of that page an array with all the hash values used on this page; do so for cleaning up hashs which became stale // TODO
+  // accumulate in the parser connected output object of that page an array with all the hash values used on this page
+  // the entire table of used hash values can then, in a different function, be used to garbage-collect the non-used hash values as stemming from preview actions
   $pageProperty = $parser->getOutput()->getPageProperty( 'ParsifalHashsUsed' );
-  if ($pageProperty == null) {$usedHashs = array();}  // we must check for zero since unserialize does not want a null argument
+  if ($pageProperty == null) {$usedHashs = array();}                               // if no value was found, initialize in empty array
   else {
-    $usedHashs = unserialize ( $pageProperty );
-    if ( strcmp (gettype ($usedHashs), "array") != 0 ) {$usedHashs = array();}  // if not found, initialize in empty array()
-    array_push ($usedHashs, $hash); // TODO: ??????? what for 
-    $parser->getOutput()->setPageProperty( 'ParsifalHashsUsed', serialize ($usedHashs));  // TODO: what do we use this for - clearing files ?? - do we still use it for this purpose ??
+    $usedHashs = unserialize ( $pageProperty );                                   // get current value of the page
+    if ( strcmp (gettype ($usedHashs), "array") != 0 ) {$usedHashs = array();}    // if no reasonable value was found, initialize in empty array()
+    array_push ($usedHashs, $hash);                                               // push current hash value
+    $parser->getOutput()->setPageProperty( 'ParsifalHashsUsed', serialize ($usedHashs));  // store all currently stored hashs again
   }  
 
   // set some paths
@@ -227,24 +235,23 @@ try {  // GLOBAL EXCEPTION PROTECTED AREA
 
   $softError = "";
 
+
   /** LATEX to PDF production step **/
   if ($VERBOSE) {self::debugLog ("lazyRender will now Tex2PDF $hash... ") ;}
   if ( !file_exists ($CACHE_PATH . $hash . "_pc_pdflatex.pdf" ) ) {    // if the PDF file does not exist, make it and pick up error status from function
     if ($VERBOSE) {self::debugLog ( "did not find file " . $CACHE_PATH . $hash . "_pc_pdflatex.pdf, starting processor... " . $hash );}
-
-   $softError = ( $pipeMode ? self::Tex2PdfPiped ($texSource, $hash, "_pc_pdflatex") : self::Tex2Pdf ($hash, "_pc_pdflatex", "lazyrender") );  
-      MWDebug::log ( "Softerror Case 1 is: $softError \n" );
+    $softError = ( $pipeMode ? self::Tex2PdfPiped ($texSource, $hash, "_pc_pdflatex") : self::Tex2Pdf ($hash, "_pc_pdflatex", "lazyrender") );  
+    MWDebug::log ( "Softerror Case 1 is: $softError \n" );
   }
-  else {                                                             // if the PDF file does exist, pick up the earlier softError status from the marker file
+  else {                                                             // PDF file exists, pick up the earlier softError status from the marker file
     if ($VERBOSE) {self::debugLog ( "found file on disc\n" );}
     $mrkFileName = $CACHE_PATH . $hash. "_pc_pdflatex.mrk";
-    $fileSize = filesize ( $mrkFileName );
+    $fileSize    = filesize ( $mrkFileName );
     if ( $fileSize === false ) {
       throw new ErrorException ("lazyRender: Could not find error marker file " . $CACHE_PATH . $hash. "_pc_pdflatex.mrk");  
-
     }
     else if ( $fileSize > 0 ) { $softError = file_get_contents ($mrkFileName);  MWDebug::log ( "Softerror Case 2 is: $softError \n" );
-}
+      }
     else /* fileSize == 0 */  { $softError = "";                                MWDebug::log ( "Error Marker file is empty \n" );  }
   }
 
@@ -254,14 +261,7 @@ try {  // GLOBAL EXCEPTION PROTECTED AREA
   $width=200; $height=200;
   //  self::getPdfSize ($hash, $width, $height );
 
-  $annotationCode = "";
-
-  $mustDoImage = $mustDoAnnotations = false;
-  if ( !file_exists ($finalImgPath)   ) { $mustDoImage       = true;  if ($VERBOSE) {self::debugLog (" $finalImgPath is missing, need to call processor...");} }
-  if ( !file_exists ($annotationPath) ) { $mustDoAnnotations = true;  if ($VERBOSE) {self::debugLog (" $annotationPath is missing, need to the processor...");} }
-
-//  if ( $mustDoImage || $mustDoAnnotations ) { 
-  if ( !file_exists ($finalImgPath) ) {
+  if ( !file_exists ($finalImgPath) || !file_exists ($annotationPath) ) {
     if ($VERBOSE) {self::debugLog (" one of the files detected missing, calling the processor...");}
 
   // TODO: ALLOW to set some basic scale somewhere in or by or for the ParsifalTemplate !!!! itself - so we do nto need to add it in the (in every) tag.
@@ -271,10 +271,8 @@ try {  // GLOBAL EXCEPTION PROTECTED AREA
     $tagScale = floatval($ar["scale"]);
       if ( is_float ($tagScale) ) { $baseScale = 15/$tagScale;   }
   }
- //    echo "SCALE: " . $baseScale;
 
   $scaler = self::SCALE(BASIC_SIZE, $baseScale);
- // echo "SCALER: ". $scaler;
 
   $pdfscale = $scaler;
   if ( array_key_exists ("pdfscale",$ar)) {  $pdfscale = floatval($ar["pdfscale"]); }
@@ -282,8 +280,6 @@ try {  // GLOBAL EXCEPTION PROTECTED AREA
   self::debugLog ("Pdf2PngHtmlMT for $hash starting\n");
 
   self::Pdf2PngHtmlMT ($hash, $pdfscale, "_pc_pdflatex", "_pc_pdflatex_final_3", $duration );  // 15 
-//  $annotationCode = self::Pdf2PngHtmlMT_RET ($hash, $pdfscale, "_pc_pdflatex", "_pc_pdflatex_final_3", $duration );
-
   self::debugLog ("Pdf2PngHtmlMT for $hash completed\n");
   }
   else { if ($VERBOSE) {self::debugLog ("both files found on disc, no need to call processor\n");} }
@@ -305,10 +301,7 @@ try {  // GLOBAL EXCEPTION PROTECTED AREA
       // return "Currently we have no image for display. It is possible that the LaTeX source did not produce any output. Missing file is $finalImgPath"; 
   }
 
-
   $scaling = 25;
-
-   // self::debugLog ("lazy will now make img tag for $hash\n");
 
   // onload:    delay showing the image until it is completely loaded (prevents user from seeing half of an image during the load process)
   // onerror:   kickoff generation of image should it be missing (reason could be: file was (incorrectly) deleted on the server)
@@ -359,7 +352,7 @@ try {  // GLOBAL EXCEPTION PROTECTED AREA
   $annotations  = (file_exists ($annotationPath) ? file_get_contents ($annotationPath) :  null );  // get annotations, if no file present, use null
 
   $core = new Decorator ( $imgResult, $width, $height, $markingClass);
-  $core->wrap ( $annotations, $softError, $errorPath, $titleInfo);      // wrap with annotations and error information   
+  $core->wrap ( $annotations, $softError, $errorPath, $titleInfo, $hash);      // wrap with annotations and error information   
   $core->collapsible ( $ar );                                           // decorate with collapsibles
   $ret = $core->getHTML ();                                             // generate HTML which includes the decorations
 
@@ -367,186 +360,8 @@ try {  // GLOBAL EXCEPTION PROTECTED AREA
 
 } catch (\Exception $e) { $msg = $ret = $e->getMessage();  $ret = "<b>$msg</b><br>".$e->getTraceAsString();}  // in case of exception, build a suitable error element 
 
-// TODO: depending on the rendering mode we do not have to wait until we have the PNG and HTML formats available !!!
-
   return $ret;                                            // for THIS (img) the calculated width and height from above from PNG are correct
 }
-
-
-
-
-// LEAN variant
-public static function lazyRenderLEAN ($in, $ar, $tag, $parser, $frame) {
-  global $wgServer, $wgScriptPath, $wgOut; 
-  global $wgAllowVerbose; $VERBOSE = false && $wgAllowVerbose;
-
-  $pipeMode=true;  // if true: operate this in pipe mode   if false: operate this in file system mode
-
-  $startTime = microtime(true);
-  if ($VERBOSE) {self::debugLog ("lazyRender called at $startTime \n");}
-  if ($VERBOSE) {self::debugLog ("Attributes: " . print_r ($ar, true)."\n");}
-
-  $CACHE_PATH = CACHE_PATH;
-
-  $hrTimestamp = hrtime(true);                                       // want a timestamp for performance measurements
-  $timestamp   = strftime ("%d.%m.%Y at %H:%M:%S", time() );         // want a timestamp in the img tag on when the page was translated for debugging purposes
- 
-  if ($VERBOSE) {$startTime = microtime (true); self::debugLog ("lazyRender called at: $timestamp nanos=$hrTimestamp $hrTimestamp for pageTitle " . $parser->getTitle()."  Page starts with: ". trim(substr(trim($in), 0, 20)) . "\n");}
-
-try {  // GLOBAL EXCEPTION PROTECTED AREA
-
-  self::ensureEnvironment ();
-
-  $texSource=( $pipeMode ? "FILE" : null);  
-  $hash       = self::generateTex ($in, $tag, "pc_pdflatex", $ar, $texSource, false);      // generate $hash_pc_pdflatex.tex and obtain hash of raw LaTeX source located in Mediawiki
-
-  // set some paths
-  $texPath        = $CACHE_PATH.$hash."_pc_pdflatex.tex"; 
-  $finalImgUrl    = $wgServer.$wgScriptPath.CACHE_URL.$hash."_pc_pdflatex_final.png"; 
-  $annotationPath = $CACHE_PATH.$hash."_pc_pdflatex_final_3.html";                         // the local php file path under which we should find the annotations in form of a (partial) html file  // TODO: hardcoded resolution is bad
-  $finalImgPath   = $CACHE_PATH.$hash."_pc_pdflatex_final_3.png";   // TODO: cave hardcoded resolution is bad
-  $errorPath      = "$wgScriptPath/extensions/Parsifal/html/texLog.html?"."$wgServer$wgScriptPath".CACHE_URL.$hash."_pc_pdflatex";
-
- $baseScale = 3;
-  if ( array_key_exists ("scale",$ar)) {  
-    $tagScale = floatval($ar["scale"]);
-      if ( is_float ($tagScale) ) { $baseScale = 15/$tagScale;   }
-  }
- //    echo "SCALE: " . $baseScale;
-
-  $scaler = self::SCALE(BASIC_SIZE, $baseScale);
- // echo "SCALER: ". $scaler;
-
-  $pdfscale = $scaler;
-  if ( array_key_exists ("pdfscale",$ar)) {  $pdfscale = floatval($ar["pdfscale"]); }
-
-  $softError = "";
-
-$inFinal = "_pc_pdflatex";
-  $outFinal = "_pc_pdflatex_final_3";
-
-  $texFileName = "$CACHE_PATH$hash$inFinal.tex";
-  ASSERT_FILE ($texFileName); 
-  $cmdTex = "pdflatex  --shell-escape --interaction=nonstopmode  -file-line-error-style -output-directory=$CACHE_PATH $texFileName"; 
-
-    $scale = $pdfscale;
-
-   $JS_PATH = JS_PATH;  
-  $PY_PATH = PY_PATH;
-  $cmdPng = "$PY_PATH/make.py $scale $CACHE_PATH$hash$inFinal $CACHE_PATH$hash$outFinal "; 
-
-  $cmd = "$cmdTex ; $cmdPng";
-
-  $completeOutput = shell_exec ($cmd);
-   
-  // We need a width and height in the img tag to assist the browser to a more smooth and flicker-less reflow.
-  // The width MUST be equal to the width of the image (or else the browser must rescale the image, which BLURS the image and takes TIME)
-
-// We need a width and height in the img tag to assist the browser to a more smooth and flicker-less reflow.
-  // The width MUST be equal to the width of the image (or else the browser must rescale the image, which BLURS the image and takes TIME)
-  if (file_exists ( $finalImgPath ) ) {
-     $hasError = "";
-     clearstatcache ( true, $finalImgPath );  // looks like htis is necessary to ensure getimagesize gets the correct answer all the time
-    $ims = @getimagesize ( $finalImgPath ); 
-    if ($ims) {$width = $ims[0]; $height = $ims[1];} else {
-      $imgFileSize = filesize ( $finalImgPath );
-      throw new ErrorException ("Looks like $finalImgPath is not yet ready. File size reports it as $imgFileSize ");}   } 
-  else {  
-      $width=200; $height=200; $hasError = "data-error='missing-image'";  // signal to JS runtime that we know the image is in error
-      // return "Currently we have no image for display. It is possible that the LaTeX source did not produce any output. Missing file is $finalImgPath"; 
-  }
-
-
-  $scaling = 25;
-
-   // self::debugLog ("lazy will now make img tag for $hash\n");
-
-  // onload:    delay showing the image until it is completely loaded (prevents user from seeing half of an image during the load process)
-  // onerror:   kickoff generation of image should it be missing (reason could be: file was (incorrectly) deleted on the server)
-  $naming = ( array_key_exists ("n", $ar) ? "data-name='".$ar["n"]."' " : "");             // prepare a data-name attribute for the image
-  $title = $parser->getTitle ();                                                           // get title of current page (also need this below !   // CAVE:  WILL  need different call,  getPage()   from 1.37 on !!!!!!!!!!!!!!!!!!!!
-
-/////////////// TODO: ??????????????? We must check / ensure that this name has not yet been used already on this page with this name - and similarly in the entire system !!!!!!!!!
-/// this should mirgate into DanteSnippets
-  if (array_key_exists ("n", $ar)) { // if tag has a name then produce a further copy of the page
-//    TeXProcessor::$makeFileStack[$title."/".$ar["n"]] = "<$tag>\n$in\n</$tag>"; 
-    MWDebug::log ( "Found a name : ".$ar['n']."\n" );
-   //$snip =  new Snippets ( ) ;  
-  }
- 
-  // image tag style
-  $style = "style=\"";
-
-  $markingClass = "";
-  if ( array_key_exists ("number-of-instance", $ar) ) { $style .= "margin:20px;"; 
-    $markingClass = "instance_".$ar["number-of-instance"];
-  }
-
-  if ( array_key_exists ("b", $ar) )  { $style .= "border:1px solid gold;";            }     // add a border
-  if ( array_key_exists ("br", $ar) ) { $style .= "border-radius:5px;";                }     // add a border radius
-  if ( array_key_exists ("bs", $ar) ) { $style .= "box-shadow: 10px 10px lightgrey;";  }     // add a box shadow
-  if ( array_key_exists ("style", $ar) )  { $style .= $ar["style"];            }             // add custom style
-  $style .= "width:100%;";
-  $style .= "display:none;";
-  $style .= "\" ";
-
-  $titleInfo = "title=\"I am a title information\"";
-
-  $finalImgUrl3   = $wgServer.$wgScriptPath.CACHE_URL.$hash."_pc_pdflatex_final_3.png"; 
-  $finalImgUrl    = $wgServer.$wgScriptPath.CACHE_URL.$hash."_pc_pdflatex_final.png"; 
-
-  $cache_url = CACHE_URL;
-
-  $dataTitle = "data-title=\"".$titleText."\"";   // TODO: could be susceptible to html injection - fix
-  $dataHash  = "data-hash=\"".$hash."\"";
-
-  $hasError="";  // what for ?????
-
-  $imgTag      = "<img $naming id=\"$hash\" $dataTitle $dataHash $hasError  data-timestamp='$timestamp'  $style  class='texImage' alt='Image is being processed, please wait, will fault it in automatically as soon as it is ready'></img>";
-  $handlerTag  = "<script>PRT.srcDebug(\"$hash\"); PRT.init(\"$hash\", \"$wgServer\", \"$wgScriptPath\", \"$cache_url\"  ); </script>"; 
-
-  $imgResult = $imgTag . $handlerTag;  // the image tag which will be used
-
-  $annotations  = (file_exists ($annotationPath) ? file_get_contents ($annotationPath) :  null );  // get annotations, if no file present, use null
-
-  $core = new Decorator ( $imgResult, $width, $height, $markingClass);
-  $core->wrap ( $annotations, $softError, $errorPath, $titleInfo);      // wrap with annotations and error information   
-  $core->collapsible ( $ar );                                           // decorate with collapsibles
-  $ret = $core->getHTML ();                                             // generate HTML which includes the decorations
-
-  if (true || $VERBOSE) {$endTime = microtime (true); $totalDuration = $endTime - $startTime;  self::debugLog ("lazyRender: COMPLETED. TOTAL RUNTIME OF lazyRender =$totalDuration ------------------------------------------------- \n\n\n");}
-
-} catch (\Exception $e) { $msg = $ret = $e->getMessage();  $ret = "<b>$msg</b><br>".$e->getTraceAsString();}  // in case of exception, build a suitable error element 
-
-// TODO: depending on the rendering mode we do not have to wait until we have the PNG and HTML formats available !!!
-
-  return $ret;                                            // for THIS (img) the calculated width and height from above from PNG are correct
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -1223,14 +1038,7 @@ private static function Tex2Pdf ($hash, $inFinal, $note) {
   $CACHE_PATH = CACHE_PATH;
   $texFileName = "$CACHE_PATH$hash$inFinal.tex";
   ASSERT_FILE ($texFileName); 
-  // if ($VERBOSE) {self::debugLog ("Tex2Pdf sees the following environment: \n".print_r (getenv(), true) );}  // uncomment to check the active environment
 
-////// TODO:   move to a -fmt based call (needs an adaptation of the generated tex)
-////// TODO:   want a redirect of the output - to a file, or maybe different
-
-//  $cmd = "pdflatex  --shell-escape --interaction=nonstopmode  -file-line-error-style -ipc -fmt=$CACHE_PATH/../extensions/Parsifal/formats_pdflatex/amsmath -output-directory=$CACHE_PATH $texFileName > $CACHE_PATH/LOGG"; 
-
-// working was:
   $cmd = "pdflatex  --shell-escape --interaction=nonstopmode  -file-line-error-style -output-directory=$CACHE_PATH $texFileName"; 
 
   if ($VERBOSE || true) { self::debugLog ("Tex2Pdf started ($note) for $hash$inFinal, command is: $cmd \n");}   
@@ -1245,21 +1053,26 @@ private static function Tex2Pdf ($hash, $inFinal, $note) {
     $logfileContents = file_get_contents ( $CACHE_PATH . $hash . "_pc_pdflatex.log");
     if ($logfileContents === false) { $ret= "Tex signalled an error but we could not find an error file. Hash is ".$hash; }
     else {
-      $index=strpos ($logfileContents, $texFileName.":");
-      $substring = substr($logfileContents, $index);
-      $index=strpos ($substring,":");
-      $substring = substr ($substring, $index+1);
-      $newlinePos = strpos($substring, "\n");
-      if ($newlinePos !== false) { $ret= substr($substring, 0, $newlinePos); } else { $ret = $substring; }
-  } }
+      $index=strpos ($logfileContents, $texFileName.":");  // search for position of the tex file name where it is followed by a :
+      $substring = substr($logfileContents, $index);       // go to this position
+      $index=strpos ($substring,":");                      // advance to the position of the :
+      $substring = substr ($substring, $index+1);          // jump over the :  this brings us to the line number
+      $newlinePos = strpos($substring, "\n");              // search position of next newline
+      if ($newlinePos === false) {$ret = $substring;}      // If there is no newline, return the entire string
+      else {
+        $secondNewlinePos = strpos($substring, "\n", $newlinePos + 1);     // Find the position of the second newline, starting the search just after the first newline
+        if ($secondNewlinePos === false) { $ret = $substring; }   // If there is no second newline, return the substring from the start to the end of the string
+        else {  
+          $ret = substr($substring, 0, $secondNewlinePos);     // Return the substring from the start to the second newline
+        }
+      }   
+    } 
+  }
   else                     { $ret=" Unknown errorcode received from Tex driver. Value is ".$retval; }
 
-  file_put_contents ( $CACHE_PATH . $hash. "$inFinal.mrk", $ret ); // write ERROR into .mrk file if there is a soft error to know about this later when we only access file system
+  // NOW we have in $ret the most reasonable error condition possible
+  file_put_contents ( $CACHE_PATH . $hash. "$inFinal.mrk", $ret );       // write ERROR into .mrk file if there is a soft error to know about this later when we only access file system
   if ($VERBOSE) {self::debugLog ("Tex2Pdf: Error: $ret \n");}
-
-//  else {
-//    throw new Exception ("Tex2Pdf: Looks like a hard error: \n ".  (file_exists ( "$CACHE_PATH$hash$inFinal.pdf") ? " Have a pdf file\n" : " Have NO pdf file\n" )  ." Executor return value: $res \n Output: $output \n Error: $error \n File: $CACHE_PATH$hash$inFinal.pdf\n");   
-//  }
   return $ret;
 }
 

@@ -82,30 +82,29 @@ $CACHE_PATH         = CACHE_PATH;                                               
 const CACHE_URL     = "/parsifal-cache/";                                            // URL relative to scriptPath, must end with a slash /
 
 
-
-
 /*** Some Log Paths ***/
 const LOG_PATH      =  __DIR__."/../LOGFILE";                                       // path to log file
 const ERR_PATH      =  __DIR__."/../ERRORLOG";                                      // path to log file  // TODO: do we actually need this ???
+
 
 // map collapsible attributes c-* and o-* to specific names, if existing
 // do this serverside (i.e. compile time) and not clientside (i.e. run time) for page-control by author 
 const ATT2NAME = array (
   "motivation" => "Motivation", 
-  "proof"    => "Proof",     "beweis"    => "Beweis",
+  "proof"    => "Proof",       "beweis"    => "Beweis",
   "notation" => "Notation", 
-  "example"  => "Example",   "beispiel"  => "Beispiel",
-  "remark"   => "Remark",    "bemerkung" => "Bemerkung",
+  "example"  => "Example",     "beispiel"  => "Beispiel",
+  "remark"   => "Remark",      "bemerkung" => "Bemerkung",
   "note"     => "Note"
 );
 
 // styling of the collapse buttons of the Parsifal Latex collapsibles
 const ATT2STYLE_SPEC = array (
-  "motivation" => "background-color:pink;",
-  "proof"      =>  "background-color:yellow;", 
+  "motivation" =>  "background-color:pink;",
+  "proof"      =>  "background-color:yellow;",       "beweis"        =>  "background-color:yellow;",
   "notation"   =>  "background-color:salmon;",
-  "example"    =>  "background-color:PaleGreen;",
-  "remark"     =>  "background-color:lightblue;",
+  "example"    =>  "background-color:PaleGreen;",    "beispiel"      =>  "background-color:PaleGreen;",
+  "remark"     =>  "background-color:lightblue;",    "bemerkung"     =>  "background-color:lightblue",
   "note"       =>  "background-color:AliceBlue;"
 );
 

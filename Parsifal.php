@@ -65,6 +65,45 @@ class Parsifal {                                  // glue class of the extension
 
 
 
+/*
+
+
+public static function onEditPage_attemptSave( EditPage $editpage ) { 
+   $title = $editPage->getTitle();
+
+        // Ensure the title object is valid
+     //   if ( !$title instanceof Title || !$title->exists() ) { return true; }
+
+  $pageId = $title->getArticleID();
+
+  $services = MediaWikiServices::getInstance();
+  $pageProps = $services->getPageProps();
+  $properties = $pageProps->getProperties( $pageId, [ 'Parsifal' ] );
+
+  if ( isset($properties['Parsifal']) ) {
+   $content = $wikiPage->getContent( SlotRecord::MAIN );
+   $textContent = ContentHandler::getContentText( $content );
+   $additionalText = "\n\n<indicator>Parsifal</indicator>";
+   $textContent .= $additionalText;
+   $newContent = ContentHandler::makeContent( $textContent, $title );
+   $editpage->doEditContent( $newContent, $summary, $flags );
+   }
+  else {
+    $content = $wikiPage->getContent( SlotRecord::MAIN );
+    $textContent = ContentHandler::getContentText( $content );
+     $additionalText = "\n\n<indicator>NOParsifal</indicator>";
+    $textContent .= $additionalText;
+    $newContent = ContentHandler::makeContent( $textContent, $title );
+    $editpage->doEditContent( $newContent, $summary, $flags );
+  }
+
+
+}
+
+
+*/
+
+
 
 
   public static function onPageSaveComplete( WikiPage $wikiPage, MediaWiki\User\UserIdentity $user, string $summary, int $flags, MediaWiki\Revision\RevisionRecord $revisionRecord, MediaWiki\Storage\EditResult $editResult ) {
@@ -73,27 +112,60 @@ class Parsifal {                                  // glue class of the extension
       
 //    if ($wikiPage->getTitle()->getNamespace() == NS_MAIN) {} else { TeXProcessor::debugLog( "Parsifal: due to namespace not working\n" ); }
 
-   TeXProcessor::debugLog( "Parsifal::onPageSaveComplete will leave now \n");
+
+        return true;
+
+   TeXProcessor::debugLog( "**************************** Parsifal::onPageSaveComplete will leave now \n");
   }  
   
   
   static public function block       ($in, $ar)   {return "<div class='parsifalBlock'>" . $in . "</div>";}
 
 
-  // this provides an early insert into the body to provent FOUC 
-  // NOTE: This is only called for normal pages and not for the edit page
-  public static function onOutputPageBeforeHTML( OutputPage &$out, &$text ) {
-    $out->addJSConfigVars ( 'Parsifal', self::prepareJSConfig() );         
-    $out->addModuleStyles ( ["ext.Parsifal"] );                               // must addModuleStyles separately in order to prevent FOUC 
-  }
+// this provides an early insert into the body to provent FOUC 
+// NOTE: This is only called for normal pages and not for the edit page 
+public static function onOutputPageBeforeHTML( OutputPage &$out, &$text ) {
+  $out->addJSConfigVars ( 'Parsifal', self::prepareJSConfig() );         
+  $out->addModuleStyles ( ["ext.Parsifal"] );                               // must addModuleStyles separately in order to prevent FOUC 
+
+
+  $title = $out->getTitle();
+  //   if ( !$title instanceof Title || !$title->exists() ) { return true; }  // Ensure the title object is valid
+  $pageID       = $title->getArticleID();
+  $services     = MediaWikiServices::getInstance();
+  $pageProps    = $services->getPageProps();
+  $properties   = $pageProps->getProperties( $title,  ['Parsifals', 'Todos']  );
+  $myProperties = $properties [$pageID];
+  $parsifalProperty = $myProperties['Parsifals'];
+
+// is set in TexProcessor::lazyRenderer
+
+// set indicators for:  number of tex snippets hich are in error,  number of hidden to do areas which are in the page, number of hidden solutions which are in the page 
+
+//  if ( isset($myProperties['Parsifal']) ) {   $out->setIndicators ( ["Parsifal" => "<b>hasParsifal</b>"]);  }
+//  else {  $out->setIndicators ( ["Parsifal" => "<b>hasNoParsifal</b>"]);}
+
+  $out->setIndicators ( ["Parsifals" => $parsifalProperty ]);
+
+}
 
 
   // this provides a very early injection into the header 
   public static function onBeforePageDisplay ( OutputPage $out ) {
     global $wgExtensionAssetsPath;
-      $out->addHeadItem ("runtime.js", "<script src='$wgExtensionAssetsPath/Parsifal/js/runtime.js'></script>");  // TODO: use minimzed version
+    $out->addHeadItem ("runtime.js", "<script src='$wgExtensionAssetsPath/Parsifal/js/runtime.js'></script>");  // TODO: use minimzed version
+
   }
-  
+
+
+
+
+
+
+
+
+
+
 
   private static function prepareJSConfig () {  // returns the configuration variables to be exported to the Javascript portion of the extension
     global $wgServer, $wgScriptPath;
@@ -243,7 +315,7 @@ class Parsifal {                                  // glue class of the extension
           if ( strlen ($ext > 0)      ) {$extensions->add ($ext); }
           if ( strlen ($fileHash) > 3 ) {$set->add ($fileHash);   }  // exclude directories . and .. from being added          
         }
-//      TeXProcessor::debugLog ("cleanupParsifalCache: set obtained is: " .print_r ( $set, true). " \n" );  
+
       TeXProcessor::debugLog ("cleanupParsifalCache: set obtained contains elements: " . $set->count() . " \n" );        
       TeXProcessor::debugLog ("cleanupParsifalCache: closing CACHE_PATH as a directory \n" );  
       closedir($dh);
@@ -297,9 +369,6 @@ class Parsifal {                                  // glue class of the extension
 //    if ($VERBOSE) {TeXProcessor::debugLog ("Parsifal::onParserFirstCallInit sees ParsifalHashsUsed: " . print_r ($initialHashsUsed, true). " \n");}      
   
   } // end function  
-    
-    
-    
     
 } // end class
     

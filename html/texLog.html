@@ -5,9 +5,13 @@
 * {font-family:monospace;}
 #srcContainer {border:2px solid black; border-radius: 10px; height:30%; overflow:scroll; padding:5px;}
 
+#srcContainer span {font-family: monospace; color:grey;}
+
 #logContainer {border:2px solid black; border-radius: 10px; height:30%; overflow:scroll; padding:5px;}
   
 .impErr {color:red; font-weight:bold; font-family:monospace;} /* markup class for important parts of the error message */
+
+#remove {position:fixed; top:0px; right:0px;color:red;}
 </style>
 
 
@@ -23,26 +27,46 @@
 /* Style the accordion panel. Note: hidden by default */
 .panel {padding: 0 18px;  background-color: white; display: none;  overflow: hidden;}
 </style>
+
+
+
 </head>
 
 <body>
 <h1>This is a Parsifal LaTeX Transcript.</h1>
 
+<script>
+window.removeMe =
+ function removeMe() {
+  var iframe = window.parent.document.getElementById('errorIframe');
+  if (iframe) {
+                iframe.parentNode.removeChild(iframe);
+            } 
+  else {window.close();}    
+}
+
+
+
+</script>
+
+<button id="remove" onclick="removeMe();">Close</button>
+
 <h2>Errors</h2>
 <div id="accContainer"></div>
 
+<!--
 <h2>Preamble Log</h2>
 <div id="preContainer"></div>
 
 
 <h2>Postamble Log</h2>
 <div id="postContainer"></div>
+-->
+
 
 <h2>Log</h2>
 <div id="logContainer"></div>
 
-<h2>Raw Log</h2>
-<div id="rawLogContainer"></div>
 
 <h2>Source: <span>Loaded from:</span> <a id="srcLink" target="_blank" title="Open Tex source in separate window"><span id="srcPath"></span></a></h2>
 <div id="srcContainer"></div>
@@ -106,7 +130,7 @@ function formatSrc (name) {
   srcLink.href = name;
 
   var srcContainer = document.getElementById ("srcContainer");
-  fetch( name + ".tex").then( function(data) {
+  fetch( name ).then( function(data) {
     // Here you get the data to modify as you please
     
     var reader = data.body.getReader();
@@ -114,13 +138,17 @@ function formatSrc (name) {
       var txt = new TextDecoder("utf-8").decode(res.value);
       // console.log (txt);
       
-    
+    let num = 1;
     txt.split("\n").map( ele => {      
       var cont;
       var idx;
       
       var cont = document.createElement ("div");
+
+      let lineNum = document.createElement ("span");
+      lineNum.innerHTML = String(num++).padStart(4, '0') + ':&nbsp';
       var node = document.createTextNode (ele);
+      cont.appendChild (lineNum);
       cont.appendChild (node);
       srcContainer.appendChild (cont);
     });

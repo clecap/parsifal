@@ -327,9 +327,42 @@ const broadcastPosition = (ele) => {
   danteBC.postMessage (  {"positionAtId": id } );  
 };
 
+
+
+const showAsIframe = (url) => {   console.log (" show " + url + " as iframe inside of the current window");
+  let frame =  document.getElementById ("errorIframe");
+  console.warn (frame);
+  if (frame) {return;}  // already showing
+  frame = document.createElement ("iframe");
+  frame.src=url;
+  frame.id="errorIframe";
+  frame.style = "position:fixed; top:10px; left:10px; width:800px; height:800px; overflow:scroll;background-color:white;";
+  document.body.appendChild (frame);
+  return false;
+};
+
+const showAsWin = (url) => {   console.log (" show " + url + " as iframe inside of the current window");
+  const handle = window.open( url, "errorWindow", "left=1,top=1,width=800,height=800");
+  return false;
+};
+
+const hilite = (hash) => {
+  let ele = document.getElementById (hash);
+  ele.style.outline = "1px dotted lightgrey";
+
+};
+
+
+const lowlite = (hash) => {
+  let ele = document.getElementById (hash);
+  ele.style.outline = "0px solid red";
+
+};
+
+
 return ( {imageIsMissing, renderPDF, jsRender, showImage, srcDebug, init, 
          limitSize, implementLimitedSize, toggleLimitSize,
-         showVariants, implementShowVariants, toggleVariants,
+         showVariants, implementShowVariants, toggleVariants, showAsIframe, showAsWin, hilite, lowlite,
          patchParsifalEditLinks});    // export functions to the PRT Parsifal Run Time object
 
 })();  // END of object PRT definition

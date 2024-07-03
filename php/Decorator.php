@@ -44,9 +44,13 @@ class Decorator {
   //  $annotations    null or HTML string of the annotations layer
   //                  if string (even if empty) add an annotation layer with this contents
   //                  null:  do not add an annotation layer at all
-  public function wrap ( ?string $annotations = "", string $softError = "", string $errPath = "", string $titleInfo ="") {
+  public function wrap ( ?string $annotations = "", string $softError = "", string $errPath = "", string $titleInfo ="", string $hash="") {
     global $wgScriptPath;
-    $errorInjector = ( $softError === "" ? "<span class='errorWrap'><a href='$errPath' title='Click to see tex log' target='_blank'>Log</a></span>" : "<span class='errorWrap'><a href='$errPath' class='hasError' title='$softError Click to see log.' target='_blank'>Err</a></span>");
+    $errorInjector = ( $softError === "" ? "<span class='logWrap'><a href='$errPath' onclick='PRT.showasWin(this);event.preventDefault();' onmouseover='PRT.hilite(\"$hash\");' onmouseout='PRT.lowlite(\"$hash\");'  title='Click for tex log in popup'>&#8689;</a></span>" : 
+      "<span class='errorWrap'>".
+        "<a href='$errPath' class='miniError' onclick='PRT.showAsIframe(this);event.preventDefault();'  title='Click for details in iframe' >$softError</a><br>".
+        "<a href='$errPath' class='winError'  onclick='PRT.showAsWin(this);event.preventDefault();'     title='Click for details in popup'  onmouseover='PRT.hilite(\"$hash\");' onmouseout='PRT.lowlite(\"$hash\");'  >&#8689;</a>".
+      "</span>");
 
     $aspect = $this->width / $this->height;
     $width = $this->width;  $height=$this->height;    ////// TODO: is this required for proper interpolation ????
@@ -74,9 +78,13 @@ class Decorator {
 
     foreach ( $ar as $key => $val ) {
       // attribute  o-*  as in  o-proof,  o-definition  or similar  for open and in c-proof etc for closed collapsibles
-      if (str_starts_with ($key, "o-") ) { return $this->wrapCollapsible ( substr ($key,2), true );  }
-      if (str_starts_with ($key, "c-") ) { return $this->wrapCollapsible ( substr ($key,2), false );  }
-      if (strcmp ($key, "o") == 0)       { return $this->wrapCollapsible ( $ar[$key],       true );  }
+      if ( str_starts_with ($key, "o-") ) { 
+        if (array_key_exists( substr ($key,2), ATT2NAME)) {$name = ATT2NAME[ substr($key,2) ];} else { $name = ucfirst (substr ($key,2)); }
+        return $this->wrapCollapsible ( $name, true );   }
+      if (str_starts_with ($key, "c-") ) { 
+        if (array_key_exists( substr ($key,2), ATT2NAME)) {$name = ATT2NAME[ substr($key,2) ];} else {$name = ucfirst (substr ($key,2)); }
+        return $this->wrapCollapsible ( $name, false );  }
+      if (strcmp ($key, "o") == 0)       { return $this->wrapCollapsible ( $ar[$key],       true );   }
       if (strcmp ($key, "c") == 0)       { return $this->wrapCollapsible ( $ar[$key],       false );  }
     }
   }

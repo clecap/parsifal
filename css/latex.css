@@ -147,13 +147,17 @@ body.shift-down  .inline-edit-preview-img   {border:4px solid red;}
 .annoLayer {}
 
 
-/* defined in Decorator.php */
-.errorWrap {position:absolute;top:-10px; right:-20px; font-size:small;}
-a.hasError {color:red !important;}
+/* defined in Decorator.php. */
+.logWrap    {position:absolute;top:-10px; right:0px; font-size:14pt;}                   
+.logWrap  a {color:lightgrey !important;}
+
+.errorWrap  {position:absolute;top:-10px; right:0px;}        /* wrapper for error decoration */
+.miniError  {font-size:small; width:500px;display:inline-block; color:red !important;text-align:right;}               /* mini error message and link to iframe */
+.winError   {font-size:14pt; width:500px; display:inline-block;text-align:right; color:red !important;}                                         /* link to window */
 
 /* do not show error / log link in printable version */
 @media print {
-  .errorWrap {display:none !important;}
+  .errorWrap, .logWrap, .miniError {display:none !important;}
 }
 
 
