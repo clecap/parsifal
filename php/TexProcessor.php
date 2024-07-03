@@ -332,7 +332,9 @@ try {  // GLOBAL EXCEPTION PROTECTED AREA
   $style .= "display:none;";
   $style .= "\" ";
 
-  $titleInfo = "title=\"I am a title information\"";
+//  $titleInfo = "title=\"I am a title information\"";
+
+  $titleInfo = "";  // currently unused 
 
   $finalImgUrl3   = $wgServer.$wgScriptPath.CACHE_URL.$hash."_pc_pdflatex_final_3.png"; 
   $finalImgUrl    = $wgServer.$wgScriptPath.CACHE_URL.$hash."_pc_pdflatex_final.png"; 
