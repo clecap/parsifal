@@ -46,7 +46,7 @@ class Decorator {
   //                  null:  do not add an annotation layer at all
   public function wrap ( ?string $annotations = "", string $softError = "", string $errPath = "", string $titleInfo ="", string $hash="") {
     global $wgScriptPath;
-    $errorInjector = ( $softError === "" ? "<span class='logWrap'><a href='$errPath' onclick='PRT.showasWin(this);event.preventDefault();' onmouseover='PRT.hilite(\"$hash\");' onmouseout='PRT.lowlite(\"$hash\");'  title='Click for tex log in popup'>&#8689;</a></span>" : 
+    $errorInjector = ( $softError === "" ? "<span class='logWrap'><a href='$errPath' onclick='PRT.showAsWin(this);event.preventDefault();' onmouseover='PRT.hilite(\"$hash\");' onmouseout='PRT.lowlite(\"$hash\");'  title='Click for tex log in popup'>&#8689;</a></span>" : 
       "<span class='errorWrap'>".
         "<a href='$errPath' class='miniError' onclick='PRT.showAsIframe(this);event.preventDefault();'  title='Click for details in iframe' >$softError</a><br>".
         "<a href='$errPath' class='winError'  onclick='PRT.showAsWin(this);event.preventDefault();'     title='Click for details in popup'  onmouseover='PRT.hilite(\"$hash\");' onmouseout='PRT.lowlite(\"$hash\");'  >&#8689;</a>".

@@ -39,10 +39,12 @@
 window.removeMe =
  function removeMe() {
   var iframe = window.parent.document.getElementById('errorIframe');
-  if (iframe) {
-                iframe.parentNode.removeChild(iframe);
-            } 
-  else {window.close();}    
+
+  window.parent.document.querySelectorAll (".errorWrap").forEach (x => x.style.display="inline");
+  if (window.opener) window.opener.document.querySelectorAll (".errorWrap").forEach (x => x.style.display="inline");
+
+if (iframe) {iframe.parentNode.removeChild(iframe);} 
+  else {window.close();}
 }
 
 

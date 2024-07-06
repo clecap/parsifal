@@ -49,7 +49,7 @@ function errorParser (txt, name) {
     // console.info ("IN: " + ele);
     if (pastMarker) {
     if ( (idx = ele.indexOf ( ".tex:"   )) != -1 ) {              // found a file - line identification line
-      console.info ("FOUND a line identification line");
+    //  console.info ("FOUND a line identification line");
       idx2 = ele.lastIndexOf (":");
       obj = {};
       obj.txt = [ele];
@@ -81,10 +81,10 @@ function errorParser (txt, name) {
 
 function errorFormatter (arr) {
   var logContainer = document.getElementById ("logContainer");  // the container into which we fill in the info
-  console.log ("errorFormatter got: ", arr);
+  // console.log ("errorFormatter got: ", arr);
 
   arr.forEach ( (obj) => {
-    console.info ("Individual Error object ", obj);
+    // console.info ("Individual Error object ", obj);
 
     logContainer.appendChild ( document.createElement ("hr"));
     let objDiv = document.createElement("div");
@@ -97,7 +97,7 @@ function errorFormatter (arr) {
 
 
     obj.txt.forEach ( (chunk) => {
-      console.warn ("Text chunk ", chunk, chunk.length, typeof chunk);  
+     // console.warn ("Text chunk ", chunk, chunk.length, typeof chunk);  
       let chunkDiv = document.createElement ("div");
       chunkDiv.appendChild ( document.createTextNode (chunk));
       objDiv.appendChild (chunkDiv);

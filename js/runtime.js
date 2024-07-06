@@ -72,51 +72,23 @@ const init = (hash, wgServer, wgScriptPath, cache_url) => {
   imgs.forEach (elem => iniEle (elem));
 }
 
-// if Javascript is notified that an image is missing, we call an endpoint which purges the page from the cache and rebuilds the TeX structures
-// if the rebuild fails, we get notified via usual error notification mechanisms
-// however, we must purge the page only ONCE not for every missing images
+
 
 // TODO: currently this does not work exactly as needed
 
-let imageIsMissingCompleted = false; 
-
-const imageIsMissing = (e) => {
+const imageIsMissing = (e) => { return;
 
   console.log ("image missing at: ", e);
-
   var src = e.target.src;
   console.log ("image src was: ", src);
   window.setTimeout ( () => {e.target.src = src;}, 5);
-
   return;
 
-
-
-  let title = e.currentTarget.dataset.title;
-  let hash  = e.currentTarget.dataset.hash;
-  let url = "";
-
-  if (imageIsMissingCompleted) {return;}
-  imageIsMissingCompleted = true;
-  console.error (`Parsifal Runtime:imageIsMissing: Found missing image at title=${title} for hash=${hash} and url=${url}, will purge the Mediawiki parser cache and regenerate image` );
-  var xhr = new XMLHttpRequest();
-  xhr.open('POST', "/wiki-dir/api.php", true); /////////////////// PATH !!
-  var formData = new FormData();
-  formData.append("action", "purge");
-  formData.append("titles", title);
-  formData.append("format", "json");
-  xhr.setRequestHeader("Content-Disposition", "form-data");
-  xhr.send(formData);  
-  xhr.onload = (e) => {
-    console.error ("Parsifal Runtime:imageIsMissing: The purge request returned ", e.target.response);
-    console.error ("Parsifal Runtime:imageIsMissing: Will now reload ", e.target.response);
-    window.location.reload();
-  }
 };
 
 
 const showImage = (e) => {
-//  console.warn ("-------- Parsifal runtime: showing image:", e.target.currentSrc, "width=", e.target.width, e.target,  " viewportwidth=", window.visualViewport.width);
+  //console.warn ("-------- Parsifal runtime: showing image:", e.target.currentSrc, "width=", e.target.width, e.target,  " viewportwidth=", window.visualViewport.width, e);
   e.target.style.display = "inline-block";
 
 }
@@ -330,21 +302,21 @@ const broadcastPosition = (ele) => {
 
 
 
-const showAsIframe = (url) => {   console.log (" show " + url + " as iframe inside of the current window");
+const showAsIframe = (url) => {   console.log (" show " + url + " as iframe inside of the current window", url);
   let frame =  document.getElementById ("errorIframe");
   console.warn (frame);
   if (frame) {return;}  // already showing
   frame = document.createElement ("iframe");
   frame.src=url;
+  url.parentNode.style.display="none";
   frame.id="errorIframe";
   frame.style = "position:fixed; top:10px; left:10px; width:800px; height:800px; overflow:scroll;background-color:white;";
   document.body.appendChild (frame);
-  return false;
 };
 
 const showAsWin = (url) => {   console.log (" show " + url + " as iframe inside of the current window");
+  url.parentNode.style.display="none";
   const handle = window.open( url, "errorWindow", "left=1,top=1,width=800,height=800");
-  return false;
 };
 
 const hilite = (hash) => {

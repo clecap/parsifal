@@ -12,3 +12,14 @@ There are four hooks.
 4) afterContentHook: Hook after the content
 
 
+
+
+
+generateEndPreambleStuff: In the preamble but at the end (cannot be precompiled)
+
+generateBeforeContentStuff: 
+
+
+
+
+

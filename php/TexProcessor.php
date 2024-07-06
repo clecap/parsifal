@@ -6,12 +6,14 @@ require_once ("Decorator.php");
 
 class TeXProcessor {
 
-/** purges the parser cache of a page with given title */
+/** purges the parser cache of a page with given title */  // TODO: deprecated ??
+/*
 private static function purgeByTitle ($titleText) {
   $title   = Title::newFromText($titleText);
   $article = new Article($parentTitle);
   $article->mTitle->invalidateCache();
 }
+*/
 
 /** Generate Latex and Pdflatex precompiled versions of the file $name and place them into the respective format directories. */
 public static function precompile ($name) {
@@ -135,6 +137,7 @@ EOD;
 }
 
 
+
 private static function generateBeforeContentStuff ($ar, $tag) { 
   $stuff    = "";
   $variants = "";
@@ -169,200 +172,168 @@ private static function generateBeforeContentStuff ($ar, $tag) {
 
 
 
-// NON LEAN VARIANT
 public static function lazyRender ($in, $ar, $tag, $parser, $frame) {
   global $wgServer, $wgScriptPath, $wgOut; 
-  global $wgTopDante;
-  global $wgAllowVerbose; $VERBOSE = false && $wgAllowVerbose;
+  global $wgAllowVerbose;
+  $CACHE_PATH = CACHE_PATH;
+
+  $VERBOSE = true; // $VERBOSE = false && $wgAllowVerbose;
 
   $pipeMode=false;  // if true: operate this in pipe mode   if false: operate this in file system mode  // TODO
 
-  $startTime = microtime(true);  
-  if ($VERBOSE) {self::debugLog ("lazyRender called at $startTime \n");}
-  if ($VERBOSE) {self::debugLog ("Attributes: " . print_r ($ar, true)."\n");}
+  $startTime = microtime(true);
 
-  // we need to know the title of the page in order to do a proper purge of the page in case an image is not found but should be there 
-  $titleText = ""; 
-  $title = $parser->getTitle();
-  if ($title) {$titleText = $title->getText();}
-
-
-
-  $property = $parser->getOutput()->getPageProperty ("Parsifals");
-  if ( is_numeric ($property) ) {
-        $parser->getOutput()->setPageProperty ("Parsifals", $property + 1);  // initialize to a first value
-  }
-  else {
-     $parser->getOutput()->setPageProperty ("Parsifals", 1);  // initialize to a first value
-  }
-
-
-  $CACHE_PATH = CACHE_PATH;
-
-  $timestamp = date_format( new DateTime(), 'd-m-Y H:i:s'); // want a timestamp in the img tag on when the page was translated for debugging purposes
-  $hrTimestamp = hrtime(true);
-  if ($VERBOSE) {$startTime = microtime (true); self::debugLog ("lazyRender called at: $timestamp nanos=$hrTimestamp $hrTimestamp for pageTitle " . $parser->getTitle()."  Page starts with: ". trim(substr(trim($in), 0, 20)) . "\n");}
-
-  if (!is_object ($wgTopDante)) {throw new Exception ("It looks like you did not set variable \$wgTopDante. Please consult installation instructions"); }
-
-try {  // GLOBAL EXCEPTION PROTECTED AREA
-
-    if (property_exists ($wgTopDante, "hookInvokes") ) { $wgTopDante->hookInvokes++; } else { $wgTopDante->hookInvokes = 0; ;}
-    if ($VERBOSE) {self::debugLog ("----------------------------------------lazyRender sees hookInvokes=".$wgTopDante->hookInvokes."\n") ;}
-
-  self::ensureEnvironment ();
+  //if ($VERBOSE) {self::debugLog ("lazyRender called at $startTime \n);
+  //if ($VERBOSE) {self::debugLog ("lazyRender attributes: " . print_r ($ar, true)."\n");}
 
   $texSource=( $pipeMode ? "FILE" : null);  
   $hash       = self::generateTex ($in, $tag, "pc_pdflatex", $ar, $texSource, false);      // generate $hash_pc_pdflatex.tex and obtain hash of raw LaTeX source located in Mediawiki
 
-  // accumulate in the parser connected output object of that page an array with all the hash values used on this page
-  // the entire table of used hash values can then, in a different function, be used to garbage-collect the non-used hash values as stemming from preview actions
-  $pageProperty = $parser->getOutput()->getPageProperty( 'ParsifalHashsUsed' );
-  if ($pageProperty == null) {$usedHashs = array();}                               // if no value was found, initialize in empty array
-  else {
-    $usedHashs = unserialize ( $pageProperty );                                   // get current value of the page
-    if ( strcmp (gettype ($usedHashs), "array") != 0 ) {$usedHashs = array();}    // if no reasonable value was found, initialize in empty array()
-    array_push ($usedHashs, $hash);                                               // push current hash value
-    $parser->getOutput()->setPageProperty( 'ParsifalHashsUsed', serialize ($usedHashs));  // store all currently stored hashs again
-  }  
+  $cRet = apcu_fetch ( $hash, $cFlag );
+  if ($cFlag) {
+    $endTime = microtime (true); $totalDuration = $endTime - $startTime;  
+    self::debugLog ("lazyRender: cache HIT for $hash, returning after $totalDuration \n");
+    return $cRet;
+  } 
+  else { self::debugLog ("lazyRender: cache MISS for $hash \n"); }
 
   // set some paths
   $texPath        = $CACHE_PATH.$hash."_pc_pdflatex.tex"; 
-  $finalImgUrl    = $wgServer.$wgScriptPath.CACHE_URL.$hash."_pc_pdflatex_final.png"; 
   $annotationPath = $CACHE_PATH.$hash."_pc_pdflatex_final_3.html";                         // the local php file path under which we should find the annotations in form of a (partial) html file  // TODO: hardcoded resolution is bad
   $finalImgPath   = $CACHE_PATH.$hash."_pc_pdflatex_final_3.png";   // TODO: cave hardcoded resolution is bad
   $errorPath      = "$wgScriptPath/extensions/Parsifal/html/texLog.html?"."$wgServer$wgScriptPath".CACHE_URL.$hash."_pc_pdflatex";
+  $mrkFileName    = $CACHE_PATH . $hash. "_pc_pdflatex.mrk";
+  $lockFileName   = "/var/lock/parsifal/$hash";  // lock the hash, since multiple invocations may induce race conditions (we had that case)
+  // lock in /var/lock, since this is not on the mounted volume (where locks do not work) but natively in the container (where locks work)
 
-  $softError = "";
+  $lockStream = fopen ($lockFileName, 'c' );   // create the file, if we are not 
+  if ( !$lockStream ) { throw new Exception ("Could not open lock file $lockFileName ");}
 
+  if (flock ($lockStream, LOCK_EX ) ) {  // self::debugLog ("lazyRender obtained a lock on $lockFileName at " .microtime(true). "\n");
 
-  /** LATEX to PDF production step **/
-  if ($VERBOSE) {self::debugLog ("lazyRender will now Tex2PDF $hash... ") ;}
-  if ( !file_exists ($CACHE_PATH . $hash . "_pc_pdflatex.pdf" ) ) {    // if the PDF file does not exist, make it and pick up error status from function
-    if ($VERBOSE) {self::debugLog ( "did not find file " . $CACHE_PATH . $hash . "_pc_pdflatex.pdf, starting processor... " . $hash );}
-    $softError = ( $pipeMode ? self::Tex2PdfPiped ($texSource, $hash, "_pc_pdflatex") : self::Tex2Pdf ($hash, "_pc_pdflatex", "lazyrender") );  
-    MWDebug::log ( "Softerror Case 1 is: $softError \n" );
-  }
-  else {                                                             // PDF file exists, pick up the earlier softError status from the marker file
-    if ($VERBOSE) {self::debugLog ( "found file on disc\n" );}
-    $mrkFileName = $CACHE_PATH . $hash. "_pc_pdflatex.mrk";
-    $fileSize    = filesize ( $mrkFileName );
-    if ( $fileSize === false ) {
-      throw new ErrorException ("lazyRender: Could not find error marker file " . $CACHE_PATH . $hash. "_pc_pdflatex.mrk");  
-    }
-    else if ( $fileSize > 0 ) { $softError = file_get_contents ($mrkFileName);  MWDebug::log ( "Softerror Case 2 is: $softError \n" );
-      }
-    else /* fileSize == 0 */  { $softError = "";                                MWDebug::log ( "Error Marker file is empty \n" );  }
-  }
+    try {  // EXCEPTION PROTECTED AREA
+      $property = $parser->getOutput()->getPageProperty ("Parsifals");
+      $parser->getOutput()->setPageProperty ("Parsifals", ( is_numeric ($property) ? $property+1: 1 ));
 
-  // NOW we should have a PDF file - if not it could still be a transient error from latex which in this particular situation was unable to produce a pdf although it could run  TODO: do an error handling for this scenario !!
+      $timestamp = date_format( new DateTime(), 'd-m-Y H:i:s'); // want a timestamp in the img tag on when the page was translated for debugging purposes
+      self::ensureEnvironment ();
 
-  // obtain size
-  $width=200; $height=200;
-  //  self::getPdfSize ($hash, $width, $height );
-
-  if ( !file_exists ($finalImgPath) || !file_exists ($annotationPath) ) {
-    if ($VERBOSE) {self::debugLog (" one of the files detected missing, calling the processor...");}
-
-  // TODO: ALLOW to set some basic scale somewhere in or by or for the ParsifalTemplate !!!! itself - so we do nto need to add it in the (in every) tag.
-
-  $baseScale = 3;
-  if ( array_key_exists ("scale",$ar)) {  
-    $tagScale = floatval($ar["scale"]);
-      if ( is_float ($tagScale) ) { $baseScale = 15/$tagScale;   }
-  }
-
-  $scaler = self::SCALE(BASIC_SIZE, $baseScale);
-
-  $pdfscale = $scaler;
-  if ( array_key_exists ("pdfscale",$ar)) {  $pdfscale = floatval($ar["pdfscale"]); }
-
-  self::debugLog ("Pdf2PngHtmlMT for $hash starting\n");
-
-  self::Pdf2PngHtmlMT ($hash, $pdfscale, "_pc_pdflatex", "_pc_pdflatex_final_3", $duration );  // 15 
-  self::debugLog ("Pdf2PngHtmlMT for $hash completed\n");
-  }
-  else { if ($VERBOSE) {self::debugLog ("both files found on disc, no need to call processor\n");} }
-   
-  // We need a width and height in the img tag to assist the browser to a more smooth and flicker-less reflow.
-  // The width MUST be equal to the width of the image (or else the browser must rescale the image, which BLURS the image and takes TIME)
-
-// We need a width and height in the img tag to assist the browser to a more smooth and flicker-less reflow.
-  // The width MUST be equal to the width of the image (or else the browser must rescale the image, which BLURS the image and takes TIME)
-  if (file_exists ( $finalImgPath ) ) {
-     $hasError = "";
-     clearstatcache ( true, $finalImgPath );  // looks like htis is necessary to ensure getimagesize gets the correct answer all the time
-    $ims = @getimagesize ( $finalImgPath ); 
-    if ($ims) {$width = $ims[0]; $height = $ims[1];} else {
-      $imgFileSize = filesize ( $finalImgPath );
-      throw new ErrorException ("Looks like $finalImgPath is not yet ready. File size reports it as $imgFileSize ");}   } 
-  else {  
-      $width=200; $height=200; $hasError = "data-error='missing-image'";  // signal to JS runtime that we know the image is in error
-      // return "Currently we have no image for display. It is possible that the LaTeX source did not produce any output. Missing file is $finalImgPath"; 
-  }
-
-  $scaling = 25;
-
-  // onload:    delay showing the image until it is completely loaded (prevents user from seeing half of an image during the load process)
-  // onerror:   kickoff generation of image should it be missing (reason could be: file was (incorrectly) deleted on the server)
-  $naming = ( array_key_exists ("n", $ar) ? "data-name='".$ar["n"]."' " : "");             // prepare a data-name attribute for the image
-  $title = $parser->getTitle ();                                                           // get title of current page (also need this below !   // CAVE:  WILL  need different call,  getPage()   from 1.37 on !!!!!!!!!!!!!!!!!!!!
-
-/////////////// TODO: ??????????????? We must check / ensure that this name has not yet been used already on this page with this name - and similarly in the entire system !!!!!!!!!
-/// this should mirgate into DanteSnippets
-  if (array_key_exists ("n", $ar)) { // if tag has a name then produce a further copy of the page
-//    TeXProcessor::$makeFileStack[$title."/".$ar["n"]] = "<$tag>\n$in\n</$tag>"; 
-    MWDebug::log ( "Found a name : ".$ar['n']."\n" );
-   //$snip =  new Snippets ( ) ;  
-  }
  
-  // image tag style
-  $style = "style=\"";
 
-  $markingClass = "";
-  if ( array_key_exists ("number-of-instance", $ar) ) { $style .= "margin:20px;"; 
-    $markingClass = "instance_".$ar["number-of-instance"];
-  }
+      /** LATEX to PDF production step **/
+      //$timePDF = microtime ();
+      $softError = "";
+      if ($VERBOSE) {self::debugLog ("lazyRender LATEX2PDF phase for $hash... ") ;}
+      if ( !file_exists ($CACHE_PATH . $hash . "_pc_pdflatex.pdf" ) ) {    // PDF file does not exist: make PDF and pick up error status from function
+        if ($VERBOSE) {self::debugLog ( "did not find file " . $CACHE_PATH . $hash . "_pc_pdflatex.pdf, starting TeX2PDF processing for hash= " . $hash );}
+        $softError = ( $pipeMode ? self::Tex2PdfPiped ($texSource, $hash, "_pc_pdflatex") : self::Tex2Pdf ($hash, "_pc_pdflatex", "lazyrender") );
+        if ($VERBOSE) {self::debugLog ( "TeX2PDF processing for hash=$hash returned an error status of $softError \n" );}
+        if ( !file_exists ($CACHE_PATH . $hash . "_pc_pdflatex.pdf" ) ) {
+          if ($VERBOSE) {self::debugLog ( "After TeX2PDF processing for hash=$hash but cannot find a PDF file" );}
+          if ( strlen ($softError) == 0) { $softError = "Transient Latex error - could not produce PDF file";} // do nto overwrite existing latex error info with this
+          // TODO HOW do we return to the caller in this case ???
+        }
+      }
+      else {  // PDF file exists already: pick up error status from error marker file
+        if ($VERBOSE) {self::debugLog ( "lazyRender: found PDF file for $hash on disc, picking up old error status from marker file \n" ); }
+        $fileSize    = filesize ( $mrkFileName );
+        if ( $fileSize === false ) { throw new ErrorException ("lazyRender: Could not find error marker file " . $CACHE_PATH . $hash. "_pc_pdflatex.mrk"); }
+        else if ( $fileSize > 0 )  { $softError = file_get_contents ($mrkFileName); }
+        else /* fileSize == 0 */   { $softError = ""; }
+      }
+      //$timePDF = microtime () - $timePDF; self::debugLog ("lazyRender: LATEX2PDF phase took $timePDF [sec] \n");
 
-  if ( array_key_exists ("b", $ar) )  { $style .= "border:1px solid gold;";            }     // add a border
-  if ( array_key_exists ("br", $ar) ) { $style .= "border-radius:5px;";                }     // add a border radius
-  if ( array_key_exists ("bs", $ar) ) { $style .= "box-shadow: 10px 10px lightgrey;";  }     // add a box shadow
-  if ( array_key_exists ("style", $ar) )  { $style .= $ar["style"];            }             // add custom style
-  $style .= "width:100%;";
-  $style .= "display:none;";
-  $style .= "\" ";
+      /** PDF to PNG and HTML production step  **/
+      // We need a width and height in the img tag to assist the browser to a more smooth and flicker-less reflow.
+      // The width MUST be equal to the width of the image (or else the browser must rescale the image, which BLURS the image and takes TIME)
+      
+      $imgExists = file_exists ($finalImgPath);  $annoExists = file_exists ($annotationPath);
+      if ( !$imgExists || !$annoExists ) {  // FILES do not both exist
+        if ($VERBOSE) { self::debugLog ("lazyRender: missing ". ($imgExists ? " " : $finalImgPath ) . " " . ($annoExists ? " " : $annotationPath ). " calling the processor...\n"); }
 
-//  $titleInfo = "title=\"I am a title information\"";
+        $baseScale = 3;   // TODO: ALLOW to set some basic scale somewhere in or by or for the ParsifalTemplate !!!! itself - so we do nto need to add it in the (in every) tag.
 
-  $titleInfo = "";  // currently unused 
+       // attribute scale  
+       if ( array_key_exists ("scale",$ar)) {
+          $tagScale = floatval($ar["scale"]);
+            if ( is_float ($tagScale) ) { $baseScale = 15/$tagScale;   }
+        }
 
-  $finalImgUrl3   = $wgServer.$wgScriptPath.CACHE_URL.$hash."_pc_pdflatex_final_3.png"; 
-  $finalImgUrl    = $wgServer.$wgScriptPath.CACHE_URL.$hash."_pc_pdflatex_final.png"; 
+        $pdfscale = self::SCALE(BASIC_SIZE, $baseScale);
+        if ( array_key_exists ("pdfscale",$ar)) { $pdfscale = floatval($ar["pdfscale"]); }
 
-  $cache_url = CACHE_URL;
+        if ($VERBOSE) {self::debugLog ("Pdf2PngHtmlMT for $hash starting\n");}
+        $timePNG = microtime (true);
+        self::Pdf2PngHtmlMT ($hash, $pdfscale, "_pc_pdflatex", "_pc_pdflatex_final_3", $width, $height, $duration );  // 15 
+        $timePNG = microtime (true) - $timePNG; 
+        if ($VERBOSE) {self::debugLog ("Pdf2PngHtmlMT for $hash completed in $timePNG \n"); }                            // what about an error status here ???????? TODO
+      }
+      else {         // FILES DO both exist, but we have to pick up width and heght of the image
+        if ($VERBOSE) {self::debugLog ("lazyRender: both files (png and annotations) found on disc, no need to call processor\n");} 
+        if (file_exists ( $finalImgPath ) ) {
+           $hasError = "";
+           clearstatcache ( true, $finalImgPath );  // looks like htis is necessary to ensure getimagesize gets the correct answer all the time
+          $ims = @getimagesize ( $finalImgPath ); 
+          if ($ims) {$width = $ims[0]; $height = $ims[1];} else {
+            $imgFileSize = filesize ( $finalImgPath );
+            throw new ErrorException ("Looks like $finalImgPath is not yet ready. File size reports it as $imgFileSize ");}   } 
+        else {  
+            $width=200; $height=200; $hasError = "data-error='missing-image'";  // signal to JS runtime that we know the image is in error
+            // return "Currently we have no image for display. It is possible that the LaTeX source did not produce any output. Missing file is $finalImgPath";  // TODO
+        }
+        self::debugLog ("lazyRender: size found $width $height");
+      }
 
-  $dataTitle = "data-title=\"".$titleText."\"";   // TODO: could be susceptible to html injection - fix
-  $dataHash  = "data-hash=\"".$hash."\"";
+      /** BUILD IMG TAG **/
+      $naming = ( array_key_exists ("n", $ar) ? "data-name='".$ar["n"]."' " : "");             // prepare a data-name attribute for the image
+      $title = $parser->getTitle ();      // TODO: really needed ???? NO !         // get title of current page (also need this below !   // CAVE:  WILL  need different call,  getPage()   from 1.37 on !!!!!!!!!!!!!!!!!!!!
 
-  $hasError="";  // what for ?????
+      // image tag style
+      $style = "style=\"";
+      $markingClass = "";
+      if ( array_key_exists ("number-of-instance", $ar) ) { $style .= "margin:20px;";   // TODO: usage !!
+        $markingClass = "instance_".$ar["number-of-instance"];
+      }
 
-  $imgTag      = "<img $naming id=\"$hash\" $dataTitle $dataHash $hasError  data-timestamp='$timestamp'  $style  class='texImage' alt='Image is being processed, please wait, will fault it in automatically as soon as it is ready'></img>";
-  $handlerTag  = "<script>PRT.srcDebug(\"$hash\"); PRT.init(\"$hash\", \"$wgServer\", \"$wgScriptPath\", \"$cache_url\"  ); </script>"; 
+      if ( array_key_exists ("b", $ar) )  { $style .= "border:1px solid gold;";            }     // add a border
+      if ( array_key_exists ("br", $ar) ) { $style .= "border-radius:5px;";                }     // add a border radius
+      if ( array_key_exists ("bs", $ar) ) { $style .= "box-shadow: 10px 10px lightgrey;";  }     // add a box shadow
+      if ( array_key_exists ("style", $ar) )  { $style .= $ar["style"];            }             // add custom style for the img tag
 
-  $imgResult = $imgTag . $handlerTag;  // the image tag which will be used
+      $style .= "width:100%; vertical-align: baseline; display:none;\"";  // vertical-align:baseline: the page around the image flickers a bit when parsifal runtime makes them visible with showImage - this prevents it
 
-  $annotations  = (file_exists ($annotationPath) ? file_get_contents ($annotationPath) :  null );  // get annotations, if no file present, use null
+      $titleInfo = "";  // currently unused 
 
-  $core = new Decorator ( $imgResult, $width, $height, $markingClass);
-  $core->wrap ( $annotations, $softError, $errorPath, $titleInfo, $hash);      // wrap with annotations and error information   
-  $core->collapsible ( $ar );                                           // decorate with collapsibles
-  $ret = $core->getHTML ();                                             // generate HTML which includes the decorations
+      $cache_url = CACHE_URL; // TODO: what for ??
 
-  if (true || $VERBOSE) {$endTime = microtime (true); $totalDuration = $endTime - $startTime;  self::debugLog ("lazyRender: COMPLETED. TOTAL RUNTIME OF lazyRender =$totalDuration ------------------------------------------------- \n\n\n");}
+      $dataHash  = "data-hash=\"".$hash."\"";
+      $hasError="";  // what for ????? TODO
 
-} catch (\Exception $e) { $msg = $ret = $e->getMessage();  $ret = "<b>$msg</b><br>".$e->getTraceAsString();}  // in case of exception, build a suitable error element 
+      $imgTag      = "<img $naming id=\"$hash\" $dataHash $hasError  data-timestamp='$timestamp'  $style  class='texImage' alt='Image is being processed, please wait, will fault it in automatically as soon as it is ready'></img>";
+      $handlerTag  = "<script>PRT.srcDebug(\"$hash\"); PRT.init(\"$hash\", \"$wgServer\", \"$wgScriptPath\", \"$cache_url\"  ); </script>"; 
 
-  return $ret;                                            // for THIS (img) the calculated width and height from above from PNG are correct
+      $imgResult    = $imgTag . $handlerTag;                                                            // the image tag which will be used
+
+      $annotations  = (file_exists ($annotationPath) ? file_get_contents ($annotationPath) :  null );   // get annotations, if no file present, use null
+
+      /** ADD decorations */
+      $core = new Decorator ( $imgResult, $width, $height, $markingClass);
+      $core->wrap ( $annotations, $softError, $errorPath, $titleInfo, $hash);      // wrap with annotations and error information   
+      $core->collapsible ( $ar );                                                  // decorate with collapsibles
+      $ret = $core->getHTML ();                                                    // generate HTML which includes the decorations
+
+    } // try
+    catch (\Exception $e) { $msg = $ret = $e->getMessage();  $ret = "<b>$msg</b><br>".$e->getTraceAsString();}  // in case of exception, build a suitable error element 
+    catch ( Throwable $e) { self::debugLog ("lazyRenderer: Error: $e \n");  throw $e; }  // TODO ???
+    finally               { fclose ($lockStream); }  // self::debugLog ("lazyrender returned a lock for $hash at ".microtime(true) . " \n");
+
+    apcu_add ($hash, $ret, 1000);  // cache the result we just generated so we have a faster access to the html generated and do not have to regenerate this from the files
+  } // end if (flock) 
+  else { self::debugLog ("lazyRenderer: Could not obtain lock for $hash \n"); }  ///// LATER maybe TODO: clear remove lock file 
+
+  if (true || $VERBOSE) {$endTime = microtime (true); $totalDuration = $endTime - $startTime;  self::debugLog ("lazyRender for $hash completed in $totalDuration [sec] \n\n");}
+
+  return $ret;
 }
 
 
@@ -525,6 +496,9 @@ public static function ensureCacheDirectory () {
 }
 
 
+/*
+
+DEPRECATED: we do the previews all via DantePresentation and the general preview contained there.
 
 // called from endpoints/tex-preview.php  // TODO: IS THIS STILL IN USE or can we deprecate this ????
 // TODO: if we still need it: NOTE: the array values are actually not provided to generateTex below !!!!!!!
@@ -542,9 +516,6 @@ public static function texPreviewEndpoint () {
   $tag                  = $_SERVER['HTTP_X_PARSIFAL_TAG'];
   $paraText             = $_SERVER['HTTP_X_PARSIFAL_PARA'];   
   $availablePixelWidth  = $_SERVER['HTTP_X_PARSIFAL_AVAILABLE_PIXEL_WIDTH'];     if (! isset ($availablePixelWidth)) { $availablePixelWidth = 600; }
- 
-// $widthLatexCm         =  TAG2WIDTHinCM[$tag];                                  if (! isset ($widthLatexCm))        { $widthLatexCm = 15; }  
-// TAG2WIDTH has been deprecated  
 
   if ($VERBOSE) {self::debugLog ("texPreviewEndpoint: sees tag: " . $tag . " widthLatexCm: ". $widthLatexCm . "  availablePixelWidth: ". $availablePixelWidth . " \n");}
   
@@ -559,7 +530,7 @@ public static function texPreviewEndpoint () {
         
     $name =  $CACHE_PATH . $hash."_pc_pdflatex.png";
     $scale = self::SCALE($availablePixelWidth, $widthLatexCm); 
-    self::Pdf2PngHtmlMT ($hash, $scale, "_pc_pdflatex", "_pc_pdflatex", $duration );            // png must be redone since scale depends on width of preview area
+    self::Pdf2PngHtmlMT ($hash, $scale, "_pc_pdflatex", "_pc_pdflatex", $width, $height, $duration );            // png must be redone since scale depends on width of preview area
      
 //// TODO: currently it looks like we do not send the annotations and html portion for the preview
 //     this might be ok but why do we then compute them??
@@ -607,6 +578,7 @@ public static function texPreviewEndpoint () {
   if ($VERBOSE) {self::debugLog ("texPreviewEndpoint: returns from call for " . $tag . " widthLatexCm: ". $widthLatexCm . "  availablePixelWidth: ". $availablePixelWidth . " \n");}
 }
 
+*/
 
 
 // return exception and error information; use as error handler in all client render methods; provides text, recipient decides on wrapping html etc.
@@ -692,7 +664,6 @@ private static function modifyTex ( string $rawContent, string $tag, string $mod
   
 //  self::debugLog ( "\n\n New contents. " . $newContent . " \n------------------\n\n");
 
-
   return $newContent;
 
 }
@@ -723,6 +694,11 @@ private static function generateTex ( string $rawContent, string $tag, string $m
   $stringAr = print_r ($ar, true);                        // go from php array to a full string representation
   $hash     = md5 ($tag.$stringAr.$rawContent);           // derive a unique file name - need dependency on tag, content and attributes as all of this has impact on looks.
 
+
+// TODO: CAVE: we should not do the format reconstruction here in this place. It should be part of a startup process of the entire call
+//       because we could otherwise get race conditions on multiple runs !
+
+
   switch ($mode) {
     case "pc_latex":           // we use a precompilation made for the latex processor     
       $fmt="$LATEX_FORMAT_PATH$tag";     
@@ -739,10 +715,11 @@ private static function generateTex ( string $rawContent, string $tag, string $m
       $fmt="$PDFLATEX_FORMAT_PATH$tag";  $resultFile = "$CACHE_PATH{$hash}_$mode.tex";  
       if (!file_exists ("$fmt.fmt")) { Parsifal::reconstructFormat ("ParsifalTemplate/$tag");}
       ASSERT_FILE ("$fmt.fmt");    
-      $endPreambleStuff   = self::generateEndPreambleStuff ($ar, $tag);
-      $beforeContentStuff = self::generateBeforeContentStuff ($ar, $tag);
-      $template = "\\documentclass{standalone}". self::generateBeforeContentStuff ($ar, $tag);
-//    $template =  ($fc ? "%&$fmt\n" : "").$endPreambleStuff.$beforeContentStuff;   
+      $endPreambleStuff   = "%%% generateEndPreambleStuff\n " . self::generateEndPreambleStuff ($ar, $tag);
+      $beforeContentStuff = "%%% generateBeforecontentStuff\n " . self::generateBeforeContentStuff ($ar, $tag);
+//      $template = "\\documentclass{standalone}". self::generateBeforeContentStuff ($ar, $tag);
+//      $template =  ($fc ? "%&$fmt\n" : "%%%NOSO%%%").$endPreambleStuff.$beforeContentStuff;   
+      $template =   "%&$fmt\n" .$endPreambleStuff.$beforeContentStuff;   
       break;
 
     case "": 
@@ -778,22 +755,6 @@ private static function generateTex ( string $rawContent, string $tag, string $m
 #endregion
 
 
-/** GENERATE PNG from DVI via DVIPNG tool
- *  assume there is a $hash.dvi file, generate a $hash$final.png file from it using the dvipng driver
- *    $hash    
- *    $dpi     dpi value to be used
- *    $gamma   gamma value to be used
- *    $final   part of the result file name, use to distinguish different runs with different parameters etc.
- */
-private static function Dvi2Png ($hash, $dpi, $gamma=1.5, $inFinal="", $outFinal="") {
-  $VERBOSE = true;  $CACHE_PATH = CACHE_PATH;
-  ASSERT_FILE ("$CACHE_PATH$hash$inFinal.dvi");
-  $cmd = DVIPNG_BINARY . " -T tight -p=1 -l=1 -D $dpi -gamma $gamma -o $CACHE_PATH$hash$outFinal.png  $CACHE_PATH$hash$inFinal.dvi ";    
-  if ($VERBOSE) {$startTime = microtime(true);  self::debugLog ("Dvi2Png started for $hash, command is: " . $cmd . "\n");}
-  // $output = null;  $retVal = null;  // do not need error messaging here
-  exec ( $cmd );  
-  if ($VERBOSE) {$endTime = microtime (true); $duration = $endTime - $startTime; self::debugLog ("  completed Dvi2Png. DURATION: " . $duration . "\n"); }   
-}
 
 /** GENERATE PNG from PDF via mutool. Transforms $hash.pdf into $hash$final.png
  */
@@ -808,35 +769,38 @@ private static function Pdf2PngMT ($hash, $dpi, $inFinal, $outFinal) {
 }
 
 
+/** GENERATE PNG from PDF. Transforms $hash$inFinal.pdf into $hash$inFinal.png */
+private static function Pdf2PngHtmlMT ($hash, $scale, $inFinal, $outFinal, &$width, &$height, &$duration = null) {
+  $VERBOSE = true; 
+  $JS_PATH = JS_PATH;  $CACHE_PATH = CACHE_PATH;  $PY_PATH = PY_PATH;
 
+  $cmd = "$PY_PATH/make.py $scale $CACHE_PATH$hash$inFinal $CACHE_PATH$hash$outFinal ";
+  if ($VERBOSE)  { self::debugLog ("\n TeXProcessor::Pdf2PngHtmlMT $hash starting: \n"); }
+  $retVal = TeXProcessor::executor ($cmd, $output, $error, false, $duration);
 
-private static function getPdfSize  ($hash, &$width, &$height) {
-  $CACHE_PATH = CACHE_PATH;  $PY_PATH = PY_PATH;
-  $cmd = "$PY_PATH/get-size.py {$CACHE_PATH}{$hash}_pc_pdflatex"; 
-
-  $exists = (file_exists ("{$CACHE_PATH}{$hash}_pc_pdflatex.pdf") ? "EXISTS" : "MISSING");
-  $size = filesize ( "{$CACHE_PATH}{$hash}_pc_pdflatex.pdf");
-
-  $retval = 0;
-  $last =  exec($cmd, $output, $etvarl);
-  $output = implode("\n", $output);
-//  $res = system ($cmd, $retval);
+  $values = explode(' ', $output);
   list($width, $height) = sscanf($output, "%f %f");
-  self::debugLog ("getPdfSize reported: $width x $height at file size $size with file $exists\n");
-  return;
+
+  if ($VERBOSE)  { 
+    self::debugLog ("\n\nPdf2PngHtmlMT: pymupdf output for $hash is:\n".$output. "\n"); 
+    self::debugLog (    "Pdf2PngHtmlMT: pymupdf return for $hash is:\n".$retVal. "\n"); 
+    self::debugLog (    "Pdf2PngHtmlMT: pymupdf error  for $hash is:\n".$error.  "\n\n");
+  }
+  return $retVal;
 }
 
 
 
 
-/** GENERATE PNG from PDF via mutool. Transforms $hash$inFinal.pdf into $hash$inFinal.png */
-private static function Pdf2PngHtmlMT ($hash, $scale, $inFinal, $outFinal, &$duration = null) {
+
+/** GENERATE PNG from PDF. Transforms $hash$inFinal.pdf into $hash$inFinal.png */
+/*
+private static function Pdf2PngHtmlMT_MUT ($hash, $scale, $inFinal, $outFinal, &$duration = null) {
   $VERBOSE = true; 
   $JS_PATH = JS_PATH;  $CACHE_PATH = CACHE_PATH;  $PY_PATH = PY_PATH;
 
-//  $cmd = MUTOOL. " run  $JS_PATH/my-device.js $scale $CACHE_PATH$hash$inFinal $CACHE_PATH$hash$outFinal ";      // COMMAND:   /usr/bin/mutool  run 
+  $cmd = MUTOOL. " run  $JS_PATH/my-device.js $scale $CACHE_PATH$hash$inFinal $CACHE_PATH$hash$outFinal ";      // COMMAND:   /usr/bin/mutool  run 
 
-  $cmd = "$PY_PATH/make.py $scale $CACHE_PATH$hash$inFinal $CACHE_PATH$hash$outFinal "; 
  if ($VERBOSE)  { self::debugLog ("\n TeXProcessor:: executor $hash starting: \n"); }
   $retVal = TeXProcessor::executor ($cmd, $output, $error, false, $duration);
  if ($VERBOSE)  { self::debugLog ("\n TeXProcessor:: executor $hash finished: \n"); }
@@ -845,6 +809,9 @@ private static function Pdf2PngHtmlMT ($hash, $scale, $inFinal, $outFinal, &$dur
   //if ($VERBOSE)  { self::debugLog ("\n TeXProcessor:: mutool run output $hash shellexecutor: \n".$output); }
   // TODO: better error handling
 }
+
+*/
+
 
 
 
@@ -1039,6 +1006,8 @@ private static function Tex2Pdf ($hash, $inFinal, $note) {
   $VERBOSE = false;  
   $CACHE_PATH = CACHE_PATH;
   $texFileName = "$CACHE_PATH$hash$inFinal.tex";
+  $mrkFileName = "$CACHE_PATH$hash$inFinal.mrk";
+
   ASSERT_FILE ($texFileName); 
 
   $cmd = "pdflatex  --shell-escape --interaction=nonstopmode  -file-line-error-style -output-directory=$CACHE_PATH $texFileName"; 
@@ -1072,9 +1041,10 @@ private static function Tex2Pdf ($hash, $inFinal, $note) {
   }
   else                     { $ret=" Unknown errorcode received from Tex driver. Value is ".$retval; }
 
-  // NOW we have in $ret the most reasonable error condition possible
-  file_put_contents ( $CACHE_PATH . $hash. "$inFinal.mrk", $ret );       // write ERROR into .mrk file if there is a soft error to know about this later when we only access file system
+  file_put_contents ( $mrkFileName, $ret );       // write ERROR into .mrk file if there is a soft error to know about this later when we only access file system
+  
   if ($VERBOSE) {self::debugLog ("Tex2Pdf: Error: $ret \n");}
+
   return $ret;
 }
 
