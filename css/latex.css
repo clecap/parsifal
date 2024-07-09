@@ -5,6 +5,7 @@ h6 .mw-headline {display:none;}
 h6 .mw-editsection {margin-left:500px !important; }
 
 
+
 /* texImage class */
 .texImage{height:auto;}  /* was width 800px as well */
 
@@ -37,6 +38,10 @@ html #variantShow a::after {content: ' OFF';}
    this needs parsifalContainer -6px to the left and the width of the heading -8 less than parsifal
  */
 .parsifalContainer {position:relative; left:0px;}
+
+
+script + p { line-height:0.1;}
+
 
 /* common styling of headings */
 html .vector-body h1, html .vector-body h2, html .vector-body h3, html .vector-body h4, html .vector-body h5, html .vector-body h6 {
@@ -157,9 +162,6 @@ body.shift-down  .inline-edit-preview-img   {border:4px solid red;}
 
 
 
-
-
-
 /* ANNOTATION-LAYER: for the anchors  */
 .pdf-external-anchor        {border:2px solid gold; border-radius:5px; opacity:0.05; background-color: blue; box-sizing:border-box; }
 .pdf-external-anchor:hover  {background-color: yellow;  }
@@ -198,6 +200,6 @@ body.shift-down  .inline-edit-preview-img   {border:4px solid red;}
 .collapseResult       {position:relative; top:15px;  padding:3pt 0pt 12pt 0pt;}
 div.collapseButton    {position:relative; top:15px;}
 
-
+div.collapseButton > a {text-decoration:none;}
 
 

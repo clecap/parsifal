@@ -16,9 +16,10 @@
 // defines a function which is used by <script> tags injected in TexProcessor for rendering collapsibles
 // called when user clicks on a collapsing button
 window.toggleNext = function toggleNext (e) { 
-  console.log ("parsifal: toggleNext");
-  const button = e.target;
-  const ele    = e.target.nextSibling;   
+  console.log ("parsifal: toggleNext", e);
+  if (e.target.tagName == "A") {button = e.target.parentNode;} else {button = e.target;}
+
+  const ele    = button.nextSibling;   
   $(ele).slideToggle(300);                               // slide open  // TODO: put to more prominent and thus better visible and adjustable place 
 
 // trying to get it done without jquery since we do not have that loaded now !
@@ -38,7 +39,6 @@ window.toggleNext = function toggleNext (e) {
 }
 
 
-
 window.toggleImg = function toggleImg (e) { 
   const ele = e.currentTarget; 
   const button = e.currentTarget.previousSibling;
@@ -46,6 +46,15 @@ window.toggleImg = function toggleImg (e) {
   $(ele).slideToggle(150);
   button.classList.toggle ("collapseButtonToggled");
 }
+
+
+// allows a collapsible to be opened with right-click in seperate window etc.
+window.collapseAnchor = function collapseAnchor (e) {
+  if (e.button!=2) { e.preventDefault();}
+}
+
+
+
 // #endregion
 
 
@@ -74,7 +83,7 @@ const init = (hash, wgServer, wgScriptPath, cache_url) => {
 
 
 
-// TODO: currently this does not work exactly as needed
+// TODO: currently this does not work exactly as needed - but it also is not needed 
 
 const imageIsMissing = (e) => { return;
 
@@ -89,8 +98,8 @@ const imageIsMissing = (e) => { return;
 
 const showImage = (e) => {
   //console.warn ("-------- Parsifal runtime: showing image:", e.target.currentSrc, "width=", e.target.width, e.target,  " viewportwidth=", window.visualViewport.width, e);
-  e.target.style.display = "inline-block";
-
+//  e.target.style.display = "inline-block";
+  e.target.style.display = "block"; // CAVE: with inline-block the images sometimes move a little bit after reload, with block it is a more stable layout
 }
 
 
@@ -203,7 +212,6 @@ const renderPDF = async ( url, hash ) => {
 
 
 
-
 const jsRender = (hash, width, height, scale, titelInfo, wgServer, wgScriptPath, CACHE_URL) => {
   var basis  = wgServer +  wgScriptPath + "/extensions/Parsifal/html/pdfIframe.html";    // path to the html page generating canvas 
   var url    = wgServer +  wgScriptPath + CACHE_URL + hash + "_pc_pdflatex.pdf";
@@ -216,7 +224,6 @@ const jsRender = (hash, width, height, scale, titelInfo, wgServer, wgScriptPath,
 //  $style = "max-width:100%;" . "width:".$width."px; height:".$height."px; border:1px solid green;";
 
   width += 172;  // 62  // TODO: WHAT IS THIS ??
-
   var style = "max-width:100%;" + "width:" + width + "px; height:" +  height + "; border:1px solid red; overflow:hidden; ";
 
 //  $style = "max-width:100%; width:100%; border:1px solid green;";
@@ -302,9 +309,9 @@ const broadcastPosition = (ele) => {
 
 
 
-const showAsIframe = (url) => {   console.log (" show " + url + " as iframe inside of the current window", url);
+const showAsIframe = (url) => {   // console.log (" show " + url + " as iframe inside of the current window", url);
   let frame =  document.getElementById ("errorIframe");
-  console.warn (frame);
+  // console.warn (frame);
   if (frame) {return;}  // already showing
   frame = document.createElement ("iframe");
   frame.src=url;
@@ -314,23 +321,16 @@ const showAsIframe = (url) => {   console.log (" show " + url + " as iframe insi
   document.body.appendChild (frame);
 };
 
-const showAsWin = (url) => {   console.log (" show " + url + " as iframe inside of the current window");
+const showAsWin = (url) => { //  console.log (" show " + url + " as iframe inside of the current window");
   url.parentNode.style.display="none";
   const handle = window.open( url, "errorWindow", "left=1,top=1,width=800,height=800");
 };
 
-const hilite = (hash) => {
-  let ele = document.getElementById (hash);
-  ele.style.outline = "1px dotted lightgrey";
 
-};
+const hilite = (hash) => { document.getElementById (hash).style.outline = "1px dotted lightgrey";};
 
 
-const lowlite = (hash) => {
-  let ele = document.getElementById (hash);
-  ele.style.outline = "0px solid red";
-
-};
+const lowlite = (hash) => { document.getElementById (hash); ele.style.outline = "0px solid red"; };
 
 
 return ( {imageIsMissing, renderPDF, jsRender, showImage, srcDebug, init, 

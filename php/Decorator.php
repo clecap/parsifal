@@ -103,9 +103,8 @@ class Decorator {
     $styleBtn       = (array_key_exists ($label, ATT2STYLE_SPEC) ? ATT2STYLE_SPEC[$label] : ATT_DEFAULT_STYLE_SPEC ) . "display:inline-block; position:relative;"; 
     if ( $label === null || strlen (trim($label)) == 0) {$labelBtn = "&nbsp;";}
 
-    $errorInject = ($errorMarker ? "<span style='border:3px solid red; border-radius:3px;position:absolute;top:14px;right:-3px;' title='There ia s LaTeX error in this collapsible element'></span>" : "" );  // TODO: should probably also allow a peek into the error here !!!
-
-    $this->content  =  "<div onclick='toggleNext(event);' title='Click to toggle visibility; with shift for multiple selection' class='collapseButton' style='$styleBtn'>$label$errorInject</div>".
+   
+    $this->content  =  "<div onclick='toggleNext(event);' title='Click to toggle visibility; with shift for multiple selection' class='collapseButton' style='$styleBtn'><a href='' onclick='collapseAnchor(event);'>$label</a></div>".
                       "<div onclick='toggleImg(event);' style='$styleIni' class='collapseResult'>".$this->content."</div>";
   return $this;
   }

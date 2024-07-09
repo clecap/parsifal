@@ -138,6 +138,10 @@ EOD;
 
 
 
+
+/* generate stuff to be placed after the preamble (ie. this starts with begin{document})
+ * and which prepares the template substitution process
+ */
 private static function generateBeforeContentStuff ($ar, $tag) { 
   $stuff    = "";
   $variants = "";
@@ -154,15 +158,15 @@ private static function generateBeforeContentStuff ($ar, $tag) {
   $config = "\\standaloneconfig{margin=".$margin."}"; // need to override the standalone documentclass option of the template
 
   // implement variant related properties
-  if ( array_key_exists ( "number-of-instance", $ar ) ) { 
-    $variants = "\\gdef\\numberOfInstance{" . $ar["number-of-instance"] . "}";
-  }
+//  if ( array_key_exists ( "number-of-instance", $ar ) ) { 
+//    $variants = "\\gdef\\numberOfInstance{" . $ar["number-of-instance"] . "}";
+//  }
 
   # CAVE: confusion between tex { } and php { } should be avoided !
   // minipage is used to hold the page width stable. without it we also get some indentation artifacts with enumitem.
 
   switch ($tag) {
-    case "amsmath":   $stuff = $config."\\begin{document}"."\\begin{minipage}[]{".$size."}\\relax ".MAGIC_LINE."\\end{minipage}\\end{document}"; break;
+    case "amsmath":   $stuff = $config."\\begin{document}"."\\begin{minipage}[]{".$size."}\\myInitialize\\relax ".MAGIC_LINE."\\end{minipage}\\end{document}"; break;
     case "tex":       $stuff = MAGIC_LINE; break;
     case "beamer":    $stuff = "\\begin{document} ".MAGIC_LINE."\\end{document}"; break;
   }
