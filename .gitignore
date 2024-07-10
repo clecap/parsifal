@@ -30,16 +30,16 @@ log/errors
 LOGFILE
 ERRORLOG
 
-# do not git upload format files (but DO upload the README file in here in order to get the directory properly stored in the repo)
+# do not git upload precompiled format files, since they depend on the specific tex version
+# but DO upload the README file as well as the tex file
 formats_latex/*.fmt
 formats_latex/*.fls
 formats_latex/*.log
-formats_latex/*.tex
-
 formats_pdflatex/*.fmt
 formats_pdflatex/*.fls
 formats_pdflatex/*.log
-formats_pdflatex/*.tex
+
+
 local/build/*
 
 # no stuff which is only for my eyes

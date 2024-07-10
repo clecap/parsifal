@@ -130,10 +130,11 @@ EOD;
 
 //  $urlStuff = "\\newcommand{\dref}[1]{ \\StrSubstitute{#1}{ }{_}[\\temp]\\href{".   $wgServer.$wgScriptPath . "/index.php?title="."\\temp}{#1}}";
 
- $urlStuff = "\\newcommand{\dref}[1]{ \\StrSubstitute{#1}{ }{_}[\\temp]\\href{".   $wgServer.$wgScriptPath . "/index.php/"."\\temp}{#1}}";
+ $urlStuff = "\\newcommand{\dref}[2]{ \\StrSubstitute{#1}{ }{_}[\\temp]\\href{".   $wgServer.$wgScriptPath . "/index.php/"."\\temp}{#2}}";
+$urlStuff2 = "\\newcommand{\durl}[1]{ \\StrSubstitute{#1}{ }{_}[\\temp]\\href{".   $wgServer.$wgScriptPath . "/index.php/"."\\temp}{#1}}";
 
 
-  return $stuff . $urlStuff. $optional . $addPreamble;
+  return $stuff . $urlStuff. $urlStuff2 . $optional . $addPreamble;
 }
 
 
@@ -158,9 +159,11 @@ private static function generateBeforeContentStuff ($ar, $tag) {
   $config = "\\standaloneconfig{margin=".$margin."}"; // need to override the standalone documentclass option of the template
 
   // implement variant related properties
-//  if ( array_key_exists ( "number-of-instance", $ar ) ) { 
-//    $variants = "\\gdef\\numberOfInstance{" . $ar["number-of-instance"] . "}";
-//  }
+  if ( array_key_exists ( "number-of-instance", $ar ) ) { 
+    $variants = "\\gdef\\numberOfInstance{" . $ar["number-of-instance"] . "}";
+  } else { 
+    $variants = "\\gdef\\numberOfInstance{0}";
+  }
 
   # CAVE: confusion between tex { } and php { } should be avoided !
   // minipage is used to hold the page width stable. without it we also get some indentation artifacts with enumitem.

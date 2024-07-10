@@ -11,6 +11,7 @@
 
 <b>Parsifal</b> is an extension for MediaWiki for rendering mathematical text fragments using LaTeX. It lives on https://github.com/clecap/Parsifal
 
+It currently is used as part of clecap/dante-wiki and probably will not work without it. Main development line is dante-wiki.
 
 <details>
 <summary><b>Unique Features</b> of Parsifal</summary>

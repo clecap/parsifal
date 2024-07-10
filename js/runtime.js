@@ -238,6 +238,8 @@ const jsRender = (hash, width, height, scale, titelInfo, wgServer, wgScriptPath,
 }
 
 
+
+
 const toggleLimitSize = () => {
   let sizeLimit = window.localStorage.getItem ("Parsifal-size-limit") === "true";  
   limitSize ( !sizeLimit);
@@ -256,6 +258,24 @@ const implementLimitedSize = () => {
 
 
 
+
+const togglePreview = () => {
+  let previewFlag = window.localStorage.getItem ("Dante-preview-flag") === "true";  
+  setPreviewSetting ( !previewFlag);
+};
+
+const setPreviewSetting = (flag) => {
+  window.localStorage.setItem ("Dante-preview-flag", (flag ? "true" : "false"));
+  implementPreviewSetting ();
+};
+
+const implementPreviewSetting = () => {
+  let previewFlag = window.localStorage.getItem ("Dante-preview-flag") === "true";  
+  if (previewFlag) { document.documentElement.classList.add     ("previewFlag"); }
+  else             { document.documentElement.classList.remove  ("previewFlag");}
+};
+
+
 const toggleVariants = () => {
   let showingVariants= window.localStorage.getItem ("Parsifal-show-variants") === "true";  
   showVariants ( !showingVariants);
@@ -271,6 +291,7 @@ const implementShowVariants = () => {
   if (showingVariants) { document.documentElement.classList.add     ("showVariants"); }
   else                 { document.documentElement.classList.remove  ("showVariants");}
 };
+
 
 
 // patches the edit section links before a parsifal container
@@ -335,7 +356,9 @@ const lowlite = (hash) => { document.getElementById (hash); ele.style.outline = 
 
 return ( {imageIsMissing, renderPDF, jsRender, showImage, srcDebug, init, 
          limitSize, implementLimitedSize, toggleLimitSize,
-         showVariants, implementShowVariants, toggleVariants, showAsIframe, showAsWin, hilite, lowlite,
+ togglePreview, setPreviewSetting, implementPreviewSetting,
+    toggleVariants, showVariants, implementShowVariants ,
+         showAsIframe, showAsWin, hilite, lowlite,
          patchParsifalEditLinks});    // export functions to the PRT Parsifal Run Time object
 
 })();  // END of object PRT definition
@@ -345,7 +368,5 @@ return ( {imageIsMissing, renderPDF, jsRender, showImage, srcDebug, init,
 // if (typeof window.PRTLC === "undefined") {console.error ("first time loaded"); window.PRTLC = 1;} else {console.error ("multiple times loaded - why??");}
 
 PRT.implementLimitedSize();
-
-PRT.implementShowVariants();
 
 // console.error ("Parsifal runtime.js has loaded successfully");

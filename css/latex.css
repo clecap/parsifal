@@ -17,6 +17,17 @@ html.sizeLimit  .parsifalContainer {max-width:1000px;}
 html.sizeLimit #limitSize a::after {content: ' ON' !important;}
 html #limitSize a::after {content: ' OFF';}
 
+/* Better markup for the link in UI */
+html.previewFlag #previewFlag a::after {content: ' ON' !important;}
+html #previewFlag a::after {content: ' OFF';}
+
+/* Better markup for the link in UI */
+/*
+html.sizeLimit #limitSize a::after {content: ' ON' !important;}
+html #limitSize a::after {content: ' OFF';}
+*/
+
+
 
 /* marker class for first variant */
 .instance_1 { border: 2px solid red; border-radius:5px;}
@@ -168,7 +179,6 @@ body.shift-down  .inline-edit-preview-img   {border:4px solid red;}
 
 .pdf-external-hint          {border:2px solid red; border-radius:5px; opacity:0.1; background-color: red; box-sizing:border-box; }
 
-
 .img-hint {opacity: 0; transition: opacity 0.5s; border-radius:16px;box-shadow: rgba(0, 0, 0, 0.95) 0px 5px 15px;}
 
 .showing {opacity: 1.0;}
@@ -196,9 +206,9 @@ body.shift-down  .inline-edit-preview-img   {border:4px solid red;}
 
 .collapseResult {  display:none; z-index:3; clear:left; }
 
+.collapseResult       { margin:3pt 0pt 12pt 0pt;}
 
-.collapseResult       {position:relative; top:15px;  padding:3pt 0pt 12pt 0pt;}
-div.collapseButton    {position:relative; top:15px;}
+div.collapseButton   {margin:0pt 0pt 8pt 0pt;}
 
 div.collapseButton > a {text-decoration:none;}
 

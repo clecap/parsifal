@@ -1,6 +1,6 @@
 #!/opt/myenv/bin/python
 
-# Call this with: $scale  $inpath  $outpath   (in the caller it should be: $CACHE_PATH$hash$inFinal   $CACHE$hash$outFinal)
+# Call this with: $scale  $inpath  $outpath  $serverPrefix  (in the caller it should be: $CACHE_PATH$hash$inFinal   $CACHE$hash$outFinal)
 # This will produce
 #
 # Debug info is written to stderr
@@ -15,7 +15,7 @@ import math
 
 # bark with error if we have a different number of args than 3. (compare with 4 since the command is counted as well)
 if len(sys.argv) != 4 :
-  print("use:  scale-parameter in-path out-path", file=sys.stderr)
+  print("use:  scale-parameter in-path out-path server-prefix", file=sys.stderr)
   exit(-1)
 
 # print ("found script args: scale=" + sys.argv[1] + " in-path= " + sys.argv[2] + " out-path= " + sys.argv[3] );
@@ -25,6 +25,7 @@ pdfFileName  = sys.argv[2] + ".pdf";
 pngFileName  = sys.argv[3] + ".png";
 htmlFileName = sys.argv[3] + ".html";
 svgFileName  = sys.argv[3] + ".svg";
+
 
 #print(fitz.__doc__, file=sys.stderr)
 doc = fitz.open(pdfFileName)
@@ -91,6 +92,10 @@ for link in page.links():
 #   // TEST
 #   // TEST   linksHtml += "<a target='_blank' data-id='a" + links[i].uri + "' style='top:"+top+"px;left:"+left+"px;width:"+width+"px;height:"+height+"px;position:absolute;cursor:pointer;' class='pdf-external-anchor' href='" + (links[i].uri) + "' title='Open external link in new tab: " + links[i].uri  +"'></a>";
     linksHtml = linksHtml + "<a target='_blank' data-id='a" + link["uri"] + "' xlink:title='Open external link in new tab: " + link["uri"] + "' xlink:href='"+ link["uri"] + "'><rect x='"+ str(left) +"' y='"+ str(top)+"' width='"+ str(width)+"' height='"+str(height) + "' style='fill:blue;fill-opacity:0.1;stroke-width:0;stroke:blue;' /></a>"
+
+#  if ( 'file' in link ):
+#    linksHtml = linksHtml + "<a target='_blank' data-id='a" + link["file"] + "' xlink:title='Open external link in new tab: " + link["file"] + "' xlink:href='"+  serverPrefix + "/index.php?title="  + link["file"] + "'><rect x='"+ str(left) +"' y='"+ str(top)+"' width='"+ str(width)+"' height='"+str(height) + "' style='fill:blue;fill-opacity:0.1;stroke-width:0;stroke:blue;' /></a>"
+
 
 #    }
 #    else {  
