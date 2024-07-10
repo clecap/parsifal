@@ -20,6 +20,8 @@ div.CodeMirror span.CodeMirror-matchingbracket {color: red; font-size:larger; fo
 
 .cm-s-default .cm-bracket {color:orange;}
 
+.cm-s-default .cm-tag {color: #0b0;}
+
 /*
 .Codemirror-scroll {
   margin-right:0px;
@@ -30,3 +32,9 @@ div.CodeMirror span.CodeMirror-matchingbracket {color: red; font-size:larger; fo
 
 
 */
+
+
+
+
+
+
