@@ -34,7 +34,7 @@ div.CodeMirror span.CodeMirror-matchingbracket {color: red; font-size:larger; fo
 */
 
 
-
+div.CodeMirror-focused {outline:3px solid blue; border-radius:5px;}
 
 
 

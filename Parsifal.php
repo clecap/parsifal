@@ -179,9 +179,9 @@ public static function onOutputPageBeforeHTML( OutputPage &$out, &$text ) {
 
   // inject a section action for editing the section with code mirror
   public static function onSkinEditSectionLinks ( $skin, $title, $section, $tooltip, &$links, $lang ) {
-    $links['parsifaledit'] = [
+    $links['editsection'] = [   // override existing editsection link
       'targetTitle' => $title,
-      'text' => "edit CM",
+      'text' => "edit",
       'attribs' => ["title" => "Edit with Code Mirror"],
       'query' => array( "action" => "edit", "section" => $section, "editormode" => "codemirror" ),
       'options' => array(),
