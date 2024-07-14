@@ -331,7 +331,10 @@ public static function lazyRender ($in, $ar, $tag, $parser, $frame) {
 
     } // try
     catch (\Exception $e) { $msg = $ret = $e->getMessage();  $ret = "<b>$msg</b><br>".$e->getTraceAsString();}  // in case of exception, build a suitable error element 
-    catch ( Throwable $e) { self::debugLog ("lazyRenderer: Error: $e \n");  throw $e; }  // TODO ???
+    catch ( Throwable $e) { self::debugLog ("lazyRenderer: Error: $e \n");  
+//      throw $e;   // todo: rethrowing is not a good solution here as it defeats the prupose of 
+
+}  // TODO ???
     finally               { fclose ($lockStream); }  // self::debugLog ("lazyrender returned a lock for $hash at ".microtime(true) . " \n");
 
     apcu_add ($hash, $ret, 1000);  // cache the result we just generated so we have a faster access to the html generated and do not have to regenerate this from the files
