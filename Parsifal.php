@@ -135,18 +135,15 @@ public static function onOutputPageBeforeHTML( OutputPage &$out, &$text ) {
   $services     = MediaWikiServices::getInstance();
   $pageProps    = $services->getPageProps();
   $properties   = $pageProps->getProperties( $title,  ['Parsifals', 'Todos']  );
-  $myProperties = $properties [$pageID];
-  $parsifalProperty = $myProperties['Parsifals'];
+  // at this place in the code it is not necessarily clear that the page already had gotten ANY property, so we must check!
+  // if a property was set, it was set in TexProcessor::lazyRenderer
 
-// is set in TexProcessor::lazyRenderer
-
-// set indicators for:  number of tex snippets hich are in error,  number of hidden to do areas which are in the page, number of hidden solutions which are in the page 
-
-//  if ( isset($myProperties['Parsifal']) ) {   $out->setIndicators ( ["Parsifal" => "<b>hasParsifal</b>"]);  }
-//  else {  $out->setIndicators ( ["Parsifal" => "<b>hasNoParsifal</b>"]);}
-
-  $out->setIndicators ( ["Parsifals" => $parsifalProperty ]);
-
+  if ( array_key_exists ($pageID, $properties) ) {
+    $myProperties     = $properties [$pageID];
+      if ( array_key_exists ('Parsifals', $myProperties) ) {
+        $parsifalProperty = $myProperties['Parsifals'];
+        $out->setIndicators ( ["Parsifals" => $parsifalProperty ]);}
+  }
 }
 
 

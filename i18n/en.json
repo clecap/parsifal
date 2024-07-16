@@ -8,6 +8,7 @@
   "parsifal-desc": "An extension enabling LaTeX and other high-quality media processing in Mediawiki",
   "prefs-parsifal":  "Parsifal",
   "parsifaldebug": "Parsifal: Debug",
-  "parsifaldebug-legend": "Clear Op Cache"
+  "parsifaldebug-legend": "Clear Op Cache",
+  "action-resetParsifal": "clean up intermediate files of the Parsifal subsystem"
 
 }

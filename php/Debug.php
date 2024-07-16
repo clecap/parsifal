@@ -14,17 +14,12 @@ class ParsifalDebug extends FormSpecialPage {
   public function onSubmit( array $data )  {
     global $IP;
     $VERBOSE = false;  // CAVE: if we debug this and set this to true we MUST comment away the deletion of LOGFILE below or we will not see what we log !!
-    if ($data["radio"] == 0) { 
-      copy ("$IP/DanteSettings-production.php", "$IP/DanteSettings-used.php");
-    }
-    if ($data["radio"] == 1) { 
-      copy ("$IP/DanteSettings-development.php", "$IP/DanteSettings-used.php");
-    }
-   
+    if ($data["radio"] == 0) { copy ("$IP/DanteSettings-production.php",          "$IP/DanteSettings-used.php");  }
+    if ($data["radio"] == 1) { copy ("$IP/DanteSettings-development.php",         "$IP/DanteSettings-used.php");  }
+    if ($data["radio"] == 2) { copy ("$IP/DanteSettings-development-deprec.php",  "$IP/DanteSettings-used.php");  }
 
     global $IP;
     if (! $this->getUser()->isAllowed ("resetParsifal") ) {return false;}                                       // check for permission "resetParsifal"   
- 
     }
 
   public function getFormFields()  {
@@ -35,11 +30,10 @@ class ParsifalDebug extends FormSpecialPage {
       'radio' => [
           'type' => 'radio',
           'label' => 'Operative mode',
-      // The options available within the checkboxes (displayed => value)
           'options' => [
               'Production' => 0,
-              'Development' => 1
-             // 'Option 2' => 'option2id',
+              'Development' => 1,
+              'Development & Deprecation' => 2
           ],
       // The options selected by default (identified by value)
           'default' => 1,
