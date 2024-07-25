@@ -216,6 +216,8 @@ public static function lazyRender ($in, $ar, $tag, $parser, $frame) {
   $lockStream = fopen ($lockFileName, 'c' );   // create the file, if we are not 
   if ( !$lockStream ) { throw new Exception ("Could not open lock file $lockFileName ");}
 
+  $ret = "<!-- DEFAULT VALUE just for declaration inside of php, should be overwritten -->";
+
   if (flock ($lockStream, LOCK_EX ) ) {  // self::debugLog ("lazyRender obtained a lock on $lockFileName at " .microtime(true). "\n");
 
     try {  // EXCEPTION PROTECTED AREA
@@ -224,8 +226,6 @@ public static function lazyRender ($in, $ar, $tag, $parser, $frame) {
 
       $timestamp = date_format( new DateTime(), 'd-m-Y H:i:s'); // want a timestamp in the img tag on when the page was translated for debugging purposes
       self::ensureEnvironment ();
-
- 
 
       /** LATEX to PDF production step **/
       //$timePDF = microtime ();
