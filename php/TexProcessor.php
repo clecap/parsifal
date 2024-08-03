@@ -337,7 +337,7 @@ public static function lazyRender ($in, $ar, $tag, $parser, $frame) {
 }  // TODO ???
     finally               { fclose ($lockStream); }  // self::debugLog ("lazyrender returned a lock for $hash at ".microtime(true) . " \n");
 
-    apcu_add ($hash, $ret, 1000);  // cache the result we just generated so we have a faster access to the html generated and do not have to regenerate this from the files
+    apcu_store ($hash, $ret, 1000);  // cache the result we just generated so we have a faster access to the html generated and do not have to regenerate this from the files; lives 1000 seconds
   } // end if (flock) 
   else { self::debugLog ("lazyRenderer: Could not obtain lock for $hash \n"); }  ///// LATER maybe TODO: clear remove lock file 
 
