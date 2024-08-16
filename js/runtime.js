@@ -115,10 +115,10 @@ const editPreviewPatch = () => {  // the clutch to PHP; we may adapat it to use 
 const srcDebug = (hash) => {
 
   window.onresize = () => {
-    console.warn ("----Parsifal runtime debug: resizes of window to viewportwidth=", window.visualViewport.width);
+    // console.warn ("----Parsifal runtime debug: resizes of window to viewportwidth=", window.visualViewport.width);
     let elems = document.querySelectorAll (".texImage");
     elems.forEach ( ele=> {
-        console.warn ("----Parsifal runtime debug: ", "src=", ele.src, "currentStrc=", ele.currentSrc, "width=", ele.width);
+      //  console.warn ("----Parsifal runtime debug: ", "src=", ele.src, "currentSrc=", ele.currentSrc, "width=", ele.width);
     });
   }
 
