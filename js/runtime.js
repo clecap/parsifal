@@ -71,7 +71,9 @@ myPath = myPath.substring (0,lastIndex);
 // several img tasg with the same id value - and we have to initalize all of them - that is why we do a loop over all #hash
 const init = (hash, wgServer, wgScriptPath, cache_url) => {
   // let imgs = document.querySelectorAll ("#" + hash);     // in new version of chrome this produces a hard error since this is not a valid descriptor
-  let imgs = [document.getElementById (hash)];
+ 
+// let imgs = [document.getElementById (hash)];
+  let imgs = document.querySelectorAll('img[data-hash="'+hash+'"]');
   const iniEle = (ele) => {  // function which is initializing an img element
     if (ele.hasAttribute ("data-error")) {} 
     else {Object.assign ( ele, {onerror: imageIsMissing, onload: showImage} );}
@@ -97,7 +99,7 @@ const imageIsMissing = (e) => { return;
 
 
 const showImage = (e) => {
-  //console.warn ("-------- Parsifal runtime: showing image:", e.target.currentSrc, "width=", e.target.width, e.target,  " viewportwidth=", window.visualViewport.width, e);
+  console.warn ("-------- Parsifal runtime: showing image:", e.target.currentSrc, "width=", e.target.width, e.target,  " viewportwidth=", window.visualViewport.width, e);
 //  e.target.style.display = "inline-block";
   e.target.style.display = "block"; // CAVE: with inline-block the images sometimes move a little bit after reload, with block it is a more stable layout
 }

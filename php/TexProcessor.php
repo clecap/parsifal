@@ -316,6 +316,9 @@ public static function lazyRender ($in, $ar, $tag, $parser, $frame) {
       $dataHash  = "data-hash=\"".$hash."\"";
       $hasError="";  // what for ????? TODO
 
+  
+      // TODO: identical contents leads to identical hashes leads to two elements with the same id, which is made
+      //       we are / should be migrating this to using $dataHash only !
       $imgTag      = "<img $naming id=\"$hash\" $dataHash $hasError  data-timestamp='$timestamp'  $style  class='texImage' alt='Image is being processed, please wait, will fault it in automatically as soon as it is ready'></img>";
       $handlerTag  = "<script>PRT.srcDebug(\"$hash\"); PRT.init(\"$hash\", \"$wgServer\", \"$wgScriptPath\", \"$cache_url\"  ); </script>"; 
 
