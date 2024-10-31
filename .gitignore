@@ -12,6 +12,10 @@
 # no installable stuff
 annos/node_modules
 
+
+# Script generated files should be ignored
+docker-compose-injected.yaml
+
 # no private configuration data
 customize-PRIVATE.sh
 localhost-key.pem
