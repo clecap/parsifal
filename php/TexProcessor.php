@@ -179,6 +179,21 @@ private static function generateBeforeContentStuff ($ar, $tag) {
 
 
 
+
+
+
+
+private static function getRemainingContent( $parsedData, $amsContent ) {
+    // Simple logic to find content after the AMS tag
+    $pos = strpos( $parsedData, $amsContent );
+    if ( $pos !== false ) {
+      return substr( $parsedData, $pos + strlen( $amsContent ) );
+    }
+    return '';
+  }
+
+
+
 public static function lazyRender ($in, $ar, $tag, $parser, $frame) {
   global $wgServer, $wgScriptPath, $wgOut; 
   global $wgAllowVerbose;
@@ -189,9 +204,6 @@ public static function lazyRender ($in, $ar, $tag, $parser, $frame) {
   $pipeMode=false;  // if true: operate this in pipe mode   if false: operate this in file system mode  // TODO
 
   $startTime = microtime(true);
-
-  //if ($VERBOSE) {self::debugLog ("lazyRender called at $startTime \n);
-  //if ($VERBOSE) {self::debugLog ("lazyRender attributes: " . print_r ($ar, true)."\n");}
 
   $texSource=( $pipeMode ? "FILE" : null);  
   $hash       = self::generateTex ($in, $tag, "pc_pdflatex", $ar, $texSource, false);      // generate $hash_pc_pdflatex.tex and obtain hash of raw LaTeX source located in Mediawiki

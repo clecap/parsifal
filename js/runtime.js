@@ -98,8 +98,36 @@ const imageIsMissing = (e) => { return;
 };
 
 
+
+const fixDistances = () => { 
+  let parsis = document.querySelectorAll (".parsifal");
+  // console.warn ("parsis is ", parsis);
+  parsis.forEach(function(element) {
+    // console.log (element, element.dataset.strut);
+    let ele = element; 
+    while (ele && ele.classList && !ele.classList.contains ("parsifalContainer")) { 
+     if (ele && ele.classList && ele.classList.contains ("collapseResult")) { break;}
+     ele = ele.previousElementSibling;}
+    
+    if (ele && ele.classList && ele.classList.contains ("parsifalContainer") ) {ele.classList.add (element.dataset.strut);}
+    element.parentNode.removeChild (element);
+  });
+
+  parsis = document.querySelectorAll (".parsifal");
+  //console.warn ("parsis remaining are ", parsis);
+};
+
+document.addEventListener('DOMContentLoaded', () => {
+  fixDistances();
+  // Your DOM manipulation code here
+});
+
+
+
+
+
 const showImage = (e) => {
-  console.warn ("-------- Parsifal runtime: showing image:", e.target.currentSrc, "width=", e.target.width, e.target,  " viewportwidth=", window.visualViewport.width, e);
+ //console.warn ("-------- Parsifal runtime: showing image:", e.target.currentSrc, "width=", e.target.width, e.target,  " viewportwidth=", window.visualViewport.width, e);
 //  e.target.style.display = "inline-block";
   e.target.style.display = "block"; // CAVE: with inline-block the images sometimes move a little bit after reload, with block it is a more stable layout
 }
@@ -356,6 +384,20 @@ const hilite = (hash) => { document.getElementById (hash).style.outline = "1px d
 const lowlite = (hash) => { document.getElementById (hash); ele.style.outline = "0px solid red"; };
 
 
+// find all comment nodes - currently not used but keep in as idea
+/*
+function getComments (root) {
+  var treeWalker = document.createTreeWalker ( root, NodeFilter.SHOW_COMMENT, {"acceptNode": function acceptNode (node) { return NodeFilter.FILTER_ACCEPT; } } );
+    // skip the first node which is the node specified in the `root`
+    var currentNode = treeWalker.nextNode();
+    var nodeList = [];
+    while (currentNode) { nodeList.push(currentNode); currentNode = treeWalker.nextNode(); }
+    return nodeList;
+}
+*/
+
+
+
 return ( {imageIsMissing, renderPDF, jsRender, showImage, srcDebug, init, 
          limitSize, implementLimitedSize, toggleLimitSize,
  togglePreview, setPreviewSetting, implementPreviewSetting,
@@ -370,5 +412,11 @@ return ( {imageIsMissing, renderPDF, jsRender, showImage, srcDebug, init,
 // if (typeof window.PRTLC === "undefined") {console.error ("first time loaded"); window.PRTLC = 1;} else {console.error ("multiple times loaded - why??");}
 
 PRT.implementLimitedSize();
+
+
+
+
+
+
 
 // console.error ("Parsifal runtime.js has loaded successfully");

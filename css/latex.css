@@ -51,7 +51,25 @@ html #variantShow a::after {content: ' OFF';}
 .parsifalContainer {position:relative; left:0px;}
 
 
-script + p { line-height:0.1;}
+
+br {
+  height:10cm;
+min-height:10cm;
+  display: block;
+  margin: 20cm; /* Space equivalent to 20px */
+}
+
+/* vertical spacing */
+
+.immediate {margin-bottom:-0.25cm; }
+.newline   {margin-bottom:0.00cm; }
+.empline   {margin-bottom:0.25cm; }
+.twoline   {margin-bottom:0.50cm; }
+/* script + p { line-height:0.2;} */
+
+script + p { margin-bottom:0.0cm !important; margin-top:0cm !important;}
+p + p { margin-bottom:0.2cm !important;}
+
 
 
 /* common styling of headings */

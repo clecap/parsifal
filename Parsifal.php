@@ -50,6 +50,27 @@ class Parsifal {                                  // glue class of the extension
   }
 
 
+
+
+  public static function onParserBeforeInternalParse( Parser &$parser, &$text, &$strip_state ) {
+    $VERBOSE = false;
+    if ($VERBOSE) {TeXProcessor::debugLog( "-------- Parsifal::onParserBeforeInternalParse ".$text.  " \n");}
+
+ //   $text = preg_replace('/<\/amsmath></', '</amsmath><!-- immediate --><', $text);
+ //   $text = preg_replace('/<\/amsmath>[ ]*\n</', '</amsmath><!-- newline --><', $text);
+ //   $text = preg_replace('/<\/amsmath>[ ]*\n[ ]*\n[ ]*</', '</amsmath><!-- empline --><', $text);
+
+    $text = preg_replace('/<\/amsmath></',                           '</amsmath><div class="parsifal" data-strut="immediate"></div><', $text);
+    $text = preg_replace('/<\/amsmath>[ ]*\n</',                     '</amsmath><div class="parsifal" data-strut="newline"></div><', $text);
+    $text = preg_replace('/<\/amsmath>[ ]*\n[ ]*\n[ ]*</',           '</amsmath><div class="parsifal" data-strut="empline"></div><', $text);
+    $text = preg_replace('/<\/amsmath>[ ]*\n[ ]*\n[ ]\n[ ]*</',      '</amsmath><div class="parsifal" data-strut="twoline"></div><', $text);
+
+   if ($VERBOSE) {TeXProcessor::debugLog( "-------- Parsifal::onParserBeforeInternalParse AFTER REPLACE".$text.  " \n");}
+    return true;
+  }
+
+
+
   // THIS thing builds the buttons on the tab line of the vector template
   public static function onSkinTemplateNavigation( $skin, &$actions ) {
     global $wgTitle, $wgEmailPageGroup;
