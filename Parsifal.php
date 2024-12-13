@@ -214,7 +214,7 @@ public static function onOutputPageBeforeHTML( OutputPage &$out, &$text ) {
     $output->addJSConfigVars ( 'Parsifal', Parsifal::prepareJSConfig() );             // export configuration to HTML code for access via Javascript
     
     if (false) { // version without Codemirror  // TODO: MUST ReSPECT user choice !!
-      $editPage->editFormTextAfterWarn = "<script>PARSIFAL.editPreviewPatch();</script>";  // immediately after display of edit UI patch it for TeX preview
+      $editPage->editFormTextAfterWarn = "<script>PRT.editPreviewPatch();</script>";  // immediately after display of edit UI patch it for TeX preview
     }
     else {       // version which also offers Codemirror as editor
       $myHtml  = "<script src='extensions/Parsifal/vendor/codemirror/codemirror-5.65.3/lib/codemirror.js'></script>";
@@ -229,7 +229,7 @@ public static function onOutputPageBeforeHTML( OutputPage &$out, &$text ) {
       $myHtml .=  "<script src='extensions/Parsifal/vendor/codemirror/codemirror-5.65.3/addon/dialog/dialog.js'></script>"; 
       $myHtml .=  "<link rel='stylesheet' href='extensions/Parsifal/vendor/codemirror/codemirror-5.65.3/addon/dialog/dialog.css'></script>";  
 
-      $myHtml .=  "<script>PARSIFAL.editPreviewPatch();</script>";
+      $myHtml .=  "<script>PRT.editPreviewPatch();</script>";
       $editPage->editFormTextAfterWarn = $myHtml;
     }
     

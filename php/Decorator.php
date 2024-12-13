@@ -46,14 +46,40 @@ class Decorator {
   //                  null:  do not add an annotation layer at all
   public function wrap ( ?string $annotations = "", string $softError = "", string $errPath = "", string $titleInfo ="", string $hash="") {
     global $wgScriptPath;
-    $errorInjector = ( $softError === "" ? "<span class='logWrap'><a href='$errPath' onclick='PRT.showAsWin(this);event.preventDefault();' onmouseover='PRT.hilite(\"$hash\");' onmouseout='PRT.lowlite(\"$hash\");'  title='Click for tex log in popup'>&#8689;</a></span>" : 
-      "<span class='errorWrap'>".
-        "<a href='$errPath' class='miniError' onclick='PRT.showAsIframe(this);event.preventDefault();'  title='Click for details in iframe' >$softError</a><br>".
-        "<a href='$errPath' class='winError'  onclick='PRT.showAsWin(this);event.preventDefault();'     title='Click for details in popup'  onmouseover='PRT.hilite(\"$hash\");' onmouseout='PRT.lowlite(\"$hash\");'  >&#8689;</a>".
-      "</span>");
+
+    // ERROR INFORMATION
+    if ($softError === "") {
+
+// For some strange reason this MUST not contain leading blanks or the Mediawiki postprocessor wraps this in <pre>...</pre> tags
+      $errorInjector = <<<HEAD
+<span class='logWrap'>
+<a href='$errPath' onclick='PRT.showAsWin(this);event.preventDefault();' onmouseover='PRT.hilite(\"$hash\");' onmouseout='PRT.lowlite(\"$hash\");'  title='Click for tex log in popup'>&#8689;</a>
+</span>
+HEAD;
+
+
+    
+
+    }
+    else {
+
+// For some strange reason this MUST not contain leading blanks or the Mediawiki postprocessor wraps this in <pre>...</pre> tags
+      $errorInjector = <<<HEADER
+<span class='errorWrap'>
+<a href='$errPath' class='miniError' onclick='PRT.showAsIframe(this);event.preventDefault();'  title='Click for details in iframe' >$softError</a><br>
+<a href='$errPath' class='winError'  onclick='PRT.showAsWin(this);event.preventDefault();'     title='Click for details in popup'  onmouseover='PRT.hilite(\"$hash\");' onmouseout='PRT.lowlite(\"$hash\");'  >&#8689;</a>
+</span>
+HEADER;
+    }
+
+
+
+    $editHandle="<a class='editHandle' href='' title='Edit this field. To remove icon change Edit Handles status in UI.'>&#x270D;</a>";
 
     $aspect = $this->width / $this->height;
     $width = $this->width;  $height=$this->height;    ////// TODO: is this required for proper interpolation ????
+
+
 
     $this->content =  "<div class='".$this->markingClass."' $titleInfo style=\"aspect-ratio: $aspect\">" 
                       .$this->kern 
@@ -62,7 +88,7 @@ class Decorator {
  //                     .( $annotations === null ? "" : "<div class='annoLayer'>".$annotations."</div>")
                         .( $annotations === null ? "" : "<svg width='100%' viewBox=\"0 0 $width $height\" style=\"position:absolute;top:0px;left:0px;aspect-ratio: $aspect;\" preserveAspectRatio='xMidYMid meet'>".$annotations."</svg>")
 //
-                      .$errorInjector
+                      .$errorInjector .$editHandle
                       ."</div>"
       ."<script> PRT.patchParsifalEditLinks (document.currentScript);</script>"
     ;  

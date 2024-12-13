@@ -70,13 +70,10 @@ myPath = myPath.substring (0,lastIndex);
 // for every hash value there should be only one img tag, however in test pages we sometimes use the same text in several amsmath and so there might be
 // several img tasg with the same id value - and we have to initalize all of them - that is why we do a loop over all #hash
 const init = (hash, wgServer, wgScriptPath, cache_url) => {
-  // let imgs = document.querySelectorAll ("#" + hash);     // in new version of chrome this produces a hard error since this is not a valid descriptor
- 
-// let imgs = [document.getElementById (hash)];
   let imgs = document.querySelectorAll('img[data-hash="'+hash+'"]');
-  const iniEle = (ele) => {  // function which is initializing an img element
+  const iniEle = (ele) => {                                                   // function which is initializing an img element
     if (ele.hasAttribute ("data-error")) {} 
-    else {Object.assign ( ele, {onerror: imageIsMissing, onload: showImage} );}
+    else { Object.assign ( ele, {onerror: imageIsMissing, onload: showImage} );}
     let finalImgUrl3   = wgServer + wgScriptPath + cache_url + hash + "_pc_pdflatex_final_3.png"; 
     ele.setAttribute ("src", `${finalImgUrl3}`);
   };
@@ -85,16 +82,12 @@ const init = (hash, wgServer, wgScriptPath, cache_url) => {
 
 
 
-// TODO: currently this does not work exactly as needed - but it also is not needed 
-
-const imageIsMissing = (e) => { return;
-
-  console.log ("image missing at: ", e);
+const imageIsMissing = (e) => {
+  // console.log ("image missing at: ", e);
   var src = e.target.src;
-  console.log ("image src was: ", src);
+  // console.log ("image src was: ", src);
   window.setTimeout ( () => {e.target.src = src;}, 5);
   return;
-
 };
 
 
@@ -288,6 +281,26 @@ const implementLimitedSize = () => {
 
 
 
+const toggleEditHandles = () => {
+  let editHandlesVar = window.localStorage.getItem ("Parsifal-edit-handles") === "true";  
+  editHandles ( !editHandlesVar);
+};
+
+const editHandles = (flag) => { 
+  window.localStorage.setItem ("Parsifal-edit-handles", (flag ? "true" : "false"));
+  implementEditHandles();
+};
+
+const implementEditHandles = () => {
+
+
+
+  let editHandles = window.localStorage.getItem ("Parsifal-edit-handles") === "true";  
+  if (editHandles) { document.documentElement.classList.add     ("editHandles"); }
+  else           { document.documentElement.classList.remove  ("editHandles");}
+};
+
+
 
 const togglePreview = () => {
   let previewFlag = window.localStorage.getItem ("Dante-preview-flag") === "true";  
@@ -335,8 +348,6 @@ const patchParsifalEditLinks = (sc) => {
   pc.addEventListener ("mouseleave", (e) => { pc.style.outline = ""; } );
   return;
 
-
-  
     var hElement = pc.previousSibling;
     while ( hElement && !["H1","H2","H3","H4","H5","H6"].includes (hElement.tagName)) { hElement = hElement.previousSibling;}
     //console.info ("h-element", hElement);
@@ -378,10 +389,9 @@ const showAsWin = (url) => { //  console.log (" show " + url + " as iframe insid
 };
 
 
-const hilite = (hash) => { document.getElementById (hash).style.outline = "1px dotted lightgrey";};
+const hilite = (hash) => { let ele = document.getElementById (hash); ele.style.outline = "1px dotted lightgrey";};
 
-
-const lowlite = (hash) => { document.getElementById (hash); ele.style.outline = "0px solid red"; };
+const lowlite = (hash) => { let ele = document.getElementById (hash); ele.style.outline = "0px solid red"; };
 
 
 // find all comment nodes - currently not used but keep in as idea
@@ -396,12 +406,11 @@ function getComments (root) {
 }
 */
 
-
-
 return ( {imageIsMissing, renderPDF, jsRender, showImage, srcDebug, init, 
          limitSize, implementLimitedSize, toggleLimitSize,
  togglePreview, setPreviewSetting, implementPreviewSetting,
     toggleVariants, showVariants, implementShowVariants ,
+ toggleEditHandles, editHandles, implementEditHandles,
          showAsIframe, showAsWin, hilite, lowlite,
          patchParsifalEditLinks});    // export functions to the PRT Parsifal Run Time object
 
@@ -412,11 +421,6 @@ return ( {imageIsMissing, renderPDF, jsRender, showImage, srcDebug, init,
 // if (typeof window.PRTLC === "undefined") {console.error ("first time loaded"); window.PRTLC = 1;} else {console.error ("multiple times loaded - why??");}
 
 PRT.implementLimitedSize();
-
-
-
-
-
-
+PRT.implementEditHandles();
 
 // console.error ("Parsifal runtime.js has loaded successfully");

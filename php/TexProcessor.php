@@ -341,6 +341,9 @@ public static function lazyRender ($in, $ar, $tag, $parser, $frame) {
       /** ADD decorations */
       $core = new Decorator ( $imgResult, $width, $height, $markingClass);
       $core->wrap ( $annotations, $softError, $errorPath, $titleInfo, $hash);      // wrap with annotations and error information   
+
+    
+
       $core->collapsible ( $ar );                                                  // decorate with collapsibles
       $ret = $core->getHTML ();                                                    // generate HTML which includes the decorations
 
