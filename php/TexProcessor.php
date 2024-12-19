@@ -67,26 +67,42 @@ private static function generateEndPreambleStuff ($ar, $tag) {
   global $wgServer, $wgScriptPath;
   $stuff = "";
 
-  // array key   "sans"  turns the default font into a sans serif font
+  // SANS:  array key   "sans"  turns the default font into a sans serif font
   if ( array_key_exists ( "sans", $ar ) ) { $stuff = $stuff."\\renewcommand{\\familydefault}{\\sfdefault}"; }
 
-  // array keys  de, nde, babel   and  default: english
-  if ( array_key_exists ( "de", $ar ) )          { $stuff = $stuff."\\usepackage[shorthands=off,german]{babel}";   }
-  else if ( array_key_exists ( "nde", $ar ) )    { $stuff = $stuff."\\usepackage[shorthands=off,ngerman]{babel}";  }
+  // LOCALIZATION: array keys  de, nde, babel, en   and  default: english
+  if      ( array_key_exists ( "de",    $ar ) )  { $stuff = $stuff."\\usepackage[shorthands=off,german]{babel}";            }
+  else if ( array_key_exists ( "nde",   $ar ) )  { $stuff = $stuff."\\usepackage[shorthands=off,ngerman]{babel}";           }
   else if ( array_key_exists ( "babel", $ar ) )  { $stuff = $stuff."\\usepackage[shorthands=off,".$ar["babel"]."]{babel}";  }
-  else                                           { $stuff = $stuff."\\usepackage[shorthands=off,english]{babel}";  }
+  else if ( array_key_exists ( "en",    $ar ) )  { $stuff = $stuff."\\usepackage[shorthands=off,english]{babel}";           }
+  else                                           { $stuff = $stuff."\\usepackage[shorthands=off,english]{babel}";           }
 
+  // MINTED
   $light = array ("manny", "rrt", "perldoc", "borland", "colorful", "murphy", "vs", "trac", "tango", "autumn", "bw", "emacs", "pastie", "friendly");
   $dark  = array ( "fruity", "vim", "native", "monokai");
 
+  $mintedStyle = "emacs";
   // array key   "minted"  if present: adds package minted and uses style emacs
   //                       if present and has a value: uses that value as style for minted, provided the style is known
+
   if ( array_key_exists ("minted", $ar) ) {                                                       // if we have a minted attribute, include minted stuff
-    if ( in_array ($ar["minted"], $light) ) { $style=$ar["minted"]; } else { $style = "emacs";}   // check if style is known. If it is not, use emacs as default
-    $stuff = $stuff . "\\usepackage[outputdir=".CACHE_PATH.",newfloat=true,cache]{minted}\\usemintedstyle{" .$style. "}\\initializeMinted"; 
+//    if ( in_array ($ar["minted"], $light) ) { $style=$ar["minted"]; } else { $style = "emacs";}   // check if style is known. If it is not, use emacs as default
+##### $stuff = $stuff . "\\usepackage[outputdir=".CACHE_PATH.",newfloat=true,cache]{minted}\\usemintedstyle{" .$style. "}\\initializeMinted"; 
+    if (isset($ar['minted']) && is_string($ar['minted']) && trim($ar['minted']) !== '') { $mintedStyle = $ar['minted']; }
+
+    $mintedInit = "";
+
+   
+     if ( array_key_exists ("minted-linenos", $ar) ) { $mintedInit .= "\\initMintedLinenos";}  else {}
+     if ( array_key_exists ("minted-box",     $ar) ) { $mintedInit .= "\\initMintedBox";}       else {}
+
+
+
+    $stuff = $stuff . "\\usepackage[outputdir=".CACHE_PATH.",newfloat=true,cache]{minted}\\usemintedstyle{".$mintedStyle."}".$mintedInit; 
+
   }
 
-
+  // PREAMBLE
   // array key    "pa" if present and has contents
   //                   if contents starts with [[  and ends with ]] then use the string in between as reference to a Mediawiki parsifal template file
   $addPreamble = "";
@@ -128,11 +144,9 @@ EOD;
 
   
 
-//  $urlStuff = "\\newcommand{\dref}[1]{ \\StrSubstitute{#1}{ }{_}[\\temp]\\href{".   $wgServer.$wgScriptPath . "/index.php?title="."\\temp}{#1}}";
-
- $urlStuff = "\\newcommand{\dref}[2]{ \\StrSubstitute{#1}{ }{_}[\\temp]\\href{".   $wgServer.$wgScriptPath . "/index.php/"."\\temp}{#2}}";
-$urlStuff2 = "\\newcommand{\durl}[1]{ \\StrSubstitute{#1}{ }{_}[\\temp]\\href{".   $wgServer.$wgScriptPath . "/index.php/"."\\temp}{#1}}";
-
+  // dynamically inject the definitions of \dref and of \durl, since we here (in PHP) have the required paths accessible more easily than from LaTeX
+  $urlStuff  = "\\newcommand{\dref}[2]{ \\StrSubstitute{#1}{ }{_}[\\temp]\\href{".   $wgServer.$wgScriptPath . "/index.php/"."\\temp}{#2}}";
+  $urlStuff2 = "\\newcommand{\durl}[1]{ \\StrSubstitute{#1}{ }{_}[\\temp]\\href{".   $wgServer.$wgScriptPath . "/index.php/"."\\temp}{#1}}";
 
   return $stuff . $urlStuff. $urlStuff2 . $optional . $addPreamble;
 }

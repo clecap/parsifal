@@ -8,14 +8,45 @@
 \usepackage[T1]{fontenc}             % fontencoding - FIRST load fontencoding 
 \usepackage[utf8]{inputenc}          % and only THEN load UTF-8 see https://tex.stackexchange.com/questions/13067/
 \usepackage{ucs}                     % unicode support
-\usepackage{comment}                 %    allows to flag portions of the document using \begin{comment} ... \end{comment}
+\usepackage{comment}                 % allows to flag portions of the document using \begin{comment} ... \end{comment}
 
 \usepackage{csquotes}                % quotes
 \usepackage{tabto}                   % command \tabto{2cm}
 \usepackage[usenames]{color}         % Should load before tcolorbox                  
 \usepackage{tcolorbox}
+\usepackage{xstring}                 % provides string manipulation, needed for definition of \dref and \durl in TexProcessor.php           
+
 
 %% minted is included dynamically
+
+%%
+%% Delayed minted initialization code
+%% * We do not load minted here as part of the normal preamble as it slows down normal latex compilation
+%% * we only load minted on demand using attribute minted
+%% * However we cannot execute this in situations where we do not load the minted package
+%% * Therefore we define a (delayed executing) macro \initializeMinted here
+%%   in case the user sets the minted
+%%   attribute in the Latex tag - inject this as part of the PHP code.
+%% * Still we have the code here and can edit it as part of Dantewiki :-)
+%%
+
+% boxsep value sequence is: top left bottom right
+\def\initMintedLinenos{
+  \tcbuselibrary{breakable}
+  \tcbuselibrary{minted}
+  \renewcommand\theFancyVerbLine{\footnotesize\arabic{FancyVerbLine}}
+  \setminted{linenos=true,numbersep=6pt}
+  \BeforeBeginEnvironment{minted}{\begin{tcolorbox}[top=0pt, left=12pt, bottom=0pt, right=0pt,boxrule=0pt]}
+  \AfterEndEnvironment{minted}{\end{tcolorbox}}
+}
+
+\def\initMintedBox{
+  \tcbuselibrary{breakable}
+  \tcbuselibrary{minted}
+  \BeforeBeginEnvironment{minted}{\begin{tcolorbox}[top=0pt, left=0pt, bottom=0pt, right=0pt,boxrule=1pt]}
+  \AfterEndEnvironment{minted}{\end{tcolorbox}}
+}
+
 
 %%
 %% DRAWING and GRAPHICS

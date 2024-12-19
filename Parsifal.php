@@ -77,7 +77,7 @@ class Parsifal {                                  // glue class of the extension
     if( is_object( $wgTitle ) ) {
       //  $actions['views']['email'] = array( 'text' => wfMessage( 'email' )->text(), 'class' => false, 'href' => $url );  // show on main line CHC
       //$actions['actions']['purge'] = array(  'class' => false, 'href' => "" );  // show under "more" button  CHC
-      $actions['actions']['rebuild']  = array(  'text'=> "Rebuild",   'class' => false, 'href' => "" );  // show under "more" button  CHC        // href can be a javascript: URL
+     // $actions['actions']['rebuild']  = array(  'text'=> "Rebuild",   'class' => false, 'href' => "" );  // show under "more" button  CHC        // href can be a javascript: URL
       $actions['actions']['Fullpage'] = array(  'text' => "FullPage", 'title' => 'Download a Latex version', 'class' => false, 'href' => $wgTitle->getLocalURL ('action=fullpage') );  // show under "more" button  CHC        // href can be a javascript: URL      
     }
     return true;
