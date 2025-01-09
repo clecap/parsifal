@@ -423,4 +423,9 @@ return ( {imageIsMissing, renderPDF, jsRender, showImage, srcDebug, init,
 PRT.implementLimitedSize();
 PRT.implementEditHandles();
 
-// console.error ("Parsifal runtime.js has loaded successfully");
+console.error ("Parsifal runtime.js has loaded successfully");
+console.log ("post Parsifal loader: ", Object.keys (mw.loader));
+setTimeout (
+ () => { console.log ("post post Parsifal loader: ", Object.keys (mw.loader));},
+2000
+);
