@@ -66,32 +66,6 @@ let lastIndex = myPath.lastIndexOf ("/");
 myPath = myPath.substring (0,lastIndex);
 
 
-// called to dynamically initialize image tags
-// for every hash value there should be only one img tag, however in test pages we sometimes use the same text in several amsmath and so there might be
-// several img tasg with the same id value - and we have to initalize all of them - that is why we do a loop over all #hash
-/*
-const init = (hash, wgServer, wgScriptPath, cache_url) => {
-
- return;
-
-  let imgs = document.querySelectorAll('img[data-hash="'+hash+'"]');
-  const iniEle = (ele) => {                                                   // function which is initializing an img element
-    // Object.assign ( ele, {onerror: imageIsMissing, onload: showImage  } );
-    let finalImgUrl3   = wgServer + wgScriptPath + cache_url + hash + "_pc_pdflatex_final_3.png"; 
-    ele.setAttribute ("src", `${finalImgUrl3}`);
-  };
-  imgs.forEach (elem => iniEle (elem));
-}
-*/
-
-/*
-const imageIsMissing = (e) => {
-  console.log ("image missing at: ", e, e.target.src);
-  var src = e.target.src;
-  //window.setTimeout ( () => {e.target.src = src;}, 500);
-  return;
-};
-*/
 
 
 const fixDistances = () => { 
@@ -127,6 +101,8 @@ const showImage = (e) => {
 }
 
 
+// deprecate - this should be in DantePresentations TODO
+/*
 const editPreviewPatch = () => {  // the clutch to PHP; we may adapat it to use CodeMirror, textarea or whatever client side editor we desire
   console.log ("runtime: before initalizeTextarea");
   initializeTextarea();
@@ -136,7 +112,7 @@ const editPreviewPatch = () => {  // the clutch to PHP; we may adapat it to use 
     initializeCodeMirror ();  // additionally initialize a code mirror instance
   }
 };
-
+*/
 
 
 
@@ -393,10 +369,10 @@ function getComments (root) {
 */
 
 return ( {renderPDF, jsRender, 
-         limitSize, implementLimitedSize, toggleLimitSize,
-         togglePreview, setPreviewSetting, implementPreviewSetting,
-         toggleVariants, showVariants, implementShowVariants ,
-         toggleEditHandles, editHandles, implementEditHandles,
+         toggleLimitSize,   limitSize,         implementLimitedSize, 
+         togglePreview,     setPreviewSetting, implementPreviewSetting,
+         toggleVariants,    showVariants,      implementShowVariants ,
+         toggleEditHandles, editHandles,     implementEditHandles,
          showAsIframe, showAsWin, 
          patchParsifalEditLinks});    // export functions to the PRT Parsifal Run Time object
 
