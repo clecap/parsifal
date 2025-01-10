@@ -92,14 +92,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
-
-
+// TODO deprecate
+/*
 const showImage = (e) => {
  //console.warn ("-------- Parsifal runtime: showing image:", e.target.currentSrc, "width=", e.target.width, e.target,  " viewportwidth=", window.visualViewport.width, e);
 //  e.target.style.display = "inline-block";
   e.target.style.display = "block"; // CAVE: with inline-block the images sometimes move a little bit after reload, with block it is a more stable layout
 }
-
+*/
 
 // deprecate - this should be in DantePresentations TODO
 /*
@@ -114,8 +114,8 @@ const editPreviewPatch = () => {  // the clutch to PHP; we may adapat it to use 
 };
 */
 
-
-
+// TODO: deprecate
+/*
 function initializeCodeMirror () {
   var myTextArea   = document.getElementById("wpTextbox1");
   var myCodeMirror = CodeMirror.fromTextArea ( myTextArea, { lineNumbers:true, matchBrackets:true} );    // returns an abstract CodeMirror object
@@ -149,7 +149,7 @@ function initializeCodeMirror () {
   new ResizeObserver (wasResized).observe (cmElement);          // NEW: cmElement
   new ResizeObserver (wasResized).observe (document.body);
 }
-
+*/
 
 
 
@@ -260,9 +260,6 @@ const editHandles = (flag) => {
 };
 
 const implementEditHandles = () => {
-
-
-
   let editHandles = window.localStorage.getItem ("Parsifal-edit-handles") === "true";  
   if (editHandles) { document.documentElement.classList.add     ("editHandles"); }
   else           { document.documentElement.classList.remove  ("editHandles");}

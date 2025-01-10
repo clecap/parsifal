@@ -174,9 +174,9 @@ body.shift-down  .inline-edit-preview-img   {border:4px solid red;}
 /* Display or hide edit handles for every amsmath area */
 
 .logWrap  {display:none;}
-
 html.editHandles  .logWrap {display:block;}
-
+h6 {display:none;}
+html.editHandles h6 {display:block;}
 
 
 .logWrap:hover    {opacity:1;}
