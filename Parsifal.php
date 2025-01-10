@@ -87,48 +87,6 @@ class Parsifal {                                  // glue class of the extension
 
 
 
-
-/*
-
-
-public static function onEditPage_attemptSave( EditPage $editpage ) { 
-   $title = $editPage->getTitle();
-
-        // Ensure the title object is valid
-     //   if ( !$title instanceof Title || !$title->exists() ) { return true; }
-
-  $pageId = $title->getArticleID();
-
-  $services = MediaWikiServices::getInstance();
-  $pageProps = $services->getPageProps();
-  $properties = $pageProps->getProperties( $pageId, [ 'Parsifal' ] );
-
-  if ( isset($properties['Parsifal']) ) {
-   $content = $wikiPage->getContent( SlotRecord::MAIN );
-   $textContent = ContentHandler::getContentText( $content );
-   $additionalText = "\n\n<indicator>Parsifal</indicator>";
-   $textContent .= $additionalText;
-   $newContent = ContentHandler::makeContent( $textContent, $title );
-   $editpage->doEditContent( $newContent, $summary, $flags );
-   }
-  else {
-    $content = $wikiPage->getContent( SlotRecord::MAIN );
-    $textContent = ContentHandler::getContentText( $content );
-     $additionalText = "\n\n<indicator>NOParsifal</indicator>";
-    $textContent .= $additionalText;
-    $newContent = ContentHandler::makeContent( $textContent, $title );
-    $editpage->doEditContent( $newContent, $summary, $flags );
-  }
-
-
-}
-
-
-*/
-
-
-
-
   public static function onPageSaveComplete( WikiPage $wikiPage, MediaWiki\User\UserIdentity $user, string $summary, int $flags, MediaWiki\Revision\RevisionRecord $revisionRecord, MediaWiki\Storage\EditResult $editResult ) {
     global $wgTopDante;
     TeXProcessor::debugLog( "\n\nParsifal::onPageSaveComplete entered for: title=". $wikiPage->getTitle()." namespace=" . $wikiPage->getTitle()->getNamespace() . " \n");
@@ -148,8 +106,6 @@ public static function onEditPage_attemptSave( EditPage $editpage ) {
 // this provides an early insert into the body to provent FOUC 
 // NOTE: This is only called for normal pages and not for the edit page 
 public static function onOutputPageBeforeHTML( OutputPage &$out, &$text ) {
-  $out->addJSConfigVars ( 'Parsifal', self::prepareJSConfig() );         
-
   // must NOT have an entry in extension.json with any script file, otherwise this thing here does not work
   // must addModuleStyles separately in order to prevent FOUC 
   $out->addModuleStyles ( ["ext.Parsifal"] );                               
@@ -181,16 +137,6 @@ public static function onOutputPageBeforeHTML( OutputPage &$out, &$text ) {
   }
 
 
-  private static function prepareJSConfig () {  // returns the configuration variables to be exported to the Javascript portion of the extension
-    global $wgServer, $wgScriptPath;
-    $vars = [];                
-    $vars['TAGS']     = TAGS;
-    $vars['HTML_URL'] = $wgServer.$wgScriptPath.HTML_URL;
-    $vars['JS_PATH']  = JS_PATH;
-    return $vars;
-  }
-
-
   // inject a section action for editing the section with code mirror
   public static function onSkinEditSectionLinks ( $skin, $title, $section, $tooltip, &$links, $lang ) {
     $links['editsection'] = [   // override existing editsection link
@@ -206,41 +152,6 @@ public static function onOutputPageBeforeHTML( OutputPage &$out, &$text ) {
   public static function onRegistration () { TeXProcessor::ensureCacheDirectory (); }
 
 
-
-  // when we edit a page, intercept the edit process via javascript and insert an edit preview (if appropriate)
-  public static function onEditPageshowEditForminitial ( EditPage &$editPage, OutputPage $output) {
-    $output->addJSConfigVars ( 'Parsifal', Parsifal::prepareJSConfig() );             // export configuration to HTML code for access via Javascript
-    
-
-// TODO: BIG MESS. WE WANTED TO MOVE THE PREVIEW COMPLETELY TO DANTEPRESENTATIONS !!!!!
-
-
-    if (false) { // version without Codemirror  // TODO: MUST ReSPECT user choice !!
-      //$editPage->editFormTextAfterWarn = "<script>PRT.editPreviewPatch();</script>";  // immediately after display of edit UI patch it for TeX preview
-    }
-    else {       // version which also offers Codemirror as editor
-      $myHtml  = "<script src='extensions/Parsifal/vendor/codemirror/codemirror-5.65.3/lib/codemirror.js'></script>";
-      $myHtml .=  "<link rel='stylesheet' href='extensions/Parsifal/vendor/codemirror/codemirror-5.65.3/lib/codemirror.css'></script>";
-      $myHtml .=  "<link rel='stylesheet' href='extensions/Parsifal/codemirror/codemirror-parsifal.css'></script>";      
-      $myHtml .=  "<script src='extensions/Parsifal/vendor/codemirror/codemirror-5.65.3/mode/stex/stex.js'></script>";
-      $myHtml .=  "<script src='extensions/Parsifal/vendor/codemirror/codemirror-5.65.3/addon/edit/matchbrackets.js'></script>";   
-
-
-      $myHtml .=  "<script src='extensions/Parsifal/codemirror/search.js'></script>";   
-      $myHtml .=  "<script src='extensions/Parsifal/vendor/codemirror/codemirror-5.65.3/addon/search/searchcursor.js'></script>"; 
-      $myHtml .=  "<script src='extensions/Parsifal/vendor/codemirror/codemirror-5.65.3/addon/dialog/dialog.js'></script>"; 
-      $myHtml .=  "<link rel='stylesheet' href='extensions/Parsifal/vendor/codemirror/codemirror-5.65.3/addon/dialog/dialog.css'></script>";  
-
-    //  $myHtml .=  "<script>DPRES.editPreviewPatch();</script>";
-    
-
-//  $editPage->editFormTextAfterWarn = $myHtml;
-    
-
-}
-    
-  }
-  
 
 
 
@@ -405,7 +316,7 @@ public static function onOutputPageBeforeHTML( OutputPage &$out, &$text ) {
     
   
 
-
-function formatException ($e) {return "<h3>A processing exception occured in file " . $e->getFile() . " in line " . $e->getLine() . "</h3>".htmlspecialchars ($e->getMessage()); }
+// TODO: DEPRECATE
+// function formatException ($e) {return "<h3>A processing exception occured in file " . $e->getFile() . " in line " . $e->getLine() . "</h3>".htmlspecialchars ($e->getMessage()); }
 
 ?>

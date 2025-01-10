@@ -18,7 +18,6 @@
     "ParserFirstCallInit":               "Parsifal::onParserFirstCallInit",
     "ParserBeforeInternalParse":         "Parsifal::onParserBeforeInternalParse",
     "OutputPageBeforeHTML":              "Parsifal::onOutputPageBeforeHTML",
-    "EditPage::showEditForm:initial":    "Parsifal::onEditPageshowEditForminitial",
     "EditPage::attemptSave:after":       "Parsifal::afterAttemptSave",
     "SkinTemplateNavigation::Universal":          "Parsifal::onSkinTemplateNavigation",
     "SkinEditSectionLinks":              "Parsifal::onSkinEditSectionLinks",
