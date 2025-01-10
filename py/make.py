@@ -91,7 +91,7 @@ for link in page.links():
 #
 #   // TEST
 #   // TEST   linksHtml += "<a target='_blank' data-id='a" + links[i].uri + "' style='top:"+top+"px;left:"+left+"px;width:"+width+"px;height:"+height+"px;position:absolute;cursor:pointer;' class='pdf-external-anchor' href='" + (links[i].uri) + "' title='Open external link in new tab: " + links[i].uri  +"'></a>";
-    linksHtml = linksHtml + "<a target='_blank' data-id='a" + link["uri"] + "' xlink:title='Open external link in new tab: " + link["uri"] + "' xlink:href='"+ link["uri"] + "'><rect x='"+ str(left) +"' y='"+ str(top)+"' width='"+ str(width)+"' height='"+str(height) + "' style='fill:blue;fill-opacity:0.1;stroke-width:0;stroke:blue;' /></a>"
+    linksHtml = linksHtml + "<a target='_top' data-id='a" + link["uri"] + "' xlink:title='Open external link in new tab: " + link["uri"] + "' xlink:href='"+ link["uri"] + "'><rect x='"+ str(left) +"' y='"+ str(top)+"' width='"+ str(width)+"' height='"+str(height) + "' style='fill:blue;fill-opacity:0.1;stroke-width:0;stroke:blue;' /></a>"
 
 #  if ( 'file' in link ):
 #    linksHtml = linksHtml + "<a target='_blank' data-id='a" + link["file"] + "' xlink:title='Open external link in new tab: " + link["file"] + "' xlink:href='"+  serverPrefix + "/index.php?title="  + link["file"] + "'><rect x='"+ str(left) +"' y='"+ str(top)+"' width='"+ str(width)+"' height='"+str(height) + "' style='fill:blue;fill-opacity:0.1;stroke-width:0;stroke:blue;' /></a>"

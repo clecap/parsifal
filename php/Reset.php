@@ -16,6 +16,10 @@ class ParsifalReset extends FormSpecialPage {
     
  
     global $IP;
+
+    apcu_clear_cache ();  // clear the apcu cache
+
+
     if (! $this->getUser()->isAllowed ("resetParsifal") ) {return false;}                                       // check for permission "resetParsifal" 
     $dir = new DirectoryIterator( CACHE_PATH );                                                                 // iterate the CACHE_PATH
     

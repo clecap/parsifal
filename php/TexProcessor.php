@@ -148,6 +148,11 @@ EOD;
   $urlStuff  = "\\newcommand{\dref}[2]{ \\StrSubstitute{#1}{ }{_}[\\temp]\\href{".   $wgServer.$wgScriptPath . "/index.php/"."\\temp}{#2}}";
   $urlStuff2 = "\\newcommand{\durl}[1]{ \\StrSubstitute{#1}{ }{_}[\\temp]\\href{".   $wgServer.$wgScriptPath . "/index.php/"."\\temp}{#1}}";
 
+
+  $urlStuff  = "\\newcommand{\dref}[2]{ \\StrSubstitute{#1}{ }{_}[\\temp]\\href{".   $wgServer.$wgScriptPath . "/index.php?title="."\\temp}{#2}}";
+  $urlStuff2 = "\\newcommand{\durl}[1]{ \\StrSubstitute{#1}{ }{_}[\\temp]\\href{".   $wgServer.$wgScriptPath . "/index.php?title="."\\temp}{#1}}";
+
+
   return $stuff . $urlStuff. $urlStuff2 . $optional . $addPreamble;
 }
 
@@ -336,27 +341,21 @@ public static function lazyRender ($in, $ar, $tag, $parser, $frame) {
       $style .= "width:100%; vertical-align: baseline; display:none;\"";  // vertical-align:baseline: the page around the image flickers a bit when parsifal runtime makes them visible with showImage - this prevents it
 
       $titleInfo = "";  // currently unused 
-
       $cache_url = CACHE_URL; // TODO: what for ??
-
       $dataHash  = "data-hash=\"".$hash."\"";
-      $hasError="";  // what for ????? TODO
+      $onShow =  "onload=\"this.style.display='block';\"";
 
-  
+     $srcImg = 'src="'.$wgServer.$wgScriptPath.$cache_url.$hash."_pc_pdflatex_final_3.png".'"'; 
+
       // TODO: identical contents leads to identical hashes leads to two elements with the same id, which is made
       //       we are / should be migrating this to using $dataHash only !
-      $imgTag      = "<img $naming id=\"$hash\" $dataHash $hasError  data-timestamp='$timestamp'  $style  class='texImage' alt='Image is being processed, please wait, will fault it in automatically as soon as it is ready'></img>";
-      $handlerTag  = "<script>PRT.srcDebug(\"$hash\"); PRT.init(\"$hash\", \"$wgServer\", \"$wgScriptPath\", \"$cache_url\"  ); </script>"; 
-
-      $imgResult    = $imgTag . $handlerTag;                                                            // the image tag which will be used
+      $imgTag      = "<img $naming id=\"$hash\" $dataHash  data-timestamp='$timestamp'  $style $onShow class='texImage' alt='Image is being processed, please wait, will fault it in automatically as soon as it is readyss' $srcImg ></img>";
 
       $annotations  = (file_exists ($annotationPath) ? file_get_contents ($annotationPath) :  null );   // get annotations, if no file present, use null
 
       /** ADD decorations */
-      $core = new Decorator ( $imgResult, $width, $height, $markingClass);
+      $core = new Decorator ( $imgTag, $width, $height, $markingClass);
       $core->wrap ( $annotations, $softError, $errorPath, $titleInfo, $hash);      // wrap with annotations and error information   
-
-    
 
       $core->collapsible ( $ar );                                                  // decorate with collapsibles
       $ret = $core->getHTML ();                                                    // generate HTML which includes the decorations
@@ -412,7 +411,7 @@ public static function canvasPdf ($hash, $width, $height) {
   return $html;
 }
 
-// given a $hash, return html code with an iframe rendering this inside of the iframe alone
+// given a $hash, return html code with an iframe rendering this inside of the iframe s
 public static function iframePdf ($hash, $width, $height, $scale, $titleInfo) {
   global $wgServer, $wgScriptPath;
   $basis  = $wgServer.$wgScriptPath."/extensions/Parsifal/html/pdfIframe.html";    // path to the html page generating canvas 
@@ -810,7 +809,7 @@ private static function Pdf2PngMT ($hash, $dpi, $inFinal, $outFinal) {
   // if ($VERBOSE) {self::debugLog ("  return value $retVal  output ". print_r ($output, true));} 
 }
 
-
+// CURRENTLY USED 
 /** GENERATE PNG from PDF. Transforms $hash$inFinal.pdf into $hash$inFinal.png */
 private static function Pdf2PngHtmlMT ($hash, $scale, $inFinal, $outFinal, &$width, &$height, &$duration = null) {
   $VERBOSE = true; 
@@ -856,9 +855,6 @@ private static function Pdf2PngHtmlMT_MUT ($hash, $scale, $inFinal, $outFinal, &
 
 
 
-
-////// THIS is the background variant !!!
-
 /** GENERATE PNG from PDF via mutool. Transforms $hash$inFinal.pdf into $hash$inFinal.png */
 private static function Pdf2PngHtmlMT_BG ($hash, $scale, $inFinal, $outFinal, &$duration = null) {
   $VERBOSE = true; $JS_PATH = JS_PATH;  $CACHE_PATH = CACHE_PATH;  $PY_PATH = PY_PATH;
@@ -870,7 +866,7 @@ private static function Pdf2PngHtmlMT_BG ($hash, $scale, $inFinal, $outFinal, &$
 }
 
 
-
+// CURRENTLY NOT UISED
 // this is the variant returning the html / svg / annotation code directly
 private static function Pdf2PngHtmlMT_RET ($hash, $scale, $inFinal, $outFinal, &$duration = null) {
   $VERBOSE = true; 

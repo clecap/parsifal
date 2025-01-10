@@ -1,5 +1,5 @@
 
-// console.error ("Parsifal runtime.js has started to load");
+console.error ("Parsifal runtime.js has started to load");
 
 // the following is an already minified version of slidetoggle.js (see this directory, in package)
 // we can use it as a drop-in replacement for slideToggle since we do not have a jquery instance in place in all occaions where we need the Parsifal runtime
@@ -69,32 +69,34 @@ myPath = myPath.substring (0,lastIndex);
 // called to dynamically initialize image tags
 // for every hash value there should be only one img tag, however in test pages we sometimes use the same text in several amsmath and so there might be
 // several img tasg with the same id value - and we have to initalize all of them - that is why we do a loop over all #hash
+/*
 const init = (hash, wgServer, wgScriptPath, cache_url) => {
+
+ return;
+
   let imgs = document.querySelectorAll('img[data-hash="'+hash+'"]');
   const iniEle = (ele) => {                                                   // function which is initializing an img element
-    if (ele.hasAttribute ("data-error")) {} 
-    else { Object.assign ( ele, {onerror: imageIsMissing, onload: showImage} );}
+    // Object.assign ( ele, {onerror: imageIsMissing, onload: showImage  } );
     let finalImgUrl3   = wgServer + wgScriptPath + cache_url + hash + "_pc_pdflatex_final_3.png"; 
     ele.setAttribute ("src", `${finalImgUrl3}`);
   };
   imgs.forEach (elem => iniEle (elem));
 }
+*/
 
-
-
+/*
 const imageIsMissing = (e) => {
-  // console.log ("image missing at: ", e);
+  console.log ("image missing at: ", e, e.target.src);
   var src = e.target.src;
-  // console.log ("image src was: ", src);
-  window.setTimeout ( () => {e.target.src = src;}, 5);
+  //window.setTimeout ( () => {e.target.src = src;}, 500);
   return;
 };
-
+*/
 
 
 const fixDistances = () => { 
   let parsis = document.querySelectorAll (".parsifal");
-  // console.warn ("parsis is ", parsis);
+  console.warn ("parsis is ", parsis);
   parsis.forEach(function(element) {
     // console.log (element, element.dataset.strut);
     let ele = element; 
@@ -112,7 +114,6 @@ const fixDistances = () => {
 
 document.addEventListener('DOMContentLoaded', () => {
   fixDistances();
-  // Your DOM manipulation code here
 });
 
 
@@ -127,25 +128,16 @@ const showImage = (e) => {
 
 
 const editPreviewPatch = () => {  // the clutch to PHP; we may adapat it to use CodeMirror, textarea or whatever client side editor we desire
+  console.log ("runtime: before initalizeTextarea");
   initializeTextarea();
+  console.log ("runtime: after initalizeTextarea");
   let params = (new URL (document.location)).searchParams;
   if (params.get("editormode") == "codemirror") {
     initializeCodeMirror ();  // additionally initialize a code mirror instance
   }
 };
 
-// function supporting debug and development of srcset feature
-const srcDebug = (hash) => {
 
-  window.onresize = () => {
-    // console.warn ("----Parsifal runtime debug: resizes of window to viewportwidth=", window.visualViewport.width);
-    let elems = document.querySelectorAll (".texImage");
-    elems.forEach ( ele=> {
-      //  console.warn ("----Parsifal runtime debug: ", "src=", ele.src, "currentSrc=", ele.currentSrc, "width=", ele.width);
-    });
-  }
-
-};
 
 
 function initializeCodeMirror () {
@@ -384,14 +376,8 @@ const showAsIframe = (url) => {   // console.log (" show " + url + " as iframe i
 };
 
 const showAsWin = (url) => { //  console.log (" show " + url + " as iframe inside of the current window");
-  url.parentNode.style.display="none";
   const handle = window.open( url, "errorWindow", "left=1,top=1,width=800,height=800");
 };
-
-
-const hilite = (hash) => { let ele = document.getElementById (hash); ele.style.outline = "1px dotted lightgrey";};
-
-const lowlite = (hash) => { let ele = document.getElementById (hash); ele.style.outline = "0px solid red"; };
 
 
 // find all comment nodes - currently not used but keep in as idea
@@ -406,12 +392,12 @@ function getComments (root) {
 }
 */
 
-return ( {imageIsMissing, renderPDF, jsRender, showImage, srcDebug, init, 
+return ( {renderPDF, jsRender, 
          limitSize, implementLimitedSize, toggleLimitSize,
- togglePreview, setPreviewSetting, implementPreviewSetting,
-    toggleVariants, showVariants, implementShowVariants ,
- toggleEditHandles, editHandles, implementEditHandles,
-         showAsIframe, showAsWin, hilite, lowlite,
+         togglePreview, setPreviewSetting, implementPreviewSetting,
+         toggleVariants, showVariants, implementShowVariants ,
+         toggleEditHandles, editHandles, implementEditHandles,
+         showAsIframe, showAsWin, 
          patchParsifalEditLinks});    // export functions to the PRT Parsifal Run Time object
 
 })();  // END of object PRT definition
@@ -423,9 +409,9 @@ return ( {imageIsMissing, renderPDF, jsRender, showImage, srcDebug, init,
 PRT.implementLimitedSize();
 PRT.implementEditHandles();
 
+
+// DEBUG stuff
+
 console.error ("Parsifal runtime.js has loaded successfully");
-console.log ("post Parsifal loader: ", Object.keys (mw.loader));
-setTimeout (
- () => { console.log ("post post Parsifal loader: ", Object.keys (mw.loader));},
-2000
-);
+//console.log ("post Parsifal loader: ", Object.keys (mw.loader));
+//setTimeout ( () => { console.log ("post post Parsifal loader: ", Object.keys (mw.loader));}, 2000 );

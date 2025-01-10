@@ -43,9 +43,10 @@ html.showVariants .instance_2 { display:none;  }
 html.showVariants #variantShow a::after {content: ' ON' !important;}
 html #variantShow a::after {content: ' OFF';}
 
-/* Better markup for the link in UI */
+/* Better markup for the link in UI */ 
 html.editHandles #editHandles a::after {content: ' ON' !important;}
 html #editHandles a::after {content: ' OFF';}
+
 
 .parsifalBlock {max-width:1000px;}
 
@@ -172,13 +173,12 @@ body.shift-down  .inline-edit-preview-img   {border:4px solid red;}
 
 /* Display or hide edit handles for every amsmath area */
 
-.editHandle                   { position:absolute;top:0px; right:10px; font-size:14pt; color:lightgrey !important; opacity:0.33; display:none;}
 .logWrap  {display:none;}
 
-html.editHandles  .editHandle {display:block;}
 html.editHandles  .logWrap {display:block;}
 
-.editHandle:hover {opacity:1;}
+
+
 .logWrap:hover    {opacity:1;}
 
 .logWrap {opacity:0.33;}

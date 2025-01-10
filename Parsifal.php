@@ -47,6 +47,8 @@ class Parsifal {                                  // glue class of the extension
      } // for every tag in TAGS implement a Latex-like parser hook
 
     $parser->setHook ( 'block',            function ($in, $ar, $parser, $frame) { return  Parsifal::block ($in, $ar);}    );         // implement a <block> construct
+
+
   }
 
 
@@ -147,8 +149,10 @@ public static function onEditPage_attemptSave( EditPage $editpage ) {
 // NOTE: This is only called for normal pages and not for the edit page 
 public static function onOutputPageBeforeHTML( OutputPage &$out, &$text ) {
   $out->addJSConfigVars ( 'Parsifal', self::prepareJSConfig() );         
-  $out->addModuleStyles ( ["ext.Parsifal"] );                               // must addModuleStyles separately in order to prevent FOUC 
 
+  // must NOT have an entry in extension.json with any script file, otherwise this thing here does not work
+  // must addModuleStyles separately in order to prevent FOUC 
+  $out->addModuleStyles ( ["ext.Parsifal"] );                               
 
   $title = $out->getTitle();
   //   if ( !$title instanceof Title || !$title->exists() ) { return true; }  // Ensure the title object is valid
@@ -171,18 +175,10 @@ public static function onOutputPageBeforeHTML( OutputPage &$out, &$text ) {
   // this provides a very early injection into the header 
   public static function onBeforePageDisplay ( OutputPage $out ) {
     global $wgExtensionAssetsPath;
-    $out->addHeadItem ("runtime.js", "<script src='$wgExtensionAssetsPath/Parsifal/js/runtime.js'></script>");  // TODO: use minimzed version
-
+    //$loader = "load.php?modules=startup|ext.Parsifal&only=scripts";                       // URL for loading cached, minified form of the file
+    //$out->addHeadItem ("runtime.js", "<script src='$loader'></script>");         // NOTE: must be loaded synchronously since we need it while we are building up the page!
+        $out->addHeadItem ("runtime.js", "<script src='$wgExtensionAssetsPath/Parsifal/js/runtime.js'></script>");  // during development: load raw version directly
   }
-
-
-
-
-
-
-
-
-
 
 
   private static function prepareJSConfig () {  // returns the configuration variables to be exported to the Javascript portion of the extension
@@ -209,12 +205,18 @@ public static function onOutputPageBeforeHTML( OutputPage &$out, &$text ) {
 
   public static function onRegistration () { TeXProcessor::ensureCacheDirectory (); }
 
+
+
   // when we edit a page, intercept the edit process via javascript and insert an edit preview (if appropriate)
   public static function onEditPageshowEditForminitial ( EditPage &$editPage, OutputPage $output) {
     $output->addJSConfigVars ( 'Parsifal', Parsifal::prepareJSConfig() );             // export configuration to HTML code for access via Javascript
     
+
+// TODO: BIG MESS. WE WANTED TO MOVE THE PREVIEW COMPLETELY TO DANTEPRESENTATIONS !!!!!
+
+
     if (false) { // version without Codemirror  // TODO: MUST ReSPECT user choice !!
-      $editPage->editFormTextAfterWarn = "<script>PRT.editPreviewPatch();</script>";  // immediately after display of edit UI patch it for TeX preview
+      //$editPage->editFormTextAfterWarn = "<script>PRT.editPreviewPatch();</script>";  // immediately after display of edit UI patch it for TeX preview
     }
     else {       // version which also offers Codemirror as editor
       $myHtml  = "<script src='extensions/Parsifal/vendor/codemirror/codemirror-5.65.3/lib/codemirror.js'></script>";
@@ -229,9 +231,13 @@ public static function onOutputPageBeforeHTML( OutputPage &$out, &$text ) {
       $myHtml .=  "<script src='extensions/Parsifal/vendor/codemirror/codemirror-5.65.3/addon/dialog/dialog.js'></script>"; 
       $myHtml .=  "<link rel='stylesheet' href='extensions/Parsifal/vendor/codemirror/codemirror-5.65.3/addon/dialog/dialog.css'></script>";  
 
-      $myHtml .=  "<script>PRT.editPreviewPatch();</script>";
-      $editPage->editFormTextAfterWarn = $myHtml;
-    }
+    //  $myHtml .=  "<script>DPRES.editPreviewPatch();</script>";
+    
+
+//  $editPage->editFormTextAfterWarn = $myHtml;
+    
+
+}
     
   }
   
